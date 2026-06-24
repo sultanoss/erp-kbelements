@@ -51,8 +51,16 @@ export default function LoginPage() {
   return (
     <main className="dot-grid flex min-h-screen items-center justify-center bg-grey-light px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8">
-          <img src="/logo.jpg" alt="KB ELEMENTS" className="h-10 w-auto" />
+        <div className="mb-8 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-red text-xl font-black text-white shadow-panel-lg">
+            KB
+          </div>
+          <div>
+            <div className="text-lg font-black tracking-tight text-brand-black">KB ELEMENTS</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-grey-mid">
+              ERP System
+            </div>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-grey-border bg-white p-8 shadow-panel-lg">
@@ -105,7 +113,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-5 text-center font-mono text-[10px] text-grey-mid">
-          Lagerverwaltung
+          KB ELEMENTS · Lagerverwaltung
         </p>
       </div>
     </main>
