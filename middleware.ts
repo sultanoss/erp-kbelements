@@ -1,25 +1,24 @@
-import { getToken } from "next-auth/jwt";
-import type { NextRequest } from "next/server";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-export default async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
-  const isLoggedIn = Boolean(token);
-  const { pathname } = request.nextUrl;
+export default auth((req) => {
+  const isLoggedIn = Boolean(req.auth);
+  const { pathname } = req.nextUrl;
 
   if (!isLoggedIn && pathname !== "/login") {
-    const loginUrl = new URL("/login", request.nextUrl.origin);
+    const loginUrl = new URL("/login", req.nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return Response.redirect(loginUrl);
+    return NextResponse.redirect(loginUrl);
   }
 
   if (isLoggedIn && pathname === "/login") {
-    return Response.redirect(new URL("/", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/", req.nextUrl.origin));
   }
 
-  if (pathname.startsWith("/admin") && token?.role !== "ADMIN") {
-    return Response.redirect(new URL("/", request.nextUrl.origin));
+  if (pathname.startsWith("/admin") && req.auth?.user?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/", req.nextUrl.origin));
   }
-}
+});
 
 export const config = {
   matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
