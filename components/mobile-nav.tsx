@@ -33,18 +33,12 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
   const sidebarContent = (
     <div className="flex h-full flex-col bg-brand-black">
       {/* Logo */}
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-red text-sm font-black text-white">
-          KB
-        </div>
-        <div>
-          <div className="text-sm font-black tracking-tight text-white">KB ELEMENTS</div>
-          <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">ERP System</div>
-        </div>
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <img src="/logo.jpg" alt="KB ELEMENTS" className="h-7 w-auto brightness-0 invert" />
         {/* Close button (mobile only) */}
         <button
           onClick={() => setOpen(false)}
-          className="ml-auto rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden"
+          className="rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden"
           aria-label="Menü schließen"
         >
           <X className="h-5 w-5" />
@@ -96,12 +90,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
 
       {/* Mobile: Hamburger Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-brand-black px-4 py-3 lg:hidden">
-        <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-red text-xs font-black text-white">
-            KB
-          </div>
-          <span className="text-sm font-black tracking-tight text-white">KB ELEMENTS</span>
-        </div>
+        <img src="/logo.jpg" alt="KB ELEMENTS" className="h-6 w-auto brightness-0 invert" />
         <button
           onClick={() => setOpen(true)}
           className="rounded-md p-2 text-white/70 hover:bg-white/10 hover:text-white"
