@@ -1,0 +1,14 @@
+node_modules
+.next
+.npm-cache
+.env
+dist
+coverage
+*.log
+*.tgz
+*.tsbuildinfo
+.vscode-user-data
+prisma/undo-*.ts
+prisma/check-*.ts
+prisma/test-*.ts
+test-*.mjs

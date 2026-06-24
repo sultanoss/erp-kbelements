@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Marketplace {
+  OTTO
+  AMAZON
+  KAUFLAND
+  MEDIAMARKT
+  EBAY
+  SHOPIFY
+  DIREKT
+}
+
+enum ActivityType {
+  SALE
+  RECEIPT
+  CORRECTION
+  USER_CHANGE
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         Role           @default(USER)
+  active       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sales        Sale[]
+  receipts     Receipt[]
+  corrections  Correction[]
+  activities   ActivityLog[]
+  herdsetSales HerdsetSale[]
+}
+
+model Item {
+  sku          String         @id
+  stock        Int            @default(0)
+  minStock     Int            @default(0)
+  location     String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sales        Sale[]
+  receipts     Receipt[]
+  corrections  Correction[]
+  activities   ActivityLog[]
+}
+
+model Sale {
+  id          String      @id @default(cuid())
+  date        DateTime
+  marketplace Marketplace
+  sku         String
+  quantity    Int
+  userId      String
+  createdAt   DateTime    @default(now())
+  item        Item        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@index([date])
+  @@index([sku])
+}
+
+model Receipt {
+  id        String   @id @default(cuid())
+  date      DateTime
+  sku       String
+  quantity  Int
+  userId    String
+  createdAt DateTime @default(now())
+  item      Item     @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([date])
+  @@index([sku])
+}
+
+model Correction {
+  id        String   @id @default(cuid())
+  date      DateTime
+  sku       String
+  quantity  Int
+  reason    String
+  userId    String
+  createdAt DateTime @default(now())
+  item      Item     @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([date])
+  @@index([sku])
+}
+
+model HerdsetSale {
+  id          String      @id @default(cuid())
+  date        DateTime
+  marketplace Marketplace
+  label       String
+  quantity    Int
+  userId      String
+  createdAt   DateTime    @default(now())
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@index([date])
+}
+
+model ActivityLog {
+  id        String       @id @default(cuid())
+  type      ActivityType
+  sku       String?
+  oldStock  Int?
+  newStock  Int?
+  note      String?
+  userId    String
+  createdAt DateTime     @default(now())
+  item      Item?        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  user      User         @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([type])
+  @@index([sku])
+}
