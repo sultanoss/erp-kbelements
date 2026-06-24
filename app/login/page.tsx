@@ -30,21 +30,13 @@ export default function LoginPage() {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
-      redirect: "manual",
     });
 
-    if (res.status === 302 || res.status === 200) {
-      const location = res.headers.get("location") ?? "/";
-      if (location.includes("error")) {
-        setError(true);
-        setLoading(false);
-      } else {
-        router.push("/");
-        router.refresh();
-      }
-    } else {
+    if (res.url.includes("error=")) {
       setError(true);
       setLoading(false);
+    } else {
+      window.location.href = "/";
     }
   }
 
