@@ -264,7 +264,6 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
         await prisma.$transaction(async (tx) => {
           const item = await tx.item.findUnique({ where: { sku } });
           if (!item) throw new Error(`SKU "${sku}" nicht gefunden`);
-          if (item.stock < quantity) throw new Error(`"${sku}": Bestand (${item.stock}) < Menge (${quantity})`);
           const newStock = item.stock - quantity;
           const sale = await tx.sale.create({
             data: { date, marketplace: marketplace as Marketplace, sku, quantity, userId: user.id },
