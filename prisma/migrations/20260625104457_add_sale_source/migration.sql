@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Sale" ADD COLUMN     "source" TEXT NOT NULL DEFAULT 'TAGESVERKAUF';

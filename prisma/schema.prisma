@@ -65,6 +65,7 @@ model Sale {
   marketplace Marketplace
   sku         String
   quantity    Int
+  source      String      @default("TAGESVERKAUF")
   userId      String
   createdAt   DateTime    @default(now())
   item        Item        @relation(fields: [sku], references: [sku], onUpdate: Cascade)

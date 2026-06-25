@@ -81,7 +81,7 @@ export async function createSale(formData: FormData) {
     const newStock = oldStock - quantity;
 
     await tx.sale.create({
-      data: { date: dateValue(formData, "date"), marketplace, sku, quantity, userId: user.id },
+      data: { date: dateValue(formData, "date"), marketplace, sku, quantity, source: "LAGER", userId: user.id },
     });
     await tx.item.update({ where: { sku }, data: { stock: newStock } });
     await tx.activityLog.create({
@@ -226,6 +226,7 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
   const user = await requireUser();
   const file = formData.get("file") as File | null;
   const dateRaw = text(formData, "date");
+  const source = text(formData, "source") || "TAGESVERKAUF";
   const date = dateRaw ? new Date(`${dateRaw}T12:00:00`) : new Date();
 
   if (!file || file.size === 0) return { ok: false, imported: 0, skipped: 0, errors: ["Keine Datei ausgewählt."], saleIds: [] };
@@ -276,7 +277,7 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
           if (!item) throw new Error(`SKU "${sku}" nicht gefunden`);
           const newStock = item.stock - quantity;
           const sale = await tx.sale.create({
-            data: { date, marketplace: marketplace as Marketplace, sku, quantity, userId: user.id },
+            data: { date, marketplace: marketplace as Marketplace, sku, quantity, source, userId: user.id },
           });
           saleIds.push(sale.id);
           await tx.item.update({ where: { sku }, data: { stock: newStock } });

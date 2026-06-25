@@ -16,6 +16,7 @@ export function HaendlerImport() {
   return (
     <div className="space-y-4">
       <form action={action} className="grid gap-4 md:grid-cols-3">
+        <input type="hidden" name="source" value="HAENDLER" />
         <label className="grid gap-1.5">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
             Excel- oder CSV-Datei
