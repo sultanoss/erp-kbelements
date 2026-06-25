@@ -33,21 +33,18 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
   const sidebarContent = (
     <div className="flex h-full flex-col bg-brand-black">
       {/* Logo */}
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-        <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.jpg"
-            alt="KB ELEMENTS"
-            className="h-10 w-auto max-w-[140px]"
-            style={{ filter: "invert(1)", mixBlendMode: "screen" }}
-          />
-          <div className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-white/70">ERP System</div>
+      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-red text-sm font-black text-white">
+          KB
+        </div>
+        <div>
+          <div className="text-sm font-black tracking-tight text-white">KB ELEMENTS</div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">ERP System</div>
         </div>
         {/* Close button (mobile only) */}
         <button
           onClick={() => setOpen(false)}
-          className="rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden"
+          className="ml-auto rounded-md p-1.5 text-white/50 hover:bg-white/10 hover:text-white lg:hidden"
           aria-label="Menü schließen"
         >
           <X className="h-5 w-5" />
@@ -100,9 +97,10 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
       {/* Mobile: Hamburger Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-brand-black px-4 py-3 lg:hidden">
         <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.jpg" alt="KB ELEMENTS" className="h-8 w-auto" style={{ filter: "invert(1)", mixBlendMode: "screen" }} />
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">ERP System</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-red text-xs font-black text-white">
+            KB
+          </div>
+          <span className="text-sm font-black tracking-tight text-white">KB ELEMENTS</span>
         </div>
         <button
           onClick={() => setOpen(true)}
