@@ -72,16 +72,28 @@ export default async function SalesPage() {
 
       {/* Händler Verkäufe */}
       <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          Händler Verkäufe
+        <div className="mb-4 flex items-center justify-between">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Händler Verkäufe</div>
+          <form method="GET" action="/api/export/sales-range" className="flex items-center gap-2">
+            <input name="von" type="date" defaultValue={today} className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none" />
+            <span className="font-mono text-xs text-grey-mid">–</span>
+            <input name="bis" type="date" defaultValue={today} className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none" />
+            <button type="submit" className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors">↓ Zeitraum exportieren</button>
+          </form>
         </div>
         <HaendlerImport />
       </Panel>
 
       {/* Lager Verkauf */}
       <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          Lager Verkauf
+        <div className="mb-4 flex items-center justify-between">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Lager Verkauf</div>
+          <form method="GET" action="/api/export/sales-range" className="flex items-center gap-2">
+            <input name="von" type="date" defaultValue={today} className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none" />
+            <span className="font-mono text-xs text-grey-mid">–</span>
+            <input name="bis" type="date" defaultValue={today} className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none" />
+            <button type="submit" className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors">↓ Zeitraum exportieren</button>
+          </form>
         </div>
         <form action={createSale} className="grid gap-4 md:grid-cols-4">
           <input type="hidden" name="marketplace" value="DIREKT" />
