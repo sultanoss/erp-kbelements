@@ -39,10 +39,10 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
           <img
             src="/logo.jpg"
             alt="KB ELEMENTS"
-            className="h-12 w-auto max-w-[180px]"
+            className="h-16 w-auto max-w-[200px]"
             style={{ filter: "invert(1)" }}
           />
-          <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/60">ERP System</div>
+          <div className="font-mono text-xs uppercase tracking-[0.25em] text-white/70">ERP System</div>
         </div>
         {/* Close button (mobile only) */}
         <button
@@ -99,11 +99,10 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
 
       {/* Mobile: Hamburger Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-brand-black px-4 py-3 lg:hidden">
-        <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-red text-xs font-black text-white">
-            KB
-          </div>
-          <span className="text-sm font-black tracking-tight text-white">KB ELEMENTS</span>
+        <div className="flex flex-col gap-0.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.jpg" alt="KB ELEMENTS" className="h-7 w-auto" style={{ filter: "invert(1)" }} />
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/60">ERP System</span>
         </div>
         <button
           onClick={() => setOpen(true)}
