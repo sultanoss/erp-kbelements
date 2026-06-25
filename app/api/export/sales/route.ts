@@ -13,19 +13,22 @@ export async function GET(req: NextRequest) {
   const from = new Date(`${date}T00:00:00`);
   const to = new Date(`${date}T23:59:59`);
 
-  const sales = await prisma.sale.findMany({
-    where: { date: { gte: from, lte: to } },
-    orderBy: { createdAt: "asc" },
-  });
+  const [items, sales] = await Promise.all([
+    prisma.item.findMany({ orderBy: { createdAt: "asc" }, select: { sku: true } }),
+    prisma.sale.findMany({ where: { date: { gte: from, lte: to } } }),
+  ]);
+
+  const soldMap = new Map<string, number>();
+  for (const s of sales) {
+    soldMap.set(s.sku, (soldMap.get(s.sku) ?? 0) + s.quantity);
+  }
+
+  const dateLabel = new Date(from).toLocaleDateString("de-DE");
 
   const XLSX = await import("xlsx");
   const ws = XLSX.utils.aoa_to_sheet([
     ["Datum", "SKU", "Menge"],
-    ...sales.map((s) => [
-      new Date(s.date).toLocaleDateString("de-DE"),
-      s.sku,
-      s.quantity,
-    ]),
+    ...items.map((i) => [dateLabel, i.sku, soldMap.get(i.sku) ?? 0]),
   ]);
   ws["!cols"] = [{ wch: 12 }, { wch: 22 }, { wch: 8 }];
 
