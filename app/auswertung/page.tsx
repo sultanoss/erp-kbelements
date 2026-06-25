@@ -86,6 +86,7 @@ export default async function AuswertungPage({
           <input
             name="von"
             type="date"
+            min="2026-06-25"
             defaultValue={fromStr}
             className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
           />
@@ -95,6 +96,7 @@ export default async function AuswertungPage({
           <input
             name="bis"
             type="date"
+            min="2026-06-25"
             defaultValue={toStr}
             className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
           />
