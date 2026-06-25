@@ -14,11 +14,24 @@ export async function GET(req: NextRequest) {
 
   let ws;
   if (type === "herdsets") {
-    const rows = [["75DV2/60PB", "", "", "", "", ""], ["ELK75EV1/60PB1", "", "", "", "", ""]];
+    const herdsetHeaders = ["Artikel", "Menge"];
+    const portals = ["Amazon", "Mediamarkt", "Otto", "Kaufland", "Ebay"];
+    const herdsetRows: (string | number)[][] = [];
+    for (const portal of portals) {
+      herdsetRows.push([portal, ""]);
+      for (let i = 0; i < 5; i++) herdsetRows.push(["", ""]);
+    }
     sheetName = "Herdsets";
     filename = `herdsets-${today}.xlsx`;
-    ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    ws["!cols"] = [{ wch: 20 }, { wch: 8 }, { wch: 10 }, { wch: 12 }, { wch: 8 }, { wch: 8 }];
+    ws = XLSX.utils.aoa_to_sheet([herdsetHeaders, ...herdsetRows]);
+    // Style portal header rows bold
+    const boldStyle = { font: { bold: true }, fill: { fgColor: { rgb: "F0F0F0" }, patternType: "solid" } };
+    portals.forEach((_, pi) => {
+      const rowIdx = 1 + pi * 6;
+      const cellRef = XLSX.utils.encode_cell({ r: rowIdx, c: 0 });
+      if (ws[cellRef]) ws[cellRef].s = boldStyle;
+    });
+    ws["!cols"] = [{ wch: 28 }, { wch: 10 }];
   } else if (type === "receipts") {
     const items = await prisma.item.findMany({ orderBy: { createdAt: "asc" }, select: { sku: true } });
     const receiptHeaders = ["Artikel", "Menge"];

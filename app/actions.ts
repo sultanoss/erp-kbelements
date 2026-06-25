@@ -353,6 +353,15 @@ export async function undoImport(_prev: unknown, formData: FormData): Promise<{ 
 
 type HerdsetImportResult = { ok: boolean; imported: number; errors: string[]; saleIds: string[] };
 
+const HERDSET_PORTAL_MAP: Record<string, string> = {
+  amazon: "AMAZON",
+  mediamarkt: "MEDIAMARKT",
+  "media markt": "MEDIAMARKT",
+  otto: "OTTO",
+  kaufland: "KAUFLAND",
+  ebay: "EBAY",
+};
+
 export async function importHerdsetSales(_prev: unknown, formData: FormData): Promise<HerdsetImportResult> {
   const user = await requireUser();
   const file = formData.get("file") as File | null;
@@ -361,45 +370,41 @@ export async function importHerdsetSales(_prev: unknown, formData: FormData): Pr
 
   if (!file || file.size === 0) return { ok: false, imported: 0, errors: ["Keine Datei ausgewählt."], saleIds: [] };
 
-  let headers: string[];
-  let rows: string[][];
-
   const isXLSX = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
-  if (isXLSX) {
-    ({ headers, rows } = await parseRowsFromXLSX(await file.arrayBuffer()));
-  } else {
-    ({ headers, rows } = parseRowsFromCSV(await file.text()));
-  }
-
-  if (!headers.length) return { ok: false, imported: 0, errors: ["Datei hat keine Kopfzeile."], saleIds: [] };
-
-  const marketplaceIndices: { index: number; enum: string }[] = [];
-  for (let i = 1; i < headers.length; i++) {
-    const key = headers[i].toLowerCase();
-    if (CSV_MARKETPLACE_MAP[key]) marketplaceIndices.push({ index: i, enum: CSV_MARKETPLACE_MAP[key] });
-  }
+  const { rows } = isXLSX
+    ? await parseRowsFromXLSX(await file.arrayBuffer())
+    : parseRowsFromCSV(await file.text());
 
   let imported = 0;
   const errors: string[] = [];
   const saleIds: string[] = [];
+  let currentMarketplace: string | null = null;
 
+  // Skip header row (Artikel | Menge), then parse sections
   for (const cols of rows) {
-    const label = cols[0];
-    if (!label || label.toLowerCase().startsWith("gesamt")) continue;
+    const first = String(cols[0] ?? "").trim();
+    const second = String(cols[1] ?? "").trim();
+    if (!first) continue;
 
-    for (const { index, enum: marketplace } of marketplaceIndices) {
-      const quantity = parseInt(cols[index] ?? "", 10);
-      if (!quantity || quantity <= 0) continue;
+    const portalKey = first.toLowerCase();
+    if (HERDSET_PORTAL_MAP[portalKey]) {
+      currentMarketplace = HERDSET_PORTAL_MAP[portalKey];
+      continue;
+    }
 
-      try {
-        const sale = await prisma.herdsetSale.create({
-          data: { date, marketplace: marketplace as Marketplace, label, quantity, userId: user.id },
-        });
-        saleIds.push(sale.id);
-        imported++;
-      } catch (e) {
-        errors.push(`${label}: ${(e as Error).message}`);
-      }
+    if (!currentMarketplace) continue;
+
+    const quantity = parseInt(second, 10);
+    if (!quantity || quantity <= 0) continue;
+
+    try {
+      const sale = await prisma.herdsetSale.create({
+        data: { date, marketplace: currentMarketplace as Marketplace, label: first, quantity, userId: user.id },
+      });
+      saleIds.push(sale.id);
+      imported++;
+    } catch (e) {
+      errors.push(`${first}: ${(e as Error).message}`);
     }
   }
 
