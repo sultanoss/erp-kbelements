@@ -2,6 +2,7 @@ import { createCorrection } from "@/app/actions";
 import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/shell";
 import { Field, Panel, SelectField, SubmitButton } from "@/components/ui";
+import { StockImport } from "@/components/stock-import";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 
@@ -16,6 +17,10 @@ export default async function CorrectionsPage() {
   return (
     <AppShell>
       <PageHeader title="Korrekturen" eyebrow="Positive oder negative Menge" />
+      <Panel className="mb-6 p-5">
+        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Bestand importieren</div>
+        <StockImport />
+      </Panel>
       <Panel className="mb-6 p-5">
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Korrektur eintragen</div>
         <form action={createCorrection} className="grid gap-4 md:grid-cols-5">

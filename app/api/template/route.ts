@@ -27,6 +27,14 @@ export async function GET(req: NextRequest) {
     filename = `wareneingang-${today}.xlsx`;
     ws = XLSX.utils.aoa_to_sheet([receiptHeaders, ...rows]);
     ws["!cols"] = [{ wch: 22 }, { wch: 10 }];
+  } else if (type === "stock") {
+    const items = await prisma.item.findMany({ orderBy: { createdAt: "asc" }, select: { sku: true, stock: true } });
+    const stockHeaders = ["Artikel", "Bestand"];
+    const rows = items.map((i) => [i.sku, i.stock]);
+    sheetName = "Bestand";
+    filename = `bestand-${today}.xlsx`;
+    ws = XLSX.utils.aoa_to_sheet([stockHeaders, ...rows]);
+    ws["!cols"] = [{ wch: 22 }, { wch: 10 }];
   } else {
     const items = await prisma.item.findMany({ orderBy: { createdAt: "asc" }, select: { sku: true } });
     const rows = items.map((i) => [i.sku, "", "", "", "", ""]);

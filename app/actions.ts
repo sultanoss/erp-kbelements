@@ -289,6 +289,40 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
   return { ok: true, imported, errors, saleIds };
 }
 
+type StockImportResult = { ok: boolean; imported: number; errors: string[] };
+
+export async function importStock(_prev: unknown, formData: FormData): Promise<StockImportResult> {
+  const user = await requireUser();
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return { ok: false, imported: 0, errors: ["Keine Datei ausgewählt."] };
+
+  const { headers, rows } = await parseRowsFromXLSX(await file.arrayBuffer());
+  if (!headers.length) return { ok: false, imported: 0, errors: ["Datei hat keine Kopfzeile."] };
+
+  let imported = 0;
+  const errors: string[] = [];
+
+  for (const cols of rows) {
+    const sku = String(cols[0] ?? "").trim();
+    if (!sku || sku.toLowerCase() === "artikel") continue;
+    const stock = parseInt(String(cols[1] ?? ""), 10);
+    if (isNaN(stock) || stock < 0) continue;
+
+    const item = await prisma.item.findUnique({ where: { sku } });
+    if (!item) { errors.push(`SKU "${sku}" nicht gefunden`); continue; }
+
+    await prisma.item.update({ where: { sku }, data: { stock } });
+    await prisma.activityLog.create({
+      data: { type: ActivityType.CORRECTION, sku, oldStock: item.stock, newStock: stock, note: "Bestandsimport", userId: user.id },
+    });
+    imported++;
+  }
+
+  revalidatePath("/inventory");
+  revalidatePath("/corrections");
+  return { ok: true, imported, errors };
+}
+
 export async function undoImport(_prev: unknown, formData: FormData): Promise<{ done: boolean; count: number }> {
   await requireUser();
   const ids = text(formData, "ids").split(",").filter(Boolean);
