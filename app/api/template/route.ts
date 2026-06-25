@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   let sheetName: string;
   let filename: string;
 
-  let ws;
+  let ws: ReturnType<typeof XLSX.utils.aoa_to_sheet>;
   if (type === "herdsets") {
     const herdsetHeaders = ["Artikel", "Menge"];
     const portals = ["Amazon", "Mediamarkt", "Otto", "Kaufland", "Ebay"];
