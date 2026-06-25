@@ -62,6 +62,14 @@ export default async function AuswertungPage({
     herdsetByMarketplace.get(row.marketplace)!.push({ label: row.label, quantity: row._sum.quantity ?? 0 });
   }
 
+  const skuRows = await prisma.sale.groupBy({
+    by: ["sku"],
+    where: { date: { gte: from, lte: to } },
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: "desc" } },
+  });
+  const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86400000) + 1);
+
   const fromStr = from.toISOString().slice(0, 10);
   const toStr = to.toISOString().slice(0, 10);
   const totalSales = rows.reduce((s, r) => s + (r._sum.quantity ?? 0), 0);
@@ -103,6 +111,44 @@ export default async function AuswertungPage({
           </span>
         )}
       </form>
+
+      {/* ── Ø Tagesverkauf pro SKU ── */}
+      <div className="mb-3 flex items-center gap-3">
+        <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Ø Tagesverkauf pro Produkt</div>
+        <div className="h-px flex-1 bg-grey-border" />
+        <span className="font-mono text-[10px] text-grey-mid">{days} {days === 1 ? "Tag" : "Tage"}</span>
+      </div>
+
+      {skuRows.length === 0 ? (
+        <Panel className="mb-8 p-6 text-center font-mono text-sm text-grey-mid">
+          Keine Verkäufe im gewählten Zeitraum.
+        </Panel>
+      ) : (
+        <Panel className="mb-8 overflow-hidden">
+          <div className="flex items-center justify-between border-b border-grey-border bg-grey-light px-5 py-3">
+            <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">SKU</span>
+            <div className="flex gap-8">
+              <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">Gesamt</span>
+              <span className="w-16 text-right font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">Ø / Tag</span>
+            </div>
+          </div>
+          <div className="divide-y divide-grey-border">
+            {skuRows.map((row) => {
+              const total = row._sum.quantity ?? 0;
+              const avg = (total / days).toFixed(1);
+              return (
+                <div key={row.sku} className="flex items-center justify-between px-5 py-2.5">
+                  <span className="font-mono text-sm font-semibold text-brand-red">{row.sku}</span>
+                  <div className="flex gap-8">
+                    <span className="font-mono tabular-nums text-sm text-grey-mid">{total} Stk.</span>
+                    <span className="w-16 text-right font-mono tabular-nums text-sm font-bold text-grey-dark">{avg}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
 
       {/* ── Abschnitt 1: Einzelprodukte ── */}
       <div className="mb-3 flex items-center gap-3">
