@@ -3,10 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
-const MP_LABELS: Record<string, string> = {
-  OTTO: "Otto", KAUFLAND: "Kaufland", MEDIAMARKT: "Media Markt",
-  AMAZON: "Amazon", EBAY: "Ebay", SHOPIFY: "Shopify", DIREKT: "Lager",
-};
+function formatDE(d: Date) {
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+function dateKey(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -19,22 +22,40 @@ export async function GET(req: NextRequest) {
   const from = new Date(`${von}T00:00:00`);
   const to = new Date(`${bis}T23:59:59`);
 
-  const sales = await prisma.sale.findMany({
-    where: { date: { gte: from, lte: to } },
-    orderBy: [{ date: "asc" }, { sku: "asc" }],
-  });
+  const [items, sales] = await Promise.all([
+    prisma.item.findMany({ orderBy: { createdAt: "asc" }, select: { sku: true } }),
+    prisma.sale.findMany({ where: { date: { gte: from, lte: to } }, orderBy: { date: "asc" } }),
+  ]);
+
+  // Build sorted list of unique dates in range
+  const dateSet = new Set<string>();
+  const cur = new Date(from);
+  while (cur <= to) {
+    dateSet.add(dateKey(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  const dates = Array.from(dateSet);
+
+  // Pivot: sku → dateKey → total quantity
+  const pivot = new Map<string, Map<string, number>>();
+  for (const s of sales) {
+    const dk = dateKey(new Date(s.date));
+    if (!pivot.has(s.sku)) pivot.set(s.sku, new Map());
+    const inner = pivot.get(s.sku)!;
+    inner.set(dk, (inner.get(dk) ?? 0) + s.quantity);
+  }
+
+  const dateLabels = dates.map((d) => formatDE(new Date(d)));
 
   const XLSX = await import("xlsx");
   const ws = XLSX.utils.aoa_to_sheet([
-    ["Datum", "Marktplatz", "SKU", "Menge"],
-    ...sales.map((s) => [
-      new Date(s.date).toLocaleDateString("de-DE"),
-      MP_LABELS[s.marketplace] ?? s.marketplace,
-      s.sku,
-      s.quantity,
+    ["SKU", ...dateLabels],
+    ...items.map((i) => [
+      i.sku,
+      ...dates.map((d) => pivot.get(i.sku)?.get(d) ?? 0),
     ]),
   ]);
-  ws["!cols"] = [{ wch: 12 }, { wch: 14 }, { wch: 22 }, { wch: 8 }];
+  ws["!cols"] = [{ wch: 24 }, ...dates.map(() => ({ wch: 10 }))];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Verkäufe");

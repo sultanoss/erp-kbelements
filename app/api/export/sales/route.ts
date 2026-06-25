@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
+function formatDE(d: Date) {
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -23,14 +27,14 @@ export async function GET(req: NextRequest) {
     soldMap.set(s.sku, (soldMap.get(s.sku) ?? 0) + s.quantity);
   }
 
-  const dateLabel = new Date(from).toLocaleDateString("de-DE");
+  const dateLabel = formatDE(from);
 
   const XLSX = await import("xlsx");
   const ws = XLSX.utils.aoa_to_sheet([
-    ["Datum", "SKU", "Menge"],
-    ...items.map((i) => [dateLabel, i.sku, soldMap.get(i.sku) ?? 0]),
+    ["SKU", dateLabel],
+    ...items.map((i) => [i.sku, soldMap.get(i.sku) ?? 0]),
   ]);
-  ws["!cols"] = [{ wch: 12 }, { wch: 22 }, { wch: 8 }];
+  ws["!cols"] = [{ wch: 24 }, { wch: 10 }];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Verkäufe");
