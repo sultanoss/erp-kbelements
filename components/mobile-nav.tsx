@@ -40,7 +40,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
             src="/logo.jpg"
             alt="KB ELEMENTS"
             className="h-16 w-auto max-w-[200px]"
-            style={{ filter: "invert(1)" }}
+            style={{ filter: "invert(1)", mixBlendMode: "screen" }}
           />
           <div className="font-mono text-xs uppercase tracking-[0.25em] text-white/70">ERP System</div>
         </div>
@@ -101,7 +101,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
       <header className="sticky top-0 z-30 flex items-center justify-between bg-brand-black px-4 py-3 lg:hidden">
         <div className="flex flex-col gap-0.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.jpg" alt="KB ELEMENTS" className="h-7 w-auto" style={{ filter: "invert(1)" }} />
+          <img src="/logo.jpg" alt="KB ELEMENTS" className="h-7 w-auto" style={{ filter: "invert(1)", mixBlendMode: "screen" }} />
           <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/60">ERP System</span>
         </div>
         <button
