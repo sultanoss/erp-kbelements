@@ -184,7 +184,7 @@ export default async function AuswertungPage({
       <Panel className="p-5">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-xs text-grey-mid">
-            Gleiche Spalten wie Verkäufe-Template: Artikel · Otto · Kaufland · Media Markt · Amazon · Ebay
+            Format: Portal als Abschnitt (Amazon, Mediamarkt, Otto …), darunter Artikel und Menge
           </p>
           <a
             href="/api/template?type=herdsets"
