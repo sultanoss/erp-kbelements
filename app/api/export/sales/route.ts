@@ -16,21 +16,18 @@ export async function GET(req: NextRequest) {
   const sales = await prisma.sale.findMany({
     where: { date: { gte: from, lte: to } },
     orderBy: { createdAt: "asc" },
-    include: { user: { select: { name: true } } },
   });
 
   const XLSX = await import("xlsx");
   const ws = XLSX.utils.aoa_to_sheet([
-    ["Datum", "Marktplatz", "SKU", "Menge", "Benutzer"],
+    ["Datum", "SKU", "Menge"],
     ...sales.map((s) => [
       new Date(s.date).toLocaleDateString("de-DE"),
-      s.marketplace,
       s.sku,
       s.quantity,
-      s.user.name,
     ]),
   ]);
-  ws["!cols"] = [{ wch: 12 }, { wch: 14 }, { wch: 22 }, { wch: 8 }, { wch: 18 }];
+  ws["!cols"] = [{ wch: 12 }, { wch: 22 }, { wch: 8 }];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Verkäufe");
