@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   if (type === "herdsets") {
     const herdsetHeaders = ["Artikel", "Menge"];
     const portals = ["Amazon", "Mediamarkt", "Otto", "Kaufland", "Ebay"];
-    const herdsetRows: (string | number)[][] = [];
+    const herdsetRows: string[][] = [];
     for (const portal of portals) {
       herdsetRows.push([portal, ""]);
       for (let i = 0; i < 5; i++) herdsetRows.push(["", ""]);
