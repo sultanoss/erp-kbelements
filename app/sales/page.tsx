@@ -38,6 +38,27 @@ export default async function SalesPage() {
                 ↓ Tag exportieren
               </button>
             </form>
+            <form method="GET" action="/api/export/sales-range" className="flex items-center gap-2">
+              <input
+                name="von"
+                type="date"
+                defaultValue={today}
+                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+              />
+              <span className="font-mono text-xs text-grey-mid">–</span>
+              <input
+                name="bis"
+                type="date"
+                defaultValue={today}
+                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors"
+              >
+                ↓ Zeitraum exportieren
+              </button>
+            </form>
             <a
               href="/api/template"
               className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors"
