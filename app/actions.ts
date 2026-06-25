@@ -201,7 +201,7 @@ const CSV_MARKETPLACE_MAP: Record<string, string> = {
   shopify: "SHOPIFY",
 };
 
-type ImportResult = { ok: boolean; imported: number; errors: string[]; saleIds: string[] };
+type ImportResult = { ok: boolean; imported: number; skipped: number; errors: string[]; saleIds: string[] };
 
 function parseRowsFromCSV(raw: string): { headers: string[]; rows: string[][] } {
   const text = raw.replace(/^﻿/, "");
@@ -228,7 +228,7 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
   const dateRaw = text(formData, "date");
   const date = dateRaw ? new Date(`${dateRaw}T12:00:00`) : new Date();
 
-  if (!file || file.size === 0) return { ok: false, imported: 0, errors: ["Keine Datei ausgewählt."], saleIds: [] };
+  if (!file || file.size === 0) return { ok: false, imported: 0, skipped: 0, errors: ["Keine Datei ausgewählt."], saleIds: [] };
 
   let headers: string[];
   let rows: string[][];
@@ -240,17 +240,27 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
     ({ headers, rows } = parseRowsFromCSV(await file.text()));
   }
 
-  if (!headers.length) return { ok: false, imported: 0, errors: ["Datei hat keine Kopfzeile."], saleIds: [] };
+  if (!headers.length) return { ok: false, imported: 0, skipped: 0, errors: ["Datei hat keine Kopfzeile."], saleIds: [] };
 
   const marketplaceIndices: { index: number; enum: string }[] = [];
+  const unrecognizedCols: string[] = [];
   for (let i = 1; i < headers.length; i++) {
-    const key = headers[i].toLowerCase();
-    if (CSV_MARKETPLACE_MAP[key]) marketplaceIndices.push({ index: i, enum: CSV_MARKETPLACE_MAP[key] });
+    const key = headers[i].toLowerCase().trim();
+    if (CSV_MARKETPLACE_MAP[key]) {
+      marketplaceIndices.push({ index: i, enum: CSV_MARKETPLACE_MAP[key] });
+    } else if (headers[i].trim()) {
+      unrecognizedCols.push(headers[i]);
+    }
   }
 
   let imported = 0;
+  let skipped = 0;
   const errors: string[] = [];
   const saleIds: string[] = [];
+
+  if (unrecognizedCols.length > 0) {
+    errors.push(`Spalten nicht erkannt (werden ignoriert): ${unrecognizedCols.join(", ")}`);
+  }
 
   for (const cols of rows) {
     const sku = cols[0];
@@ -258,7 +268,7 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
 
     for (const { index, enum: marketplace } of marketplaceIndices) {
       const quantity = parseInt(cols[index] ?? "", 10);
-      if (!quantity || quantity <= 0) continue;
+      if (!quantity || quantity <= 0) { skipped++; continue; }
 
       try {
         await prisma.$transaction(async (tx) => {
@@ -285,7 +295,7 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
   revalidatePath("/sales");
   revalidatePath("/inventory");
 
-  return { ok: true, imported, errors, saleIds };
+  return { ok: true, imported, skipped, errors, saleIds };
 }
 
 type StockImportResult = { ok: boolean; imported: number; errors: string[] };

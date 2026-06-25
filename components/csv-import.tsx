@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { importSalesCSV, undoImport } from "@/app/actions";
 import { Field } from "@/components/ui";
 
-const initialImport = { ok: false, imported: 0, errors: [] as string[], saleIds: [] as string[] };
+const initialImport = { ok: false, imported: 0, skipped: 0, errors: [] as string[], saleIds: [] as string[] };
 const initialUndo = { done: false, count: 0 };
 
 export function CsvImport() {
@@ -44,6 +44,7 @@ export function CsvImport() {
         <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3">
           <span className="font-mono text-sm text-green-700">
             ✓ {state.imported} Verkauf{state.imported !== 1 ? "e" : ""} erfolgreich importiert.
+            {state.skipped > 0 && ` (${state.skipped} übersprungen — Menge war 0)`}
           </span>
           {showUndo && (
             <form action={undoAction}>
