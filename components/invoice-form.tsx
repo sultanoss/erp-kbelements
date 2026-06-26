@@ -1,43 +1,45 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { createInvoice } from "@/app/actions";
 
-type LineItem = { pos: number; quantity: number; artNr: string; description: string; unitPrice: number; lager: string };
+type LineItem = { id: number; pos: number; quantity: number; artNr: string; description: string; unitPrice: number; lager: string };
 type Sku = { sku: string; stock: number; stockNS: number };
 
 const today = new Date().toISOString().slice(0, 10);
+let nextId = 1;
 
 export function InvoiceForm({ skus }: { skus: Sku[] }) {
   const [items, setItems] = useState<LineItem[]>([
-    { pos: 1, quantity: 1, artNr: "", description: "", unitPrice: 0, lager: "neuware" },
+    { id: nextId++, pos: 1, quantity: 1, artNr: "", description: "", unitPrice: 0, lager: "neuware" },
   ]);
   const [mwstRate, setMwstRate] = useState(19);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
   function addItem() {
-    setItems((prev) => [...prev, { pos: prev.length + 1, quantity: 1, artNr: "", description: "", unitPrice: 0, lager: "neuware" }]);
+    setItems((prev) => [...prev, { id: nextId++, pos: prev.length + 1, quantity: 1, artNr: "", description: "", unitPrice: 0, lager: "neuware" }]);
   }
 
-  function removeItem(i: number) {
-    setItems((prev) => prev.filter((_, idx) => idx !== i).map((it, idx) => ({ ...it, pos: idx + 1 })));
+  function removeItem(id: number) {
+    setItems((prev) => prev.filter((it) => it.id !== id).map((it, idx) => ({ ...it, pos: idx + 1 })));
   }
 
-  function updateItem(i: number, field: keyof LineItem, value: string | number) {
-    setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, [field]: value } : it));
+  function updateItem(id: number, field: keyof LineItem, value: string | number) {
+    setItems((prev) => prev.map((it) => it.id === id ? { ...it, [field]: value } : it));
   }
 
-  function handleSkuChange(i: number, sku: string) {
-    updateItem(i, "artNr", sku);
+  function handleSkuChange(id: number, sku: string) {
+    updateItem(id, "artNr", sku);
     if (!sku) return;
-    const found = skus.find((s) => s.sku === sku);
-    if (found && !items[i].description) updateItem(i, "description", sku);
+    const item = items.find((it) => it.id === id);
+    if (item && !item.description) updateItem(id, "description", sku);
   }
 
-  const netto = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-  const mwst = netto * (mwstRate / 100);
-  const brutto = netto + mwst;
+  // Eingegebener Preis ist BRUTTO — Netto wird rückgerechnet
+  const bruttoSum = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const netto = mwstRate > 0 ? bruttoSum / (1 + mwstRate / 100) : bruttoSum;
+  const mwstAmt = bruttoSum - netto;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -73,7 +75,7 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
             className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
         </div>
         <div className="flex items-end gap-4">
-          <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid mr-2">MwSt.</label>
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">MwSt.</span>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="radio" name="mwst" value="19" checked={mwstRate === 19} onChange={() => setMwstRate(19)} className="accent-brand-red" />
             <span className="text-sm font-semibold">19 %</span>
@@ -100,37 +102,37 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
 
       {/* Positionen */}
       <div>
-        <div className="mb-2 grid grid-cols-[2rem_6rem_1fr_8rem_6rem_5rem_2rem] gap-2 px-1">
+        <div className="mb-2 grid grid-cols-[2rem_7rem_1fr_8rem_5rem_7rem_2.5rem] gap-2 px-1">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Pos.</span>
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Art.-Nr. / SKU</span>
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezeichnung</span>
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lager</span>
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Menge</span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">E.-Preis €</span>
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Brutto-Preis €</span>
           <span />
         </div>
 
         <div className="space-y-2">
-          {items.map((it, i) => (
-            <div key={i} className="grid grid-cols-[2rem_6rem_1fr_8rem_6rem_6rem_2rem] gap-2 items-center">
+          {items.map((it) => (
+            <div key={it.id} className="grid grid-cols-[2rem_7rem_1fr_8rem_5rem_7rem_2.5rem] gap-2 items-center">
               <span className="font-mono text-sm text-grey-mid text-center">{it.pos}.</span>
               <input
                 value={it.artNr}
-                onChange={(e) => handleSkuChange(i, e.target.value)}
+                onChange={(e) => handleSkuChange(it.id, e.target.value)}
                 list="sku-list"
                 placeholder="optional"
                 className="h-9 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
               />
               <input
                 value={it.description}
-                onChange={(e) => updateItem(i, "description", e.target.value)}
+                onChange={(e) => updateItem(it.id, "description", e.target.value)}
                 placeholder="Bezeichnung *"
                 required
                 className="h-9 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none"
               />
               <select
                 value={it.lager}
-                onChange={(e) => updateItem(i, "lager", e.target.value)}
+                onChange={(e) => updateItem(it.id, "lager", e.target.value)}
                 className="h-9 rounded-lg border border-grey-border bg-white px-2 text-xs text-grey-dark focus:border-brand-red focus:outline-none"
               >
                 <option value="neuware">Neuware-Lager</option>
@@ -142,7 +144,7 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
                 value={it.quantity}
                 min={0.01}
                 step={0.01}
-                onChange={(e) => updateItem(i, "quantity", parseFloat(e.target.value) || 0)}
+                onChange={(e) => updateItem(it.id, "quantity", parseFloat(e.target.value) || 0)}
                 className="h-9 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
               />
               <input
@@ -150,11 +152,15 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
                 value={it.unitPrice}
                 min={0}
                 step={0.01}
-                onChange={(e) => updateItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
+                onChange={(e) => updateItem(it.id, "unitPrice", parseFloat(e.target.value) || 0)}
                 className="h-9 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
               />
-              <button type="button" onClick={() => removeItem(i)} disabled={items.length === 1}
-                className="h-9 w-9 rounded-lg border border-grey-border text-grey-mid hover:border-brand-red hover:text-brand-red disabled:opacity-30 text-xs">
+              <button
+                type="button"
+                onClick={() => removeItem(it.id)}
+                disabled={items.length === 1}
+                className="h-9 w-9 rounded-lg border border-grey-border text-grey-mid hover:border-brand-red hover:text-brand-red disabled:opacity-30 text-xs flex items-center justify-center"
+              >
                 ✕
               </button>
             </div>
@@ -171,9 +177,9 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
         </button>
       </div>
 
-      {/* Summen */}
+      {/* Summen — Brutto-Eingabe, Netto rückgerechnet */}
       <div className="flex justify-end">
-        <div className="w-64 space-y-1.5 rounded-lg border border-grey-border bg-grey-light p-4">
+        <div className="w-72 space-y-1.5 rounded-lg border border-grey-border bg-grey-light p-4">
           <div className="flex justify-between font-mono text-sm text-grey-mid">
             <span>Gesamt Netto ({mwstRate} %)</span>
             <span className="tabular-nums">{netto.toFixed(2)} €</span>
@@ -181,13 +187,16 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
           {mwstRate > 0 && (
             <div className="flex justify-between font-mono text-sm text-grey-mid">
               <span>zzgl. MwSt ({mwstRate} %)</span>
-              <span className="tabular-nums">{mwst.toFixed(2)} €</span>
+              <span className="tabular-nums">{mwstAmt.toFixed(2)} €</span>
             </div>
           )}
           <div className="flex justify-between border-t border-grey-border pt-2 font-mono text-sm font-bold text-grey-dark">
             <span>Rechnungsbetrag</span>
-            <span className="tabular-nums">{brutto.toFixed(2)} €</span>
+            <span className="tabular-nums">{bruttoSum.toFixed(2)} €</span>
           </div>
+          {mwstRate > 0 && (
+            <p className="font-mono text-[10px] text-grey-mid pt-1">* Eingegebene Preise sind Bruttopreise inkl. {mwstRate} % MwSt.</p>
+          )}
         </div>
       </div>
 
@@ -199,8 +208,9 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
         </div>
         <div className="grid gap-1.5">
-          <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinfo (optional)</label>
-          <textarea name="paymentInfo" rows={2} placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
+          <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation *</label>
+          <textarea name="paymentInfo" rows={2} required
+            placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
         </div>
       </div>
