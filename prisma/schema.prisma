@@ -50,6 +50,7 @@ model User {
 
 model Item {
   sku          String         @id
+  name         String         @default("")
   stock        Int            @default(0)
   stockNS      Int            @default(0)
   minStock     Int            @default(0)

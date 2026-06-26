@@ -45,6 +45,7 @@ export async function logoutAction() {
 export async function upsertItem(formData: FormData) {
   await requireAdmin();
   const sku = text(formData, "sku").toUpperCase();
+  const name = text(formData, "name");
   const stock = numberValue(formData, "stock");
   const stockNS = numberValue(formData, "stockNS");
   const minStock = numberValue(formData, "minStock");
@@ -52,8 +53,8 @@ export async function upsertItem(formData: FormData) {
 
   await prisma.item.upsert({
     where: { sku },
-    update: { stock, stockNS, minStock },
-    create: { sku, stock, stockNS, minStock },
+    update: { name, stock, stockNS, minStock },
+    create: { sku, name, stock, stockNS, minStock },
   });
 
   revalidatePath("/inventory");

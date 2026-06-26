@@ -47,8 +47,9 @@ export default async function InventoryPage({
       {canEdit && (
         <Panel className="mb-6 p-5">
           <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Neues Produkt anlegen</div>
-          <form action={upsertItem} className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <form action={upsertItem} className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             <Field label="SKU" name="sku" placeholder="z.B. ELK105" />
+            <Field label="Bezeichnung" name="name" placeholder="z.B. Induktionskochfeld..." />
             <Field label="Bestand Neuware-Lager" name="stock" type="number" defaultValue={0} />
             <Field label="Bestand NS-Lager" name="stockNS" type="number" defaultValue={0} />
             <Field label="Mindestbestand" name="minStock" type="number" defaultValue={0} />
@@ -110,6 +111,7 @@ export default async function InventoryPage({
           <thead>
             <tr className="border-b border-grey-border bg-grey-light">
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezeichnung</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Neuware-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
@@ -120,6 +122,7 @@ export default async function InventoryPage({
             {items.map((item) => (
               <tr key={item.sku} className="transition-colors hover:bg-grey-light/60">
                 <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{item.sku}</td>
+                <td className="px-4 py-3 text-sm text-grey-dark">{item.name || <span className="text-grey-mid italic">—</span>}</td>
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stock}</td>
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stockNS}</td>
                 <td className="px-4 py-3">

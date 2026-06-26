@@ -4,7 +4,7 @@ import { useState, useTransition, useRef } from "react";
 import { createInvoice } from "@/app/actions";
 
 type LineItem = { id: number; pos: number; quantity: number; artNr: string; description: string; unitPrice: number; lager: string };
-type Sku = { sku: string; stock: number; stockNS: number };
+type Sku = { sku: string; name: string; stock: number; stockNS: number };
 
 const today = new Date().toISOString().slice(0, 10);
 let nextId = 1;
@@ -38,8 +38,10 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
   function handleSkuChange(id: number, sku: string) {
     updateItem(id, "artNr", sku);
     if (!sku) return;
-    const item = items.find((it) => it.id === id);
-    if (item && !item.description) updateItem(id, "description", sku);
+    const skuData = skus.find((s) => s.sku === sku);
+    if (skuData?.name) {
+      updateItem(id, "description", skuData.name);
+    }
   }
 
   // Eingegebener Preis ist BRUTTO — Netto wird rückgerechnet
