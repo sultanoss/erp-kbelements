@@ -23,9 +23,13 @@ export default async function CorrectionsPage() {
       </Panel>
       <Panel className="mb-6 p-5">
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Korrektur eintragen</div>
-        <form action={createCorrection} className="grid gap-4 md:grid-cols-5">
+        <form action={createCorrection} className="grid gap-4 md:grid-cols-6">
           <Field label="Datum" name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
           <SelectField label="SKU" name="sku">{items.map((i) => <option key={i.sku} value={i.sku}>{i.sku}</option>)}</SelectField>
+          <SelectField label="Lager" name="lager">
+            <option value="neuware">Neuware-Lager</option>
+            <option value="ns">NS-Lager</option>
+          </SelectField>
           <Field label="Menge" name="quantity" type="number" defaultValue={-1} />
           <Field label="Grund" name="reason" placeholder="Inventur, Bruch ..." />
           <div className="flex items-end"><SubmitButton>Korrektur speichern</SubmitButton></div>

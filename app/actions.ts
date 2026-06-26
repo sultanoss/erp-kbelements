@@ -174,19 +174,25 @@ export async function createCorrection(formData: FormData) {
   const sku = text(formData, "sku");
   const quantity = numberValue(formData, "quantity");
   const reason = text(formData, "reason");
+  const lager = text(formData, "lager"); // "neuware" | "ns"
   if (!sku || Number.isNaN(quantity) || quantity === 0 || !reason) return;
+
+  const isNS = lager === "ns";
 
   await prisma.$transaction(async (tx) => {
     const item = await tx.item.findUniqueOrThrow({ where: { sku } });
-    const oldStock = item.stock;
+    const oldStock = isNS ? item.stockNS : item.stock;
     const newStock = oldStock + quantity;
 
     await tx.correction.create({
       data: { date: dateValue(formData, "date"), sku, quantity, reason, userId: user.id },
     });
-    await tx.item.update({ where: { sku }, data: { stock: newStock } });
+    await tx.item.update({
+      where: { sku },
+      data: isNS ? { stockNS: newStock } : { stock: newStock },
+    });
     await tx.activityLog.create({
-      data: { type: ActivityType.CORRECTION, sku, oldStock, newStock, note: reason, userId: user.id },
+      data: { type: ActivityType.CORRECTION, sku, oldStock, newStock, note: `${reason} (${isNS ? "NS-Lager" : "Neuware-Lager"})`, userId: user.id },
     });
   });
 
