@@ -22,7 +22,13 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
   }
 
   function removeItem(id: number) {
-    setItems((prev) => prev.filter((it) => it.id !== id).map((it, idx) => ({ ...it, pos: idx + 1 })));
+    setItems((prev) => {
+      if (prev.length === 1) {
+        // Letzte Zeile: Felder leeren statt löschen
+        return [{ id: nextId++, pos: 1, quantity: 1, artNr: "", description: "", unitPrice: 0, lager: "neuware" }];
+      }
+      return prev.filter((it) => it.id !== id).map((it, idx) => ({ ...it, pos: idx + 1 }));
+    });
   }
 
   function updateItem(id: number, field: keyof LineItem, value: string | number) {
@@ -102,13 +108,13 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
 
       {/* Positionen */}
       <div>
-        <div className="mb-2 grid grid-cols-[2rem_7rem_1fr_8rem_5rem_7rem_2.5rem] gap-2 px-1">
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Pos.</span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Art.-Nr. / SKU</span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezeichnung</span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lager</span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Menge</span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Brutto-Preis €</span>
+        <div className="mb-2 grid grid-cols-[2rem_7rem_1fr_8rem_5rem_7rem_2.5rem] gap-2 border-b border-grey-border pb-2 px-1">
+          <span className="text-xs font-bold text-grey-dark">Pos.</span>
+          <span className="text-xs font-bold text-grey-dark">Art.-Nr.</span>
+          <span className="text-xs font-bold text-grey-dark">Bezeichnung</span>
+          <span className="text-xs font-bold text-grey-dark">Lager</span>
+          <span className="text-xs font-bold text-grey-dark text-right">Menge</span>
+          <span className="text-xs font-bold text-grey-dark text-right">Preis (Brutto)</span>
           <span />
         </div>
 
@@ -158,8 +164,7 @@ export function InvoiceForm({ skus }: { skus: Sku[] }) {
               <button
                 type="button"
                 onClick={() => removeItem(it.id)}
-                disabled={items.length === 1}
-                className="h-9 w-9 rounded-lg border border-grey-border text-grey-mid hover:border-brand-red hover:text-brand-red disabled:opacity-30 text-xs flex items-center justify-center"
+                className="h-9 w-9 rounded-lg border border-grey-border text-grey-mid hover:border-brand-red hover:text-brand-red text-xs flex items-center justify-center"
               >
                 ✕
               </button>
