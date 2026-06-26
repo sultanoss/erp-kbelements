@@ -1,11 +1,13 @@
-import { deleteItem } from "@/app/actions";
+import { deleteItem, upsertItem } from "@/app/actions";
 import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/shell";
-import { Panel, SubmitButton } from "@/components/ui";
+import { Field, Panel, SubmitButton } from "@/components/ui";
 import { requireUser } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+
+const today = new Date().toISOString().slice(0, 10);
 
 export default async function InventoryPage({
   searchParams,
@@ -41,6 +43,23 @@ export default async function InventoryPage({
     <AppShell>
       <PageHeader title="Lager" eyebrow="Artikelverwaltung" />
 
+      {/* Neues Produkt (nur Admin) */}
+      {canEdit && (
+        <Panel className="mb-6 p-5">
+          <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Neues Produkt anlegen</div>
+          <form action={upsertItem} className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+            <Field label="SKU" name="sku" placeholder="z.B. ELK105" />
+            <Field label="Bestand Hauptlager" name="stock" type="number" defaultValue={0} />
+            <Field label="Bestand NS-Lager" name="stockNS" type="number" defaultValue={0} />
+            <Field label="Mindestbestand" name="minStock" type="number" defaultValue={0} />
+            <Field label="Lagerplatz" name="location" placeholder="z.B. Regal A1" />
+            <div className="flex items-end">
+              <SubmitButton>Anlegen</SubmitButton>
+            </div>
+          </form>
+        </Panel>
+      )}
+
       {/* Suche + Sortierung */}
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <form method="GET" className="flex flex-1 max-w-lg gap-2">
@@ -69,22 +88,13 @@ export default async function InventoryPage({
 
         {/* Sortier-Buttons */}
         <div className="flex items-center gap-1 rounded-lg border border-grey-border bg-white p-1">
-          <a
-            href={link(undefined)}
-            className={`rounded px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${!sort ? "bg-brand-red text-white" : "text-grey-mid hover:text-grey-dark"}`}
-          >
+          <a href={link(undefined)} className={`rounded px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${!sort ? "bg-brand-red text-white" : "text-grey-mid hover:text-grey-dark"}`}>
             Standard
           </a>
-          <a
-            href={link("stock_desc")}
-            className={`rounded px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${sort === "stock_desc" ? "bg-brand-red text-white" : "text-grey-mid hover:text-grey-dark"}`}
-          >
+          <a href={link("stock_desc")} className={`rounded px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${sort === "stock_desc" ? "bg-brand-red text-white" : "text-grey-mid hover:text-grey-dark"}`}>
             Bestand ↓
           </a>
-          <a
-            href={link("stock_asc")}
-            className={`rounded px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${sort === "stock_asc" ? "bg-brand-red text-white" : "text-grey-mid hover:text-grey-dark"}`}
-          >
+          <a href={link("stock_asc")} className={`rounded px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${sort === "stock_asc" ? "bg-brand-red text-white" : "text-grey-mid hover:text-grey-dark"}`}>
             Bestand ↑
           </a>
         </div>
@@ -97,11 +107,12 @@ export default async function InventoryPage({
       )}
 
       <Panel className="overflow-x-auto">
-        <table className="w-full min-w-[400px] text-left text-sm">
+        <table className="w-full min-w-[600px] text-left text-sm">
           <thead>
             <tr className="border-b border-grey-border bg-grey-light">
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bestand</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Hauptlager</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lagerplatz</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
               {canEdit && <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>}
@@ -112,6 +123,7 @@ export default async function InventoryPage({
               <tr key={item.sku} className="transition-colors hover:bg-grey-light/60">
                 <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{item.sku}</td>
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stock}</td>
+                <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stockNS}</td>
                 <td className="px-4 py-3 font-mono text-sm text-grey-mid">{item.location}</td>
                 <td className="px-4 py-3">
                   {item.stock < item.minStock ? (

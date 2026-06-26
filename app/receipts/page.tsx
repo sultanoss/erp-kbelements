@@ -1,4 +1,4 @@
-import { createReceipt } from "@/app/actions";
+import { createReceipt, createNSReceipt } from "@/app/actions";
 import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/shell";
 import { Field, Panel, SelectField, SubmitButton } from "@/components/ui";
@@ -34,14 +34,25 @@ export default async function ReceiptsPage() {
         <ReceiptExcelImport />
       </Panel>
 
-      {/* Manueller Einzeleintrag */}
+      {/* Hauptlager Wareneingang */}
       <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Neuen Wareneingang eintragen</div>
+        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Hauptlager — Wareneingang eintragen</div>
         <form action={createReceipt} className="grid gap-4 md:grid-cols-4">
           <Field label="Datum" name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
           <SelectField label="SKU" name="sku">{items.map((i) => <option key={i.sku} value={i.sku}>{i.sku}</option>)}</SelectField>
           <Field label="Menge" name="quantity" type="number" defaultValue={1} />
-          <div className="flex items-end"><SubmitButton>Wareneingang speichern</SubmitButton></div>
+          <div className="flex items-end"><SubmitButton>Speichern</SubmitButton></div>
+        </form>
+      </Panel>
+
+      {/* NS-Lager Wareneingang */}
+      <Panel className="mb-6 p-5">
+        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">NS-Lager — Wareneingang eintragen</div>
+        <form action={createNSReceipt} className="grid gap-4 md:grid-cols-4">
+          <Field label="Datum" name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
+          <SelectField label="SKU" name="sku">{items.map((i) => <option key={i.sku} value={i.sku}>{i.sku}</option>)}</SelectField>
+          <Field label="Menge" name="quantity" type="number" defaultValue={1} />
+          <div className="flex items-end"><SubmitButton>Speichern</SubmitButton></div>
         </form>
       </Panel>
 

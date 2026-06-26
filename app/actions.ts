@@ -46,6 +46,7 @@ export async function upsertItem(formData: FormData) {
   await requireAdmin();
   const sku = text(formData, "sku").toUpperCase();
   const stock = numberValue(formData, "stock");
+  const stockNS = numberValue(formData, "stockNS");
   const minStock = numberValue(formData, "minStock");
   const location = text(formData, "location");
 
@@ -53,8 +54,8 @@ export async function upsertItem(formData: FormData) {
 
   await prisma.item.upsert({
     where: { sku },
-    update: { stock, minStock, location },
-    create: { sku, stock, minStock, location },
+    update: { stock, stockNS, minStock, location },
+    create: { sku, stock, stockNS, minStock, location },
   });
 
   revalidatePath("/inventory");
@@ -91,6 +92,57 @@ export async function createSale(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/sales");
+  revalidatePath("/inventory");
+}
+
+export async function createNSSale(formData: FormData) {
+  const user = await requireUser();
+  const sku = text(formData, "sku");
+  const quantity = numberValue(formData, "quantity");
+  if (!sku || quantity <= 0) return;
+
+  await prisma.$transaction(async (tx) => {
+    const item = await tx.item.findUniqueOrThrow({ where: { sku } });
+    const oldStock = item.stockNS;
+    if (oldStock < quantity) throw new Error("Nicht genug Bestand im NS-Lager");
+    const newStock = oldStock - quantity;
+
+    await tx.sale.create({
+      data: { date: dateValue(formData, "date"), marketplace: "DIREKT", sku, quantity, source: "NS_LAGER", userId: user.id },
+    });
+    await tx.item.update({ where: { sku }, data: { stockNS: newStock } });
+    await tx.activityLog.create({
+      data: { type: ActivityType.SALE, sku, oldStock, newStock, note: "NS-Lager", userId: user.id },
+    });
+  });
+
+  revalidatePath("/");
+  revalidatePath("/sales");
+  revalidatePath("/inventory");
+}
+
+export async function createNSReceipt(formData: FormData) {
+  const user = await requireUser();
+  const sku = text(formData, "sku");
+  const quantity = numberValue(formData, "quantity");
+  if (!sku || quantity <= 0) return;
+
+  await prisma.$transaction(async (tx) => {
+    const item = await tx.item.findUniqueOrThrow({ where: { sku } });
+    const oldStock = item.stockNS;
+    const newStock = oldStock + quantity;
+
+    await tx.receipt.create({
+      data: { date: dateValue(formData, "date"), sku, quantity, userId: user.id },
+    });
+    await tx.item.update({ where: { sku }, data: { stockNS: newStock } });
+    await tx.activityLog.create({
+      data: { type: ActivityType.RECEIPT, sku, oldStock, newStock, note: "NS-Lager", userId: user.id },
+    });
+  });
+
+  revalidatePath("/");
+  revalidatePath("/receipts");
   revalidatePath("/inventory");
 }
 

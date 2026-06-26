@@ -1,4 +1,4 @@
-import { createSale } from "@/app/actions";
+import { createSale, createNSSale } from "@/app/actions";
 import { CsvImport } from "@/components/csv-import";
 import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/shell";
@@ -81,13 +81,28 @@ export default async function SalesPage() {
       {/* Lager Verkauf */}
       <Panel className="mb-6 p-5">
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          Lager Verkauf
+          Hauptlager Verkauf
         </div>
         <form action={createSale} className="grid gap-4 md:grid-cols-4">
           <input type="hidden" name="marketplace" value="DIREKT" />
           <Field label="Datum" name="date" type="date" defaultValue={today} />
           <SelectField label="SKU" name="sku">
-            {items.map((i) => <option key={i.sku} value={i.sku}>{i.sku}</option>)}
+            {items.map((i) => <option key={i.sku} value={i.sku}>{i.sku} (Bestand: {i.stock})</option>)}
+          </SelectField>
+          <Field label="Menge" name="quantity" type="number" defaultValue={1} />
+          <div className="flex items-end"><SubmitButton>Speichern</SubmitButton></div>
+        </form>
+      </Panel>
+
+      {/* NS-Lager Verkauf */}
+      <Panel className="mb-6 p-5">
+        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
+          NS-Lager Verkauf
+        </div>
+        <form action={createNSSale} className="grid gap-4 md:grid-cols-4">
+          <Field label="Datum" name="date" type="date" defaultValue={today} />
+          <SelectField label="SKU" name="sku">
+            {items.map((i) => <option key={i.sku} value={i.sku}>{i.sku} (NS: {i.stockNS})</option>)}
           </SelectField>
           <Field label="Menge" name="quantity" type="number" defaultValue={1} />
           <div className="flex items-end"><SubmitButton>Speichern</SubmitButton></div>
