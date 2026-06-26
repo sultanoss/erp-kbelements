@@ -49,7 +49,7 @@ export default async function InventoryPage({
           <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Neues Produkt anlegen</div>
           <form action={upsertItem} className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             <Field label="SKU" name="sku" placeholder="z.B. ELK105" />
-            <Field label="Bestand Hauptlager" name="stock" type="number" defaultValue={0} />
+            <Field label="Bestand Neuware-Lager" name="stock" type="number" defaultValue={0} />
             <Field label="Bestand NS-Lager" name="stockNS" type="number" defaultValue={0} />
             <Field label="Mindestbestand" name="minStock" type="number" defaultValue={0} />
             <div className="flex items-end">
@@ -110,7 +110,7 @@ export default async function InventoryPage({
           <thead>
             <tr className="border-b border-grey-border bg-grey-light">
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Hauptlager</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Neuware-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
               {canEdit && <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>}

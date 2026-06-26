@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
 
   XLSX.utils.book_append_sheet(wb, buildPivot(sales, "TAGESVERKAUF", skus, dates, dateLabels, XLSX), "Tagesverkäufe");
   XLSX.utils.book_append_sheet(wb, buildPivot(sales, "HAENDLER", skus, dates, dateLabels, XLSX), "Händler");
-  XLSX.utils.book_append_sheet(wb, buildPivot(sales, "LAGER", skus, dates, dateLabels, XLSX), "Hauptlager");
+  XLSX.utils.book_append_sheet(wb, buildPivot(sales, "LAGER", skus, dates, dateLabels, XLSX), "Neuware-Lager");
   XLSX.utils.book_append_sheet(wb, buildPivot(sales, "NS_LAGER", skus, dates, dateLabels, XLSX), "NS-Lager");
 
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });

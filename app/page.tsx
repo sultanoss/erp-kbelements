@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd } }, _sum: { quantity: true } }),
     prisma.herdsetSale.aggregate({ where: { date: { gte: todayStart } }, _sum: { quantity: true } }),
-    prisma.item.findMany({ where: { stock: { lt: 100 } }, orderBy: { stock: "asc" }, select: { sku: true, stock: true } }),
+    prisma.item.findMany({ orderBy: { stock: "asc" }, select: { sku: true, stock: true, minStock: true } }),
     prisma.sale.groupBy({
       by: ["sku"],
       where: { date: { gte: monthStart, lte: monthEnd } },
@@ -43,6 +43,7 @@ export default async function DashboardPage() {
     const day = new Date(row.date).getDate();
     dayMap.set(day, (dayMap.get(day) ?? 0) + (row._sum.quantity ?? 0));
   }
+  const lowStockItems = lowStock.filter((i) => i.stock < i.minStock);
   const chartData = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, qty: dayMap.get(i + 1) ?? 0 }));
   const maxQty = Math.max(...chartData.map((d) => d.qty), 1);
   const monthLabel = MONTH_NAMES[now.getMonth()];
@@ -63,20 +64,25 @@ export default async function DashboardPage() {
 
       {/* Zeile 2: Niedrig-Bestand + Top-Verkäufe */}
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        {/* Artikel unter 100 Stück */}
+        {/* Mindestbestand unterschritten */}
         <Panel className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-grey-border px-5 py-3">
-            <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Artikel unter 100 Stück</div>
-            <span className="font-mono text-xs font-bold text-brand-red">{lowStock.length}</span>
+            <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Unter Mindestbestand</div>
+            {lowStockItems.length > 0 && (
+              <span className="font-mono text-xs font-bold text-brand-red">{lowStockItems.length} Artikel</span>
+            )}
           </div>
-          {lowStock.length === 0 ? (
-            <div className="p-5 font-mono text-xs text-grey-mid">✓ Alle Artikel über 100 Stück</div>
+          {lowStockItems.length === 0 ? (
+            <div className="p-5 font-mono text-xs text-grey-mid">✓ Alle Artikel über Mindestbestand</div>
           ) : (
             <div className="max-h-64 divide-y divide-grey-border overflow-y-auto">
-              {lowStock.map((item) => (
+              {lowStockItems.map((item) => (
                 <div key={item.sku} className="flex items-center justify-between px-5 py-2.5">
                   <span className="font-mono text-sm font-semibold text-brand-red">{item.sku}</span>
-                  <span className="font-mono tabular-nums text-sm text-grey-dark">{item.stock} Stk.</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono tabular-nums text-sm text-grey-dark">{item.stock} Stk.</span>
+                    <span className="font-mono text-xs text-grey-mid">(Min. {item.minStock})</span>
+                  </div>
                 </div>
               ))}
             </div>

@@ -81,7 +81,7 @@ export default async function SalesPage() {
       {/* Lager Verkauf */}
       <Panel className="mb-6 p-5">
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          Hauptlager Verkauf
+          Neuware-Lager Verkauf
         </div>
         <form action={createSale} className="grid gap-4 md:grid-cols-4">
           <input type="hidden" name="marketplace" value="DIREKT" />

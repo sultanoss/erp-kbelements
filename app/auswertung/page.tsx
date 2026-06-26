@@ -121,113 +121,125 @@ export default async function AuswertungPage({
       </form>
 
       {/* ── Ø Tagesverkauf pro SKU ── */}
-      <div className="mb-3 flex items-center gap-3">
-        <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Ø Tagesverkauf pro Produkt</div>
-        <div className="h-px flex-1 bg-grey-border" />
-        <span className="font-mono text-[10px] text-grey-mid">{days} {days === 1 ? "Tag" : "Tage"}</span>
-      </div>
-
-      <Panel className="mb-8 overflow-hidden">
-        <div className="flex items-center justify-between border-b border-grey-border bg-grey-light px-5 py-3">
-          <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">SKU</span>
-          <div className="flex gap-8">
-            <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">Gesamt</span>
-            <span className="w-16 text-right font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">Ø / Tag</span>
+      <details open className="mb-8 group">
+        <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Ø Tagesverkauf pro Produkt</div>
+          <div className="h-px flex-1 bg-grey-border" />
+          <span className="font-mono text-[10px] text-grey-mid">{days} {days === 1 ? "Tag" : "Tage"}</span>
+          <span className="font-mono text-[10px] text-grey-mid group-open:hidden">▼ aufklappen</span>
+          <span className="font-mono text-[10px] text-grey-mid hidden group-open:inline">▲ zuklappen</span>
+        </summary>
+        <Panel className="overflow-hidden">
+          <div className="flex items-center justify-between border-b border-grey-border bg-grey-light px-5 py-3">
+            <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">SKU</span>
+            <div className="flex gap-8">
+              <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">Gesamt</span>
+              <span className="w-16 text-right font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">Ø / Tag</span>
+            </div>
           </div>
-        </div>
-        <div className="divide-y divide-grey-border">
-          {allSkuRows.map((row) => {
-            const avg = (row.total / days).toFixed(1);
-            return (
-              <div key={row.sku} className="flex items-center justify-between px-5 py-2.5">
-                <span className={`font-mono text-sm font-semibold ${row.total === 0 ? "text-grey-mid" : "text-brand-red"}`}>{row.sku}</span>
-                <div className="flex gap-8">
-                  <span className="font-mono tabular-nums text-sm text-grey-mid">{row.total} Stk.</span>
-                  <span className={`w-16 text-right font-mono tabular-nums text-sm font-bold ${row.total === 0 ? "text-grey-mid" : "text-grey-dark"}`}>{avg}</span>
+          <div className="divide-y divide-grey-border">
+            {allSkuRows.map((row) => {
+              const avg = (row.total / days).toFixed(1);
+              return (
+                <div key={row.sku} className="flex items-center justify-between px-5 py-2.5">
+                  <span className={`font-mono text-sm font-semibold ${row.total === 0 ? "text-grey-mid" : "text-brand-red"}`}>{row.sku}</span>
+                  <div className="flex gap-8">
+                    <span className="font-mono tabular-nums text-sm text-grey-mid">{row.total} Stk.</span>
+                    <span className={`w-16 text-right font-mono tabular-nums text-sm font-bold ${row.total === 0 ? "text-grey-mid" : "text-grey-dark"}`}>{avg}</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </Panel>
+              );
+            })}
+          </div>
+        </Panel>
+      </details>
 
       {/* ── Abschnitt 1: Einzelprodukte ── */}
-      <div className="mb-3 flex items-center gap-3">
-        <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Einzelprodukte</div>
-        <div className="h-px flex-1 bg-grey-border" />
-      </div>
-
-      {byMarketplace.size === 0 ? (
-        <Panel className="mb-8 p-6 text-center font-mono text-sm text-grey-mid">
-          Keine Einzelverkäufe im gewählten Zeitraum.
-        </Panel>
-      ) : (
-        <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from(byMarketplace.entries()).map(([mp, items]) => {
-            const total = items.reduce((s, i) => s + i.quantity, 0);
-            return (
-              <Panel key={mp} className="overflow-hidden">
-                <div className="flex items-center justify-between border-b border-grey-border bg-grey-light px-5 py-3">
-                  <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">
-                    {MARKETPLACE_LABELS[mp] ?? mp}
-                  </span>
-                  <span className="font-mono text-xs font-semibold text-grey-mid">{total} Stk.</span>
-                </div>
-                <div className="divide-y divide-grey-border">
-                  {items.map((item) => (
-                    <div key={item.sku} className="flex items-center justify-between px-5 py-2.5">
-                      <span className="font-mono text-sm font-semibold text-brand-red">{item.sku}</span>
-                      <span className="font-mono tabular-nums text-sm font-bold text-grey-dark">{item.quantity}</span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            );
-          })}
-        </div>
-      )}
+      <details open className="mb-8 group">
+        <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Einzelprodukte</div>
+          <div className="h-px flex-1 bg-grey-border" />
+          <span className="font-mono text-[10px] text-grey-mid group-open:hidden">▼ aufklappen</span>
+          <span className="font-mono text-[10px] text-grey-mid hidden group-open:inline">▲ zuklappen</span>
+        </summary>
+        {byMarketplace.size === 0 ? (
+          <Panel className="p-6 text-center font-mono text-sm text-grey-mid">
+            Keine Einzelverkäufe im gewählten Zeitraum.
+          </Panel>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from(byMarketplace.entries()).map(([mp, items]) => {
+              const total = items.reduce((s, i) => s + i.quantity, 0);
+              return (
+                <Panel key={mp} className="overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-grey-border bg-grey-light px-5 py-3">
+                    <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">
+                      {MARKETPLACE_LABELS[mp] ?? mp}
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-grey-mid">{total} Stk.</span>
+                  </div>
+                  <div className="divide-y divide-grey-border">
+                    {items.map((item) => (
+                      <div key={item.sku} className="flex items-center justify-between px-5 py-2.5">
+                        <span className="font-mono text-sm font-semibold text-brand-red">{item.sku}</span>
+                        <span className="font-mono tabular-nums text-sm font-bold text-grey-dark">{item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+              );
+            })}
+          </div>
+        )}
+      </details>
 
       {/* ── Abschnitt 2: Herdsets & Einbaubacköfen ── */}
-      <div className="mb-3 flex items-center gap-3">
-        <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Herdsets &amp; Einbaubacköfen</div>
-        <div className="h-px flex-1 bg-grey-border" />
-      </div>
-
-      {herdsetByMarketplace.size === 0 ? (
-        <Panel className="mb-6 p-6 text-center font-mono text-sm text-grey-mid">
-          Keine Herdset-Verkäufe im gewählten Zeitraum.
-        </Panel>
-      ) : (
-        <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from(herdsetByMarketplace.entries()).map(([mp, items]) => {
-            const total = items.reduce((s, i) => s + i.quantity, 0);
-            return (
-              <Panel key={mp} className="overflow-hidden">
-                <div className="flex items-center justify-between border-b border-grey-border bg-grey-light px-5 py-3">
-                  <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">
-                    {MARKETPLACE_LABELS[mp] ?? mp}
-                  </span>
-                  <span className="font-mono text-xs font-semibold text-grey-mid">{total} Stk.</span>
-                </div>
-                <div className="divide-y divide-grey-border">
-                  {items.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between px-5 py-2.5">
-                      <span className="font-mono text-sm font-semibold text-brand-red">{item.label}</span>
-                      <span className="font-mono tabular-nums text-sm font-bold text-grey-dark">{item.quantity}</span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            );
-          })}
-        </div>
-      )}
+      <details open className="mb-6 group">
+        <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Herdsets &amp; Einbaubacköfen</div>
+          <div className="h-px flex-1 bg-grey-border" />
+          <span className="font-mono text-[10px] text-grey-mid group-open:hidden">▼ aufklappen</span>
+          <span className="font-mono text-[10px] text-grey-mid hidden group-open:inline">▲ zuklappen</span>
+        </summary>
+        {herdsetByMarketplace.size === 0 ? (
+          <Panel className="p-6 text-center font-mono text-sm text-grey-mid">
+            Keine Herdset-Verkäufe im gewählten Zeitraum.
+          </Panel>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from(herdsetByMarketplace.entries()).map(([mp, items]) => {
+              const total = items.reduce((s, i) => s + i.quantity, 0);
+              return (
+                <Panel key={mp} className="overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-grey-border bg-grey-light px-5 py-3">
+                    <span className="font-mono text-xs font-bold uppercase tracking-[0.15em] text-grey-dark">
+                      {MARKETPLACE_LABELS[mp] ?? mp}
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-grey-mid">{total} Stk.</span>
+                  </div>
+                  <div className="divide-y divide-grey-border">
+                    {items.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between px-5 py-2.5">
+                        <span className="font-mono text-sm font-semibold text-brand-red">{item.label}</span>
+                        <span className="font-mono tabular-nums text-sm font-bold text-grey-dark">{item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+              );
+            })}
+          </div>
+        )}
+      </details>
 
       {/* ── Upload Herdsets ── */}
-      <div className="mb-3 flex items-center gap-3">
-        <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Herdsets hochladen</div>
-        <div className="h-px flex-1 bg-grey-border" />
-      </div>
+      <details open className="group">
+        <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Herdsets hochladen</div>
+          <div className="h-px flex-1 bg-grey-border" />
+          <span className="font-mono text-[10px] text-grey-mid group-open:hidden">▼ aufklappen</span>
+          <span className="font-mono text-[10px] text-grey-mid hidden group-open:inline">▲ zuklappen</span>
+        </summary>
       <Panel className="p-5">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-xs text-grey-mid">
@@ -242,6 +254,7 @@ export default async function AuswertungPage({
         </div>
         <HerdsetImport />
       </Panel>
+      </details>
     </AppShell>
   );
 }

@@ -34,9 +34,9 @@ export default async function ReceiptsPage() {
         <ReceiptExcelImport />
       </Panel>
 
-      {/* Hauptlager Wareneingang */}
+      {/* Neuware-Lager Wareneingang */}
       <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Hauptlager — Wareneingang eintragen</div>
+        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Neuware-Lager — Wareneingang eintragen</div>
         <form action={createReceipt} className="grid gap-4 md:grid-cols-4">
           <Field label="Datum" name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
           <SelectField label="SKU" name="sku">{items.map((i) => <option key={i.sku} value={i.sku}>{i.sku}</option>)}</SelectField>
