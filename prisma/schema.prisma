@@ -51,7 +51,6 @@ model Item {
   stock        Int            @default(0)
   stockNS      Int            @default(0)
   minStock     Int            @default(0)
-  location     String
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   sales        Sale[]

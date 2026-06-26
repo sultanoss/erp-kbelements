@@ -48,14 +48,12 @@ export async function upsertItem(formData: FormData) {
   const stock = numberValue(formData, "stock");
   const stockNS = numberValue(formData, "stockNS");
   const minStock = numberValue(formData, "minStock");
-  const location = text(formData, "location");
-
-  if (!sku || sku.length < 4 || Number.isNaN(stock) || Number.isNaN(minStock) || !location) return;
+  if (!sku || sku.length < 4 || Number.isNaN(stock) || Number.isNaN(minStock)) return;
 
   await prisma.item.upsert({
     where: { sku },
-    update: { stock, stockNS, minStock, location },
-    create: { sku, stock, stockNS, minStock, location },
+    update: { stock, stockNS, minStock },
+    create: { sku, stock, stockNS, minStock },
   });
 
   revalidatePath("/inventory");

@@ -47,12 +47,11 @@ export default async function InventoryPage({
       {canEdit && (
         <Panel className="mb-6 p-5">
           <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Neues Produkt anlegen</div>
-          <form action={upsertItem} className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <form action={upsertItem} className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             <Field label="SKU" name="sku" placeholder="z.B. ELK105" />
             <Field label="Bestand Hauptlager" name="stock" type="number" defaultValue={0} />
             <Field label="Bestand NS-Lager" name="stockNS" type="number" defaultValue={0} />
             <Field label="Mindestbestand" name="minStock" type="number" defaultValue={0} />
-            <Field label="Lagerplatz" name="location" placeholder="z.B. Regal A1" />
             <div className="flex items-end">
               <SubmitButton>Anlegen</SubmitButton>
             </div>
@@ -113,7 +112,6 @@ export default async function InventoryPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Hauptlager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lagerplatz</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
               {canEdit && <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>}
             </tr>
@@ -124,7 +122,6 @@ export default async function InventoryPage({
                 <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{item.sku}</td>
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stock}</td>
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stockNS}</td>
-                <td className="px-4 py-3 font-mono text-sm text-grey-mid">{item.location}</td>
                 <td className="px-4 py-3">
                   {item.stock < item.minStock ? (
                     <span className="inline-flex items-center gap-1.5 rounded border border-brand-red/20 bg-brand-red/8 px-2 py-1 font-mono text-xs font-semibold text-brand-red">
