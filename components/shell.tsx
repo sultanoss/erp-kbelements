@@ -12,6 +12,7 @@ const baseLinks: { href: string; label: string; icon: IconName }[] = [
   { href: "/receipts", label: "Wareneingang", icon: "PackagePlus" },
   { href: "/corrections", label: "Korrekturen", icon: "SlidersHorizontal" },
   { href: "/activity", label: "Protokoll", icon: "Shield" },
+  { href: "/buchhaltung", label: "Buchhaltung", icon: "Receipt" },
 ];
 
 export async function AppShell({ children }: { children: ReactNode }) {

@@ -201,6 +201,75 @@ export async function createCorrection(formData: FormData) {
   revalidatePath("/inventory");
 }
 
+export async function createInvoice(data: {
+  date: string;
+  customerName: string;
+  customerAddress: string;
+  customerNum: string;
+  mwstRate: number;
+  notes: string;
+  paymentInfo: string;
+  items: { pos: number; quantity: number; artNr: string; description: string; unitPrice: number; lager: string }[];
+}) {
+  const user = await requireUser();
+
+  // Auto-generate invoice number: RE-YYYYMM-NNNNN
+  const now = new Date();
+  const prefix = `RE-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-`;
+  const last = await prisma.invoice.findFirst({
+    where: { number: { startsWith: prefix } },
+    orderBy: { number: "desc" },
+  });
+  const seq = last ? parseInt(last.number.split("-")[2] ?? "0", 10) + 1 : 10001;
+  const number = `${prefix}${seq}`;
+
+  const invoice = await prisma.$transaction(async (tx) => {
+    const inv = await tx.invoice.create({
+      data: {
+        number,
+        date: new Date(`${data.date}T00:00:00`),
+        customerName: data.customerName,
+        customerAddress: data.customerAddress,
+        customerNum: data.customerNum || null,
+        mwstRate: data.mwstRate,
+        notes: data.notes || null,
+        paymentInfo: data.paymentInfo || null,
+        userId: user.id,
+        items: {
+          create: data.items.map((it) => ({
+            pos: it.pos,
+            quantity: it.quantity,
+            artNr: it.artNr || null,
+            description: it.description,
+            unitPrice: it.unitPrice,
+            lager: it.lager || null,
+          })),
+        },
+      },
+    });
+
+    // Reduce stock for SKU-linked items
+    for (const it of data.items) {
+      if (!it.artNr) continue;
+      const item = await tx.item.findUnique({ where: { sku: it.artNr } });
+      if (!item) continue;
+      const qty = Math.round(it.quantity);
+      if (it.lager === "ns") {
+        await tx.item.update({ where: { sku: it.artNr }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+      } else {
+        await tx.item.update({ where: { sku: it.artNr }, data: { stock: Math.max(0, item.stock - qty) } });
+      }
+    }
+
+    return inv;
+  });
+
+  revalidatePath("/buchhaltung");
+  revalidatePath("/inventory");
+  revalidatePath("/");
+  redirect(`/buchhaltung/${invoice.id}`);
+}
+
 export async function upsertUser(formData: FormData) {
   const actor = await requireAdmin();
   const id = text(formData, "id");
