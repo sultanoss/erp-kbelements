@@ -25,9 +25,9 @@ async function main() {
 
   await prisma.item.createMany({
     data: [
-      { sku: "KBE-START-001", stock: 48, minStock: 12, location: "A-01-01" },
-      { sku: "KBE-START-002", stock: 9, minStock: 15, location: "A-01-02" },
-      { sku: "KBE-START-003", stock: 120, minStock: 25, location: "B-02-01" },
+      { sku: "KBE-START-001", stock: 48, minStock: 12 },
+      { sku: "KBE-START-002", stock: 9, minStock: 15 },
+      { sku: "KBE-START-003", stock: 120, minStock: 25 },
     ],
     skipDuplicates: true,
   });

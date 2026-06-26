@@ -75,7 +75,7 @@ async function main() {
       continue;
     }
     await prisma.item.create({
-      data: { sku, stock: 0, minStock: 0, location: "-" },
+      data: { sku, stock: 0, minStock: 0 },
     });
     created++;
   }
