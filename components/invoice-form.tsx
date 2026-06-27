@@ -53,8 +53,8 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
       if (it.id !== itemId) return it;
       const idx = it.skus.findIndex((s) => s.id === skuId);
       const updatedSkus = it.skus.map((s) => s.id === skuId ? { ...s, [field]: value } : s);
-      // Auto-fill description from the first SKU's name
-      if (field === "sku" && idx === 0 && value && !it.description) {
+      // Auto-fill description only when this is the sole SKU in the position
+      if (field === "sku" && idx === 0 && value && !it.description && it.skus.length === 1) {
         const found = skus.find((s) => s.sku === value);
         if (found?.name) return { ...it, skus: updatedSkus, description: found.name };
       }
@@ -153,32 +153,42 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
 
               {/* SKU Section — stacked entries */}
               <div className="space-y-1">
-                {it.skus.map((s, idx) => (
-                  <div key={s.id} className="flex gap-1 items-center">
-                    <input
-                      value={s.sku}
-                      onChange={(e) => updateSku(it.id, s.id, "sku", e.target.value)}
-                      list="sku-list"
-                      placeholder="Art.-Nr."
-                      className="h-8 min-w-0 flex-1 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-                    />
-                    <select
-                      value={s.lager}
-                      onChange={(e) => updateSku(it.id, s.id, "lager", e.target.value)}
-                      className="h-8 w-[7rem] shrink-0 rounded-lg border border-grey-border bg-white px-1 text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-                    >
-                      <option value="neuware">Neuware</option>
-                      <option value="ns">NS-Lager</option>
-                      <option value="">Kein Lager</option>
-                    </select>
-                    {it.skus.length > 1 && (
-                      <button type="button" onClick={() => removeSku(it.id, s.id)}
-                        className="h-8 w-7 shrink-0 rounded border border-grey-border text-grey-mid hover:border-brand-red hover:text-brand-red text-xs flex items-center justify-center">
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
+                {it.skus.map((s, idx) => {
+                  const found = skus.find((sk) => sk.sku === s.sku);
+                  return (
+                    <div key={s.id}>
+                      <div className="flex gap-1 items-center">
+                        <input
+                          value={s.sku}
+                          onChange={(e) => updateSku(it.id, s.id, "sku", e.target.value)}
+                          list="sku-list"
+                          placeholder="Art.-Nr."
+                          className="h-8 min-w-0 flex-1 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+                        />
+                        <select
+                          value={s.lager}
+                          onChange={(e) => updateSku(it.id, s.id, "lager", e.target.value)}
+                          className="h-8 w-[7rem] shrink-0 rounded-lg border border-grey-border bg-white px-1 text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+                        >
+                          <option value="neuware">Neuware</option>
+                          <option value="ns">NS-Lager</option>
+                          <option value="">Kein Lager</option>
+                        </select>
+                        {it.skus.length > 1 && (
+                          <button type="button" onClick={() => removeSku(it.id, s.id)}
+                            className="h-8 w-7 shrink-0 rounded border border-grey-border text-grey-mid hover:border-brand-red hover:text-brand-red text-xs flex items-center justify-center">
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {found && (
+                        <span className="ml-1 font-mono text-[10px] text-grey-mid">
+                          NW: {found.stock} | NS: {found.stockNS}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
                 <button type="button" onClick={() => addSku(it.id)}
                   className="inline-flex items-center gap-1 text-[11px] font-mono text-grey-mid hover:text-brand-red transition-colors">
                   + SKU
