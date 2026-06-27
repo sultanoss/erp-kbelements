@@ -140,15 +140,22 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id          String   @id @default(cuid())
+  id          String           @id @default(cuid())
   invoiceId   String
   pos         Int
   quantity    Float
-  artNr       String?
   description String
   unitPrice   Float
-  lager       String?
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice     Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  skus        InvoiceItemSku[]
+}
+
+model InvoiceItemSku {
+  id            String      @id @default(cuid())
+  invoiceItemId String
+  sku           String
+  lager         String      @default("neuware")
+  invoiceItem   InvoiceItem @relation(fields: [invoiceItemId], references: [id], onDelete: Cascade)
 }
 
 model ActivityLog {

@@ -12,13 +12,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const inv = await prisma.invoice.findUnique({
     where: { id },
-    include: { items: { orderBy: { pos: "asc" } }, user: true },
+    include: { items: { orderBy: { pos: "asc" }, include: { skus: true } }, user: true },
   });
   if (!inv) notFound();
 
-  const netto = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-  const mwst = netto * (inv.mwstRate / 100);
-  const brutto = netto + mwst;
+  const bruttoSum = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const netto = inv.mwstRate > 0 ? bruttoSum / (1 + inv.mwstRate / 100) : bruttoSum;
+  const mwst = bruttoSum - netto;
 
   return (
     <AppShell>
@@ -69,7 +69,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             {inv.items.map((it) => (
               <tr key={it.id}>
                 <td className="px-4 py-3 font-mono text-xs text-grey-mid">{it.pos}</td>
-                <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-red">{it.artNr ?? "—"}</td>
+                <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-red">
+          {it.skus.length > 0 ? it.skus.map((s) => s.sku).join(" + ") : "—"}
+        </td>
                 <td className="px-4 py-3 text-grey-dark">{it.description}</td>
                 <td className="px-4 py-3 font-mono tabular-nums text-right text-grey-dark">{it.quantity}</td>
                 <td className="px-4 py-3 font-mono tabular-nums text-right text-grey-dark">{it.unitPrice.toFixed(2)} €</td>
@@ -92,7 +94,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             )}
             <div className="flex justify-between border-t border-grey-border pt-2 font-mono text-sm font-bold text-grey-dark">
               <span>Rechnungsbetrag</span>
-              <span className="tabular-nums">{brutto.toFixed(2)} €</span>
+              <span className="tabular-nums">{bruttoSum.toFixed(2)} €</span>
             </div>
           </div>
         </div>

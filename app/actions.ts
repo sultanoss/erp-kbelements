@@ -210,7 +210,7 @@ export async function createInvoice(data: {
   mwstRate: number;
   notes: string;
   paymentInfo: string;
-  items: { pos: number; quantity: number; artNr: string; description: string; unitPrice: number; lager: string }[];
+  items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
 }) {
   const user = await requireUser();
 
@@ -240,25 +240,26 @@ export async function createInvoice(data: {
           create: data.items.map((it) => ({
             pos: it.pos,
             quantity: it.quantity,
-            artNr: it.artNr || null,
             description: it.description,
             unitPrice: it.unitPrice,
-            lager: it.lager || null,
+            skus: { create: it.skus.map((s) => ({ sku: s.sku, lager: s.lager })) },
           })),
         },
       },
     });
 
-    // Reduce stock for SKU-linked items
+    // Reduce stock for all SKUs in each position
     for (const it of data.items) {
-      if (!it.artNr) continue;
-      const item = await tx.item.findUnique({ where: { sku: it.artNr } });
-      if (!item) continue;
       const qty = Math.round(it.quantity);
-      if (it.lager === "ns") {
-        await tx.item.update({ where: { sku: it.artNr }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
-      } else {
-        await tx.item.update({ where: { sku: it.artNr }, data: { stock: Math.max(0, item.stock - qty) } });
+      for (const s of it.skus) {
+        if (!s.sku) continue;
+        const item = await tx.item.findUnique({ where: { sku: s.sku } });
+        if (!item) continue;
+        if (s.lager === "ns") {
+          await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+        } else {
+          await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+        }
       }
     }
 

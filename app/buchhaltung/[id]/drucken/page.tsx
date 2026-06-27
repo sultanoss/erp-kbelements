@@ -15,7 +15,7 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const inv = await prisma.invoice.findUnique({
     where: { id },
-    include: { items: { orderBy: { pos: "asc" } } },
+    include: { items: { orderBy: { pos: "asc" }, include: { skus: true } } },
   });
   if (!inv) notFound();
 
@@ -124,7 +124,7 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
                 <tr key={it.id}>
                   <td>{it.pos}</td>
                   <td>{it.quantity.toLocaleString("de-DE", { minimumFractionDigits: 2 })}</td>
-                  <td style={{ fontFamily: "monospace", fontSize: "8.5pt" }}>{it.artNr ?? ""}</td>
+                  <td style={{ fontFamily: "monospace", fontSize: "8.5pt" }}>{it.skus.map((s) => s.sku).join(" + ")}</td>
                   <td style={{ whiteSpace: "pre-line" }}>{it.description}</td>
                   <td className="r">{inv.mwstRate},00 %</td>
                   <td className="r">{fmt(it.unitPrice)} €</td>
