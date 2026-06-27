@@ -184,9 +184,9 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
                         )}
                       </div>
                       {found && (
-                        <div className="ml-1 mt-0.5 flex gap-3 font-mono text-[10px]">
-                          <span className="text-grey-dark">Neuware-Lager: <strong>{found.stock}</strong></span>
-                          <span className="text-grey-dark">NS-Lager: <strong>{found.stockNS}</strong></span>
+                        <div className="ml-1 mt-1 flex gap-4 font-mono text-xs">
+                          <span className="text-grey-dark">Neuware-Lager: <strong className="text-brand-red">{found.stock}</strong></span>
+                          <span className="text-grey-dark">NS-Lager: <strong className="text-brand-red">{found.stockNS}</strong></span>
                         </div>
                       )}
                     </div>
