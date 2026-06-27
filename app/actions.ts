@@ -209,7 +209,9 @@ export async function createInvoice(data: {
   customerNum: string;
   mwstRate: number;
   notes: string;
-  paymentInfo: string;
+  paymentInfo: string | null;
+  shippingCost: number | null;
+  paymentMethod: string;
   items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
 }) {
   const user = await requireUser();
@@ -233,6 +235,8 @@ export async function createInvoice(data: {
         customerAddress: data.customerAddress,
         customerNum: data.customerNum || null,
         mwstRate: data.mwstRate,
+        shippingCost: data.shippingCost,
+        paymentMethod: data.paymentMethod,
         notes: data.notes || null,
         paymentInfo: data.paymentInfo || null,
         userId: user.id,

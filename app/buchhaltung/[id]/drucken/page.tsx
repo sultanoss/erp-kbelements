@@ -20,12 +20,14 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
   if (!inv) notFound();
 
   // Eingegebene Preise sind BRUTTO — Netto wird rückgerechnet
-  const bruttoSum = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-  const netto = inv.mwstRate > 0 ? bruttoSum / (1 + inv.mwstRate / 100) : bruttoSum;
-  const mwstAmt = bruttoSum - netto;
+  const bruttoPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const shipping = inv.shippingCost ?? 0;
+  const bruttoGesamt = bruttoPositionen + shipping;
+  const netto = inv.mwstRate > 0 ? bruttoGesamt / (1 + inv.mwstRate / 100) : bruttoGesamt;
+  const mwstAmt = bruttoGesamt - netto;
 
-  // Offener Betrag: 0 wenn Zahlungsinfo vorhanden
-  const offenerBetrag = inv.paymentInfo ? 0 : bruttoSum;
+  // Offener Betrag: 0 wenn bar oder Zahlungsinfo vorhanden
+  const offenerBetrag = (inv.paymentMethod === "bar" || inv.paymentInfo) ? 0 : bruttoGesamt;
 
   return (
     <html lang="de">
@@ -145,15 +147,19 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
               <tbody>
                 <tr><td>Gesamt Netto ({inv.mwstRate},00 %)</td><td>{fmt(netto)} €</td></tr>
                 {inv.mwstRate > 0 && <tr><td>zzgl. MwSt ({inv.mwstRate},00 %)</td><td>{fmt(mwstAmt)} €</td></tr>}
-                <tr className="bold sep"><td><strong>Rechnungsbetrag</strong></td><td><strong>{fmt(bruttoSum)} €</strong></td></tr>
-                <tr className="bold"><td><strong>Zahlbetrag</strong></td><td><strong>{fmt(bruttoSum)} €</strong></td></tr>
+                {shipping > 0 && <tr><td>Transportkosten</td><td>{fmt(shipping)} €</td></tr>}
+                <tr className="bold sep"><td><strong>Rechnungsbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
+                <tr className="bold"><td><strong>Zahlbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
               </tbody>
             </table>
           </div>
 
-          {/* Zahlungsinfo — immer anzeigen */}
+          {/* Zahlungsinfo */}
           <div className="payment-row">
-            {inv.paymentInfo && <div>{inv.paymentInfo} {fmt(bruttoSum)} €</div>}
+            {inv.paymentMethod === "bar"
+              ? <div>Bezahlt: Bar</div>
+              : inv.paymentInfo && <div>{inv.paymentInfo} {fmt(bruttoGesamt)} €</div>
+            }
             <div style={{ fontWeight: "bold", marginTop: "2px" }}>Offener Betrag {fmt(offenerBetrag)} €</div>
           </div>
         </div>

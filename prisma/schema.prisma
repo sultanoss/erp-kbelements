@@ -128,6 +128,8 @@ model Invoice {
   customerAddress String
   customerNum     String?
   mwstRate        Int           @default(19)
+  shippingCost    Float?
+  paymentMethod   String        @default("konto")
   notes           String?
   paymentInfo     String?
   createdAt       DateTime      @default(now())

@@ -16,9 +16,11 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   });
   if (!inv) notFound();
 
-  const bruttoSum = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-  const netto = inv.mwstRate > 0 ? bruttoSum / (1 + inv.mwstRate / 100) : bruttoSum;
-  const mwst = bruttoSum - netto;
+  const bruttoPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const shipping = inv.shippingCost ?? 0;
+  const bruttoGesamt = bruttoPositionen + shipping;
+  const netto = inv.mwstRate > 0 ? bruttoGesamt / (1 + inv.mwstRate / 100) : bruttoGesamt;
+  const mwst = bruttoGesamt - netto;
 
   return (
     <AppShell>
@@ -42,6 +44,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <div className="flex justify-between"><dt className="text-grey-mid">Rechnungs-Nr.</dt><dd className="font-semibold text-brand-red">{inv.number}</dd></div>
             <div className="flex justify-between"><dt className="text-grey-mid">Datum</dt><dd>{formatDate(inv.date)}</dd></div>
             <div className="flex justify-between"><dt className="text-grey-mid">MwSt.</dt><dd>{inv.mwstRate} %</dd></div>
+            <div className="flex justify-between"><dt className="text-grey-mid">Bezahlart</dt><dd>{inv.paymentMethod === "bar" ? "Bar" : "Banküberweisung"}</dd></div>
             <div className="flex justify-between"><dt className="text-grey-mid">Erstellt von</dt><dd>{inv.user.name}</dd></div>
           </dl>
         </Panel>
@@ -92,9 +95,15 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 <span className="tabular-nums">{mwst.toFixed(2)} €</span>
               </div>
             )}
+            {shipping > 0 && (
+              <div className="flex justify-between font-mono text-sm text-grey-mid">
+                <span>Transportkosten</span>
+                <span className="tabular-nums">{shipping.toFixed(2)} €</span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-grey-border pt-2 font-mono text-sm font-bold text-grey-dark">
               <span>Rechnungsbetrag</span>
-              <span className="tabular-nums">{bruttoSum.toFixed(2)} €</span>
+              <span className="tabular-nums">{bruttoGesamt.toFixed(2)} €</span>
             </div>
           </div>
         </div>
@@ -108,7 +117,12 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <p className="text-sm text-grey-dark whitespace-pre-line">{inv.notes}</p>
             </div>
           )}
-          {inv.paymentInfo && (
+          {inv.paymentMethod === "bar" ? (
+            <div>
+              <div className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinfo</div>
+              <p className="text-sm text-grey-dark">Bezahlt: Bar</p>
+            </div>
+          ) : inv.paymentInfo && (
             <div>
               <div className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinfo</div>
               <p className="text-sm text-grey-dark">{inv.paymentInfo}</p>

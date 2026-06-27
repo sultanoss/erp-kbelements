@@ -18,6 +18,8 @@ function newLine(pos: number): LineItem {
 export function InvoiceForm({ skus }: { skus: SkuData[] }) {
   const [items, setItems] = useState<LineItem[]>([newLine(1)]);
   const [mwstRate, setMwstRate] = useState(19);
+  const [shippingCost, setShippingCost] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">("konto");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -25,6 +27,8 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
   function handleReset() {
     setItems([newLine(1)]);
     setMwstRate(19);
+    setShippingCost("");
+    setPaymentMethod("konto");
     setError("");
     formRef.current?.reset();
   }
@@ -72,9 +76,11 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
     }));
   }
 
-  const bruttoSum = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-  const netto = mwstRate > 0 ? bruttoSum / (1 + mwstRate / 100) : bruttoSum;
-  const mwstAmt = bruttoSum - netto;
+  const bruttoPositionen = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const shippingVal = shippingCost !== "" ? parseFloat(shippingCost) || 0 : 0;
+  const bruttoGesamt = bruttoPositionen + shippingVal;
+  const netto = mwstRate > 0 ? bruttoGesamt / (1 + mwstRate / 100) : bruttoGesamt;
+  const mwstAmt = bruttoGesamt - netto;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -84,7 +90,7 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
     const customerAddress = String(fd.get("customerAddress") ?? "").trim();
     const customerNum = String(fd.get("customerNum") ?? "").trim();
     const notes = String(fd.get("notes") ?? "").trim();
-    const paymentInfo = String(fd.get("paymentInfo") ?? "").trim();
+    const paymentInfo = paymentMethod === "konto" ? String(fd.get("paymentInfo") ?? "").trim() : null;
 
     if (!customerName) { setError("Kundenname fehlt"); return; }
     if (items.some((it) => !it.description)) { setError("Alle Positionen brauchen eine Bezeichnung"); return; }
@@ -92,7 +98,11 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
     setError("");
     startTransition(() => {
       createInvoice({
-        date, customerName, customerAddress, customerNum, mwstRate, notes, paymentInfo,
+        date, customerName, customerAddress, customerNum, mwstRate,
+        shippingCost: shippingVal > 0 ? shippingVal : null,
+        paymentMethod,
+        notes,
+        paymentInfo: paymentInfo || null,
         items: items.map((it) => ({
           pos: it.pos,
           quantity: it.quantity,
@@ -254,8 +264,23 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
         </button>
       </div>
 
-      {/* Summen */}
-      <div className="flex justify-end">
+      {/* Transportkosten + Summen */}
+      <div className="flex flex-col items-end gap-3">
+        <div className="flex items-center gap-3">
+          <label className="font-mono text-xs font-semibold text-grey-dark">Transportkosten (optional)</label>
+          <div className="relative">
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={shippingCost}
+              onChange={(e) => setShippingCost(e.target.value)}
+              placeholder="0,00"
+              className="h-9 w-36 rounded-lg border border-grey-border bg-white px-3 pr-8 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
+            />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs text-grey-mid">€</span>
+          </div>
+        </div>
         <div className="w-72 space-y-1.5 rounded-lg border border-grey-border bg-grey-light p-4">
           <div className="flex justify-between font-mono text-sm text-grey-mid">
             <span>Gesamt Netto ({mwstRate} %)</span>
@@ -267,9 +292,15 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
               <span className="tabular-nums">{mwstAmt.toFixed(2)} €</span>
             </div>
           )}
+          {shippingVal > 0 && (
+            <div className="flex justify-between font-mono text-sm text-grey-mid">
+              <span>Transportkosten</span>
+              <span className="tabular-nums">{shippingVal.toFixed(2)} €</span>
+            </div>
+          )}
           <div className="flex justify-between border-t border-grey-border pt-2 font-mono text-sm font-bold text-grey-dark">
             <span>Rechnungsbetrag</span>
-            <span className="tabular-nums">{bruttoSum.toFixed(2)} €</span>
+            <span className="tabular-nums">{bruttoGesamt.toFixed(2)} €</span>
           </div>
           {mwstRate > 0 && (
             <p className="font-mono text-[10px] text-grey-mid pt-1">* Eingegebene Preise sind Bruttopreise inkl. {mwstRate} % MwSt.</p>
@@ -277,18 +308,35 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
         </div>
       </div>
 
-      {/* Notiz + Zahlungsinfo */}
+      {/* Notiz + Bezahlart */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Notiz (erscheint auf Rechnung)</label>
           <textarea name="notes" rows={2} placeholder="z.B. Angebots-Nr., Lieferbedingungen ..."
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
         </div>
-        <div className="grid gap-1.5">
-          <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation *</label>
-          <textarea name="paymentInfo" rows={2} required
-            placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
-            className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
+        <div className="grid gap-3">
+          <div>
+            <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezahlart</div>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" checked={paymentMethod === "konto"} onChange={() => setPaymentMethod("konto")} className="accent-brand-red" />
+                <span className="text-sm font-semibold">Banküberweisung</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" checked={paymentMethod === "bar"} onChange={() => setPaymentMethod("bar")} className="accent-brand-red" />
+                <span className="text-sm font-semibold">Bar</span>
+              </label>
+            </div>
+          </div>
+          {paymentMethod === "konto" && (
+            <div className="grid gap-1.5">
+              <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation</label>
+              <textarea name="paymentInfo" rows={2}
+                placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
+                className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
+            </div>
+          )}
         </div>
       </div>
 
