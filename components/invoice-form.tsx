@@ -38,7 +38,9 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
 
   function addSku(itemId: number) {
     setItems((prev) => prev.map((it) =>
-      it.id === itemId ? { ...it, skus: [...it.skus, { id: nextSkuId++, sku: "", lager: "neuware" }] } : it
+      it.id === itemId
+        ? { ...it, description: "", skus: [...it.skus, { id: nextSkuId++, sku: "", lager: "neuware" }] }
+        : it
     ));
   }
 
@@ -182,16 +184,17 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
                         )}
                       </div>
                       {found && (
-                        <span className="ml-1 font-mono text-[10px] text-grey-mid">
-                          NW: {found.stock} | NS: {found.stockNS}
-                        </span>
+                        <div className="ml-1 mt-0.5 flex gap-3 font-mono text-[10px]">
+                          <span className="text-grey-dark">Neuware-Lager: <strong>{found.stock}</strong></span>
+                          <span className="text-grey-dark">NS-Lager: <strong>{found.stockNS}</strong></span>
+                        </div>
                       )}
                     </div>
                   );
                 })}
                 <button type="button" onClick={() => addSku(it.id)}
-                  className="inline-flex items-center gap-1 text-[11px] font-mono text-grey-mid hover:text-brand-red transition-colors">
-                  + SKU
+                  className="mt-1 inline-flex items-center gap-1 rounded border border-grey-border bg-grey-light px-2 py-0.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+                  + weitere Art.-Nr.
                 </button>
               </div>
 
