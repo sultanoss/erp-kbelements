@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { createInvoice } from "@/app/actions";
 
 type SkuEntry = { id: number; sku: string; lager: string };
@@ -20,6 +20,14 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
   const [mwstRate, setMwstRate] = useState(19);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function handleReset() {
+    setItems([newLine(1)]);
+    setMwstRate(19);
+    setError("");
+    formRef.current?.reset();
+  }
 
   function addItem() {
     setItems((prev) => [...prev, newLine(prev.length + 1)]);
@@ -97,7 +105,7 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       {/* Kundendaten */}
       <div className="grid gap-4 md:grid-cols-3">
         <div className="grid gap-1.5">
@@ -288,7 +296,11 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
         <div className="rounded-lg border border-brand-red/20 bg-brand-red/5 px-4 py-3 font-mono text-sm text-brand-red">{error}</div>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <button type="button" onClick={handleReset}
+          className="rounded-lg border border-grey-border bg-white px-5 py-2.5 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+          Zurücksetzen
+        </button>
         <button type="submit" disabled={isPending}
           className="rounded-lg bg-brand-red px-6 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50 transition-colors">
           {isPending ? "Wird erstellt…" : "Rechnung erstellen"}
