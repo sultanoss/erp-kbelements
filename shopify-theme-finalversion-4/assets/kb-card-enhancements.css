@@ -1,0 +1,45 @@
+/* Energie + Verfuegbarkeit direkt in product-price Block (price.liquid) */
+.kb-card-energy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 3px;
+  font-size: 11px;
+  color: #666;
+}
+.kb-card-energy__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  width: 30px;
+  height: 20px;
+  clip-path: polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%);
+  flex-shrink: 0;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+}
+.kb-card-energy__scale { font-size: 10px; color: #bbb; }
+
+/* Sofort verfuegbar — mehr Abstand unten */
+.kb-card-available {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  margin: 3px 0 0;
+  padding-bottom: 12px;
+}
+
+/* Titel/Preis-Abstand vom Kartenrand */
+product-card [class*="group"] {
+  padding-inline: 10px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 749px) {
+  .kb-card-energy__label, .kb-card-energy__scale { display: none; }
+  .kb-card-available { font-size: 10px; }
+}

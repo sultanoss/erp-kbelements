@@ -1,0 +1,8 @@
+Shop: ahygpy-ag.myshopify.com
+Arbeits-Theme: Kopie von FinalVersion-3
+Theme-ID: 198612058376
+Status: UNPUBLISHED
+Lokaler Theme-Ordner: theme
+
+FinalVersion-3 ist Theme-ID 198576832776 und aktuell MAIN/LIVE.
+Diese Live-Theme-ID darf von den Helfern nicht verwendet werden.

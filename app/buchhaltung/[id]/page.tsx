@@ -55,6 +55,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
               Bearbeiten
             </Link>
+            <Link href={`/buchhaltung/${id}/gutschrift`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+              Gutschrift erstellen
+            </Link>
             <StornoButton invoiceId={id} />
           </>
         )}

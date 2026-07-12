@@ -1,0 +1,341 @@
+<style>
+/* ===== HERO ===== */
+.kb-sg-header-img{
+  width:100vw;
+  margin-left:50%;
+  transform:translateX(-50%);
+  margin-top:-40px;
+}
+.kb-sg-header-img img{width:100%;height:auto;display:block;}
+@media(max-width:749px){
+  .kb-sg-header-img{margin-top:0;}
+}
+
+/* ===== LAYOUT ===== */
+.kb-sg-page{padding:0;font-family:inherit;}
+.kb-sg-inner{max-width:1200px;margin:0 auto;padding:0 24px;}
+@media(max-width:749px){.kb-sg-inner{padding:0 16px;}}
+.kb-sg-sep{width:100vw;margin-left:50%;transform:translateX(-50%);background:#F5F3EF;height:8px;}
+.kb-sg-section-title{font-size:22px;font-weight:700;color:#1C1917;margin:0 0 24px;padding-bottom:12px;border-bottom:2px solid #C0182A;display:inline-block;}
+@media(max-width:749px){.kb-sg-section-title{font-size:18px;}}
+
+/* ===== TRUST ===== */
+.kb-sg-trust-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-sg-trust-wrap{padding:36px 0;}}
+.kb-sg-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+@media(max-width:600px){.kb-sg-trust{grid-template-columns:1fr;gap:12px;}}
+.kb-sg-trust__item{text-align:center;padding:28px 16px;border:1px solid #eee;border-radius:8px;}
+@media(max-width:600px){.kb-sg-trust__item{padding:20px 16px;display:flex;align-items:center;gap:16px;text-align:left;}}
+.kb-sg-trust__icon{font-size:32px;margin-bottom:10px;color:#C0182A;}
+@media(max-width:600px){.kb-sg-trust__icon{margin-bottom:0;flex-shrink:0;}}
+.kb-sg-trust__number{font-size:32px;font-weight:800;color:#1C1917;margin-bottom:4px;}
+@media(max-width:600px){.kb-sg-trust__number{font-size:24px;}}
+.kb-sg-trust__label{font-size:14px;color:#666;}
+
+/* ===== INFO KARTEN ===== */
+.kb-sg-info-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-sg-info-wrap{padding:36px 0;}}
+.kb-sg-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media(max-width:900px){.kb-sg-cards{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.kb-sg-cards{grid-template-columns:1fr;}}
+.kb-sg-card{
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:10px;
+  padding:28px 24px;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.kb-sg-card__icon{font-size:28px;line-height:1;}
+.kb-sg-card__title{font-size:16px;font-weight:700;color:#1C1917;margin:0;}
+.kb-sg-card__text{font-size:14px;color:#555;line-height:1.65;margin:0;flex:1;}
+.kb-sg-card__link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:600;
+  color:#C0182A;
+  text-decoration:none;
+  margin-top:4px;
+}
+.kb-sg-card__link:hover{text-decoration:underline;}
+
+/* ===== GARANTIE BLOCK ===== */
+.kb-sg-guarantee-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-sg-guarantee-wrap{padding:36px 0;}}
+.kb-sg-guarantee{
+  background:#1C1917;
+  border-radius:12px;
+  padding:48px 40px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+  align-items:center;
+}
+@media(max-width:700px){
+  .kb-sg-guarantee{grid-template-columns:1fr;padding:32px 24px;gap:24px;}
+}
+.kb-sg-guarantee__badge{
+  display:inline-block;
+  background:#C0182A;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  padding:5px 12px;
+  border-radius:4px;
+  margin-bottom:16px;
+}
+.kb-sg-guarantee__title{
+  font-size:clamp(20px,3vw,36px);
+  font-weight:800;
+  color:#fff;
+  line-height:1.2;
+  margin:0 0 16px;
+}
+.kb-sg-guarantee__text{
+  font-size:15px;
+  color:#aaa;
+  line-height:1.7;
+  margin:0;
+}
+.kb-sg-guarantee__right{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.kb-sg-guarantee__item{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:16px;
+  background:rgba(255,255,255,.06);
+  border-radius:8px;
+}
+.kb-sg-guarantee__item-icon{
+  width:36px;
+  height:36px;
+  flex-shrink:0;
+  background:#C0182A;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:16px;
+  font-weight:700;
+}
+.kb-sg-guarantee__item-title{font-size:14px;font-weight:700;color:#fff;margin:0 0 4px;}
+.kb-sg-guarantee__item-text{font-size:13px;color:#888;line-height:1.6;margin:0;}
+
+/* ===== KONTAKT ===== */
+.kb-sg-contact-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-sg-contact-wrap{padding:36px 0;}}
+.kb-sg-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:700px){.kb-sg-contact-grid{grid-template-columns:1fr;}}
+.kb-sg-contact-card{
+  background:#F5F3EF;
+  border-radius:10px;
+  padding:28px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.kb-sg-contact-card__icon{font-size:28px;}
+.kb-sg-contact-card__title{font-size:16px;font-weight:700;color:#1C1917;margin:0;}
+.kb-sg-contact-card__text{font-size:14px;color:#555;line-height:1.65;margin:0;}
+.kb-sg-contact-card__cta{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#C0182A;
+  color:#fff !important;
+  padding:10px 20px;
+  border-radius:6px;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:600;
+  margin-top:4px;
+  align-self:flex-start;
+  transition:background .2s;
+}
+@media(max-width:500px){.kb-sg-contact-card__cta{width:100%;justify-content:center;}}
+.kb-sg-contact-card__cta:hover{background:#a01020;}
+
+/* ===== ABLAUF ===== */
+.kb-sg-steps-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-sg-steps-wrap{padding:36px 0;}}
+.kb-sg-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;}
+@media(max-width:700px){.kb-sg-steps{grid-template-columns:1fr 1fr;gap:16px;}}
+@media(max-width:400px){.kb-sg-steps{grid-template-columns:1fr;}}
+.kb-sg-step{text-align:center;padding:0 16px;position:relative;}
+.kb-sg-step:not(:last-child)::after{content:'';position:absolute;top:22px;right:-1px;width:2px;height:44px;background:#eee;}
+@media(max-width:700px){.kb-sg-step:not(:last-child)::after{display:none;}}
+.kb-sg-step__num{width:44px;height:44px;border-radius:50%;background:#C0182A;color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.kb-sg-step__title{font-size:14px;font-weight:700;color:#1C1917;margin:0 0 8px;}
+.kb-sg-step__text{font-size:13px;color:#666;line-height:1.6;margin:0;}
+
+/* ===== CTA ===== */
+.kb-sg-cta-wrap{padding:56px 0;text-align:center;}
+@media(max-width:749px){.kb-sg-cta-wrap{padding:36px 0;}}
+.kb-sg-cta-title{font-size:24px;font-weight:800;color:#1C1917;margin-bottom:10px;}
+@media(max-width:749px){.kb-sg-cta-title{font-size:20px;}}
+.kb-sg-cta-sub{font-size:17px;color:#444;font-weight:500;margin-bottom:28px;}
+@media(max-width:749px){.kb-sg-cta-sub{font-size:15px;}}
+.kb-sg-cta-sub strong{color:#C0182A;font-weight:700;}
+.kb-sg-categories{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+.kb-sg-categories a{display:inline-flex;align-items:center;gap:8px;color:#333 !important;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:500;font-size:13.5px;border:1px solid #ddd;background:#F5F3EF;transition:all .2s;white-space:nowrap;}
+.kb-sg-categories a:hover{border-color:#C0182A;color:#C0182A !important;background:#fff;}
+.kb-sg-arrow{font-size:14px;color:#999;transition:color .2s,transform .2s;}
+.kb-sg-categories a:hover .kb-sg-arrow{color:#C0182A;transform:translateX(2px);}
+</style>
+
+<!-- HERO -->
+<div class="kb-sg-header-img">
+  <img src="https://cdn.shopify.com/s/files/1/0963/1852/1608/files/garantieund_service_1c5c6ba5-be6d-415a-913d-3c0fb82074fe.png?v=1782534396" alt="KB ELEMENTS Service und Garantie – 2 Jahre Herstellergarantie, eigene Werkstatt in Deutschland" loading="eager" width="1200" height="400">
+</div>
+
+<div class="kb-sg-page">
+
+  <!-- TRUST -->
+  <div class="kb-sg-sep"></div>
+  <div class="kb-sg-trust-wrap">
+    <div class="kb-sg-inner">
+      <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Service &amp; Garantie – KB ELEMENTS Einbauger&auml;te</h1>
+      <div class="kb-sg-trust">
+        <div class="kb-sg-trust__item">
+          <div class="kb-sg-trust__icon">&#9733;</div>
+          <div><div class="kb-sg-trust__number">2 Jahre</div><div class="kb-sg-trust__label">Herstellergarantie</div></div>
+        </div>
+        <div class="kb-sg-trust__item">
+          <div class="kb-sg-trust__icon">&#128295;</div>
+          <div><div class="kb-sg-trust__number">Eigene</div><div class="kb-sg-trust__label">Werkstatt in Deutschland</div></div>
+        </div>
+        <div class="kb-sg-trust__item">
+          <div class="kb-sg-trust__icon">&#9993;</div>
+          <div><div class="kb-sg-trust__number">24h</div><div class="kb-sg-trust__label">Antwortzeit Mo&ndash;Fr</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GARANTIE BLOCK -->
+  <div class="kb-sg-sep"></div>
+  <div class="kb-sg-guarantee-wrap">
+    <div class="kb-sg-inner">
+      <div class="kb-sg-guarantee">
+        <div class="kb-sg-guarantee__left">
+          <span class="kb-sg-guarantee__badge">2 Jahre Garantie</span>
+          <h2 class="kb-sg-guarantee__title">Service, der wirklich da ist &mdash; auch nach dem Kauf.</h2>
+          <p class="kb-sg-guarantee__text">Auf alle KB ELEMENTS Produkte gew&auml;hren wir 2 Jahre Garantie ab Kaufdatum. Mit eigener Werkstatt und eigenem Service-Team l&ouml;sen wir Probleme schnell und unkompliziert &mdash; ohne lange Wartezeiten oder externe Dienstleister.</p>
+        </div>
+        <div class="kb-sg-guarantee__right">
+          <div class="kb-sg-guarantee__item">
+            <div class="kb-sg-guarantee__item-icon">&#10003;</div>
+            <div><p class="kb-sg-guarantee__item-title">Material- &amp; Herstellungsfehler</p><p class="kb-sg-guarantee__item-text">Wir &uuml;bernehmen alle Sch&auml;den durch Material- oder Fertigungsfehler innerhalb der Garantiezeit vollst&auml;ndig.</p></div>
+          </div>
+          <div class="kb-sg-guarantee__item">
+            <div class="kb-sg-guarantee__item-icon">&#10003;</div>
+            <div><p class="kb-sg-guarantee__item-title">Eigene Werkstatt</p><p class="kb-sg-guarantee__item-text">Vollausgestattet in Deutschland &mdash; keine Wartezeiten durch externe Dienstleister, keine Ausreden.</p></div>
+          </div>
+          <div class="kb-sg-guarantee__item">
+            <div class="kb-sg-guarantee__item-icon">&#10003;</div>
+            <div><p class="kb-sg-guarantee__item-title">Ersatzteile dauerhaft verf&uuml;gbar</p><p class="kb-sg-guarantee__item-text">Auch nach Ablauf der Garantiezeit halten wir Ersatzteile f&uuml;r alle Modelle langfristig auf Lager.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABLAUF -->
+  <div class="kb-sg-sep"></div>
+  <div class="kb-sg-steps-wrap">
+    <div class="kb-sg-inner">
+      <h2 class="kb-sg-section-title">So l&auml;uft ein Garantiefall ab</h2>
+      <div class="kb-sg-steps">
+        <div class="kb-sg-step"><div class="kb-sg-step__num">1</div><p class="kb-sg-step__title">Problem melden</p><p class="kb-sg-step__text">E-Mail an sales2@kbelements.de mit Bestellnummer &amp; Beschreibung &mdash; am besten mit Foto oder Video.</p></div>
+        <div class="kb-sg-step"><div class="kb-sg-step__num">2</div><p class="kb-sg-step__title">R&uuml;cksendung</p><p class="kb-sg-step__text">Wir schicken Ihnen ein R&uuml;cksende-Label. Das Ger&auml;t kommt direkt in unsere Werkstatt in Deutschland.</p></div>
+        <div class="kb-sg-step"><div class="kb-sg-step__num">3</div><p class="kb-sg-step__title">Reparatur oder Tausch</p><p class="kb-sg-step__text">Unsere Techniker pr&uuml;fen und reparieren &mdash; oder tauschen das Ger&auml;t aus. In der Regel in ca. 2 Werktagen.</p></div>
+        <div class="kb-sg-step"><div class="kb-sg-step__num">4</div><p class="kb-sg-step__title">R&uuml;cksendung an Sie</p><p class="kb-sg-step__text">Das reparierte oder neue Ger&auml;t wird schnellstm&ouml;glich kostenlos an Sie zur&uuml;ckgesandt.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO KARTEN -->
+  <div class="kb-sg-sep"></div>
+  <div class="kb-sg-info-wrap">
+    <div class="kb-sg-inner">
+      <h2 class="kb-sg-section-title">Weitere Serviceleistungen</h2>
+      <div class="kb-sg-cards">
+        <div class="kb-sg-card">
+          <div class="kb-sg-card__icon">&#128230;</div>
+          <p class="kb-sg-card__title">Ware besch&auml;digt angekommen?</p>
+          <p class="kb-sg-card__text">Bitte melden Sie Transportsch&auml;den innerhalb von 3 Tagen nach Erhalt per E-Mail mit Fotos der Verpackung und des Produkts. Nur so k&ouml;nnen wir schnell reagieren.</p>
+          <a class="kb-sg-card__link" href="mailto:sales2@kbelements.de?subject=Transportschaden%20%E2%80%93%20Bestellnummer%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Ameine%20Bestellnummer%3A%20%0AProdukt%3A%20%0ABeschreibung%20des%20Schadens%3A%20%0A%0AFotos%20h%C3%A4nge%20ich%20dieser%20E-Mail%20bei.%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">Schaden melden &rarr;</a>
+        </div>
+        <div class="kb-sg-card">
+          <div class="kb-sg-card__icon">&#128295;</div>
+          <p class="kb-sg-card__title">Ersatzteile &amp; Zubeh&ouml;r</p>
+          <p class="kb-sg-card__text">Aktivkohlefilter, Fettfilter, Backbleche, Teleskopausz&uuml;ge, Brenner, Bedienknebel &mdash; wir helfen Ihnen bei der Suche nach dem passenden Ersatzteil auch nach der Garantiezeit.</p>
+          <a class="kb-sg-card__link" href="mailto:sales2@kbelements.de?subject=Ersatzteilanfrage%20%E2%80%93%20Modell%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Aich%20ben%C3%B6tige%20ein%20Ersatzteil%20f%C3%BCr%20folgendes%20Ger%C3%A4t%3A%0AModell%2FArtikel-Nr.%3A%20%0AGew%C3%BCnschtes%20Ersatzteil%3A%20%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">Ersatzteil anfragen &rarr;</a>
+        </div>
+        <div class="kb-sg-card">
+          <div class="kb-sg-card__icon">&#9851;</div>
+          <p class="kb-sg-card__title">Altger&auml;te-R&uuml;cknahme</p>
+          <p class="kb-sg-card__text">Wir nehmen Ihr altes Einbauger&auml;t zur&uuml;ck und sorgen f&uuml;r eine umweltgerechte Entsorgung gem&auml;&szlig; den gesetzlichen Vorgaben.</p>
+          <a class="kb-sg-card__link" href="/pages/altgeraete-ruecknahme">Mehr erfahren &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KONTAKT -->
+  <div class="kb-sg-sep"></div>
+  <div class="kb-sg-contact-wrap">
+    <div class="kb-sg-inner">
+      <h2 class="kb-sg-section-title">So erreichen Sie uns</h2>
+      <div class="kb-sg-contact-grid">
+        <div class="kb-sg-contact-card">
+          <div class="kb-sg-contact-card__icon">&#9993;</div>
+          <p class="kb-sg-contact-card__title">E-Mail Kundenservice</p>
+          <p class="kb-sg-contact-card__text">F&uuml;r Reklamationen, Garantief&auml;lle, Ersatzteile und alle weiteren Anliegen &mdash; bitte Bestellnummer angeben.<br><br><strong>Erreichbarkeit:</strong> Mo&ndash;Fr, 9:00&ndash;17:00 Uhr<br>Antwortzeit: in der Regel innerhalb von 24 Stunden.</p>
+          <a class="kb-sg-contact-card__cta" href="mailto:sales2@kbelements.de?subject=Kundenanliegen%20%E2%80%93%20Bestellnummer%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Ameine%20Bestellnummer%3A%20%0AMein%20Anliegen%3A%20%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">&#9993; sales2@kbelements.de</a>
+        </div>
+        <div class="kb-sg-contact-card">
+          <div class="kb-sg-contact-card__icon">&#128203;</div>
+          <p class="kb-sg-contact-card__title">Schnelle Bearbeitung &mdash; unsere Tipps</p>
+          <p class="kb-sg-contact-card__text">&#10003; Bestellnummer angeben<br>&#10003; Problem kurz beschreiben<br>&#10003; Fotos oder Video mitsenden<br>&#10003; Bei Transportschaden: innerhalb 3 Tagen melden<br>&#10003; Kaufbeleg f&uuml;r Garantief&auml;lle bereithalten</p>
+          <a class="kb-sg-contact-card__cta" href="/pages/contact">&#128203; Zur Kontaktseite</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="kb-sg-sep"></div>
+  <div class="kb-sg-cta-wrap">
+    <div class="kb-sg-inner">
+      <p class="kb-sg-cta-title">Finden Sie das passende Ger&auml;t f&uuml;r Ihre K&uuml;che</p>
+      <p class="kb-sg-cta-sub">Von <strong>&uuml;ber 2.463 Kunden</strong> vertraut &ndash; jetzt entdecken</p>
+      <div class="kb-sg-categories">
+        <a href="/collections/sets-kombinationen">Herdsets &amp; Kombinationen <span class="kb-sg-arrow">&#8594;</span></a>
+        <a href="/collections/kochfelder">Kochfelder <span class="kb-sg-arrow">&#8594;</span></a>
+        <a href="/collections/einbaubackofen">Einbauback&ouml;fen <span class="kb-sg-arrow">&#8594;</span></a>
+        <a href="/collections/dunstabzugshauben">Abzugshauben <span class="kb-sg-arrow">&#8594;</span></a>
+        <a href="/collections/einbaumikrowellen">Einbaumikrowellen <span class="kb-sg-arrow">&#8594;</span></a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% schema %}
+{
+  "name": "KB Service & Garantie",
+  "settings": []
+}
+{% endschema %}

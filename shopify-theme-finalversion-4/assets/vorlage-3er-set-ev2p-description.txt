@@ -1,0 +1,71 @@
+VORLAGE: descriptionHtml für EV2P 3er-Sets
+Quelle: ELK75EV2P/ELK60CR1/ELK156S60S (gid://shopify/Product/12050594431240)
+Stand: 2026-06-25
+
+Anpassen bei jedem neuen Set:
+- [HAUBE_SKU] = z.B. ELK150H60
+- [HAUBE_NAME] = z.B. Kopffreihaube
+- [HAUBE_SPECS_INTRO] = z.B. 700 m³/h Absaugleistung
+- [HAUBE_BREITE] = z.B. 60 cm
+- [HAUBE_MASSE] = z.B. 598 × 500 × 227 mm
+- [HAUBE_ABSAUG] = z.B. bis zu 700 m³/h
+- [HAUBE_MOTOR] = z.B. 1 × 135 W
+- [HAUBE_STUFEN] = z.B. 3 Stufen
+- [HAUBE_STEUERUNG] = z.B. Drucktasten
+- [HAUBE_BETRIEB] = z.B. Abluft & Umluft
+- [HAUBE_ROHR] = z.B. 150 mm
+- [HAUBE_DB] = z.B. ca. 62 dB
+- [HAUBE_FARBE] = z.B. Schwarz
+- [HAUBE_NACHLAUF] = z.B. manuell
+- [KOCHFELD_SKU] = z.B. ELK60CR1
+- [KOCHFELD_SPECS] = kompletter Kochfeld-Block
+- [SET_FARBE] = z.B. Schwarz Silber
+- [LIEFERUMFANG_HAUBE] = Lieferumfang-Block der Haube
+
+BACKOFEN-BLOCK bleibt immer gleich (ELK75EV2P, Schwarz Silber, Schuko, A+)
+
+---HTML-VORLAGE---
+<h2>Profitieren Sie von erstklassiger Einbautechnik – KB ELEMENTS Herdset 3-teilig jetzt kaufen</h2>
+<p>Das <strong>KB ELEMENTS Herdset 3-teilig</strong> ist die perfekte Komplettlösung für Ihre moderne Einbauküche. Sie erhalten den leistungsstarken <strong>Einbaubackofen ELK75EV2P</strong> mit <strong>73 Liter Garraum</strong>, <strong>11 Backofenfunktionen inkl. Air Fry</strong> und <strong>Energieklasse A+</strong>, das <strong>[KOCHFELD_NAME]</strong> mit <strong>[KOCHFELD_INTRO_SPECS]</strong> sowie die elegante <strong>[HAUBE_SKU]</strong> mit <strong>[HAUBE_SPECS_INTRO]</strong>, <strong>[HAUBE_STEUERUNG]</strong> und <strong>Abluft- &amp; Umluftbetrieb</strong> – alles perfekt aufeinander abgestimmt in einem eleganten [SET_FARBE].</p>
+
+<h3 style="display:flex;align-items:center;gap:9px;background:#f5f5f5;border-left:3px solid #C0182A;padding:10px 14px;margin:1.5rem 0 0.5rem;">
+<svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Technische Daten – Einbaubackofen ELK75EV2P</h3>
+<ul>
+<li>
+<strong>Leistung:</strong> 3.000 Watt</li>
+<li>
+<strong>Garraum:</strong> 73 Liter (65 Liter Nutzvolumen)</li>
+<li>
+<strong>Backofenfunktionen:</strong> 11</li>
+<li>
+<strong>Heizungsart:</strong> Air Fry, Steam Clean, Pizza, Circle Fan Heater (Heißluft), Ober-/Unterhitze, Umluft, Umluftgrill, Maxi-Grill, Umluft mit Ober-/Unterhitze, Umluft mit Unterhitze, Abtauen</li>
+<li>
+<strong>Umluftsystem:</strong> Circle Fan Heater – erweitertes Umluft-System mit ringförmigem Heizelement und Gebäse für gleichmäßige Wärmeverteilung auf allen Ebenen</li>
+<li>
+<strong>Display:</strong> Digitaldisplay mit Uhr und Timer</li>
+<li>
+<strong>Tür:</strong> 2-fach verglast, abnehmbar</li>
+<li>
+<strong>Anschluss:</strong> 220–240 V, Schuko-Stecker (kein Elektriker notwendig)</li>
+<li>
+<strong>Maße (B × T × H):</strong> 595 × 517 × 595 mm</li>
+<li>
+<strong>Garraum-Innenmaße (B × T × H):</strong> 488 × 359 × 370 mm</li>
+<li>
+<strong>Farbe:</strong> Schwarz Silber</li>
+<li>
+<strong>Energieklasse:</strong> A+</li>
+<li>
+<strong>Sicherheit:</strong> Innenbeleuchtung, automatische Abschaltung, Überhitzungsschutz</li>
+</ul>
+
+[KOCHFELD_BLOCK]
+
+[HAUBE_BLOCK]
+
+[LIEFERUMFANG_BLOCK]
+
+<h3 style="display:flex;align-items:center;gap:9px;background:#f5f5f5;border-left:3px solid #C0182A;padding:10px 14px;margin:1.5rem 0 0.5rem;">
+<svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"></rect><path d="M16 8h4l3 5v3h-7V8z"></path><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>Lieferung per Spedition</h3>
+<p>Dieses Herdset wird aufgrund seiner Größe und seines Gewichts per <strong>Spedition</strong> geliefert. Nach Ihrem Kauf kontaktiert Sie die Spedition telefonisch, um einen individuellen <strong>Zustelltermin</strong> mit Ihnen zu vereinbaren.</p>
+<p><strong>Bitte teilen Sie uns nach dem Kauf Ihre Telefonnummer zusammen mit Ihrer Bestellnummer mit</strong>, damit die Spedition Sie für die Terminvereinbarung erreichen kann. Sie können uns diese bequem per E-Mail an <a href="mailto:sales2@kbelements.de">sales2@kbelements.de</a> senden.</p>

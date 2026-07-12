@@ -1,0 +1,274 @@
+<style>
+.kb-widerruf {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+  font-family: var(--font-body--family, sans-serif);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: #1C1917;
+}
+.kb-widerruf__divider {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 0 0 40px;
+}
+.kb-widerruf__online-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #C0182A;
+  display: inline-block;
+}
+.kb-widerruf__online-text { margin: 12px 0 24px; color: #444; }
+.kb-widerruf__btn-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1C1917;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.kb-widerruf__btn-open:hover { background: #C0182A; }
+.kb-wf-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9000;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.kb-wf-overlay.open { display: flex; }
+.kb-wf-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px 36px 36px;
+  max-width: 560px;
+  width: 100%;
+  position: relative;
+  margin: auto;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+}
+@media (max-width: 600px) { .kb-wf-modal { padding: 32px 20px 28px; } }
+.kb-wf-close {
+  position: absolute; top: 14px; right: 18px;
+  background: none; border: none; font-size: 26px;
+  cursor: pointer; color: #666; line-height: 1;
+}
+.kb-wf-close:hover { color: #C0182A; }
+.kb-wf-title { font-size: 1.25rem; font-weight: 700; margin: 0 0 6px; color: #1C1917; }
+.kb-wf-subtitle { font-size: 0.875rem; color: #666; margin: 0 0 28px; }
+.kb-wf-form .kb-wf-group { margin-bottom: 16px; }
+.kb-wf-form label { display: block; font-size: 0.875rem; font-weight: 600; color: #1C1917; margin-bottom: 5px; }
+.kb-wf-form label .kb-req { color: #C0182A; margin-left: 2px; }
+.kb-wf-form input[type=text],
+.kb-wf-form input[type=email],
+.kb-wf-form input[type=tel],
+.kb-wf-form textarea {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid #ddd; border-radius: 6px;
+  font-size: 0.9375rem; font-family: inherit;
+  color: #1C1917; background: #fff;
+  box-sizing: border-box; transition: border-color 0.15s; outline: none;
+}
+.kb-wf-form input:focus, .kb-wf-form textarea:focus { border-color: #1C1917; }
+.kb-wf-form input.kb-error, .kb-wf-form textarea.kb-error { border-color: #C0182A; }
+.kb-wf-form textarea { resize: vertical; min-height: 90px; }
+.kb-wf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .kb-wf-row { grid-template-columns: 1fr; } }
+.kb-wf-check-group {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin: 20px 0 24px; padding: 14px 16px;
+  background: #f8f8f8; border-radius: 6px; border: 1.5px solid #e8e8e8;
+}
+.kb-wf-check-group input[type=checkbox] {
+  margin-top: 3px; flex-shrink: 0;
+  width: 16px; height: 16px; accent-color: #1C1917; cursor: pointer;
+}
+.kb-wf-check-group label { font-size: 0.875rem; font-weight: 400; color: #333; margin: 0; cursor: pointer; }
+.kb-wf-check-group.kb-error { border-color: #C0182A; background: #fff5f5; }
+.kb-wf-submit {
+  width: 100%; background: #C0182A; color: #fff;
+  font-size: 1rem; font-weight: 700; padding: 14px;
+  border: none; border-radius: 6px; cursor: pointer;
+  transition: background 0.2s; letter-spacing: 0.01em;
+}
+.kb-wf-submit:hover { background: #a01220; }
+.kb-wf-submit:disabled { background: #999; cursor: not-allowed; }
+.kb-wf-error-msg { font-size: 0.8rem; color: #C0182A; margin-top: 4px; display: none; }
+.kb-wf-error-msg.show { display: block; }
+.kb-wf-hp { display: none !important; }
+.kb-wf-success { display: none; text-align: center; padding: 20px 0 8px; }
+.kb-wf-success__icon {
+  width: 56px; height: 56px; background: #1C1917; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+}
+.kb-wf-success__icon svg { display: block; }
+.kb-wf-success__title { font-size: 1.125rem; font-weight: 700; margin: 0 0 8px; color: #1C1917; }
+.kb-wf-success__text { font-size: 0.9375rem; color: #555; line-height: 1.6; }
+</style>
+
+<div class="kb-widerruf">
+  <hr class="kb-widerruf__divider">
+  <h2 class="kb-widerruf__online-title">Widerruf online</h2>
+  <p class="kb-widerruf__online-text">
+    Sie m&ouml;chten Ihren Widerruf schnell und unkompliziert online einreichen?
+    Nutzen Sie unser Online-Formular. Geben Sie einfach Ihre Bestellnummer und E-Mail-Adresse ein.
+    Wir pr&uuml;fen Ihre Anfrage und best&auml;tigen den Eingang per E-Mail.
+  </p>
+  <button class="kb-widerruf__btn-open" id="kb-wf-open" type="button">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Bestellung online widerrufen
+  </button>
+</div>
+
+{% comment %}Verstecktes iframe für unsichtbaren Formular-Submit{% endcomment %}
+<iframe name="kb-wf-iframe" id="kb-wf-iframe" style="display:none;" title="Widerruf"></iframe>
+
+<div class="kb-wf-overlay" id="kb-wf-overlay" role="dialog" aria-modal="true" aria-labelledby="kb-wf-modal-title">
+  <div class="kb-wf-modal">
+    <button class="kb-wf-close" id="kb-wf-close" aria-label="Schlie&szlig;en">&times;</button>
+    <div id="kb-wf-form-wrap">
+      <h3 class="kb-wf-title" id="kb-wf-modal-title">Online-Widerruf einreichen</h3>
+      <p class="kb-wf-subtitle">Pflichtfelder sind mit <span style="color:#C0182A">*</span> markiert.</p>
+      <form class="kb-wf-form" id="kb-wf-form" action="/contact" method="post" target="kb-wf-iframe" novalidate>
+        <input type="hidden" name="form_type" value="contact">
+        <input type="hidden" name="utf8" value="&#x2713;">
+        <input type="hidden" name="contact[subject]" value="Neuer Online-Widerruf – KB ELEMENTS">
+        <input type="hidden" name="contact[body]" id="kb-wf-body" value="">
+        <input class="kb-wf-hp" type="text" name="contact[website]" tabindex="-1" autocomplete="off">
+        <div class="kb-wf-group">
+          <label for="kb-wf-order">Bestellnummer<span class="kb-req">*</span></label>
+          <input type="text" id="kb-wf-order" name="contact[order]" placeholder="z.B. 1001" autocomplete="off">
+          <div class="kb-wf-error-msg" id="kb-err-order">Bitte geben Sie Ihre Bestellnummer ein.</div>
+        </div>
+        <div class="kb-wf-group">
+          <label for="kb-wf-email">E-Mail-Adresse<span class="kb-req">*</span></label>
+          <input type="email" id="kb-wf-email" name="contact[email]" placeholder="ihre@email.de" autocomplete="email">
+          <div class="kb-wf-error-msg" id="kb-err-email">Bitte geben Sie eine g&uuml;ltige E-Mail-Adresse ein.</div>
+        </div>
+        <div class="kb-wf-row">
+          <div class="kb-wf-group">
+            <label for="kb-wf-fname">Vorname</label>
+            <input type="text" id="kb-wf-fname" name="contact[first_name]" placeholder="Max" autocomplete="given-name">
+          </div>
+          <div class="kb-wf-group">
+            <label for="kb-wf-lname">Nachname</label>
+            <input type="text" id="kb-wf-lname" name="contact[last_name]" placeholder="Mustermann" autocomplete="family-name">
+          </div>
+        </div>
+        <div class="kb-wf-group">
+          <label for="kb-wf-phone">Telefonnummer</label>
+          <input type="tel" id="kb-wf-phone" name="contact[phone]" placeholder="+49 ..." autocomplete="tel">
+        </div>
+        <div class="kb-wf-group">
+          <label for="kb-wf-artikel">Artikel</label>
+          <input type="text" id="kb-wf-artikel" name="contact[article]" placeholder="z.B. KB ELEMENTS Induktionskochfeld ELK60">
+        </div>
+        <div class="kb-wf-group">
+          <label for="kb-wf-msg">Nachricht</label>
+          <textarea id="kb-wf-msg" name="contact[message_extra]" placeholder="Optionale Anmerkungen zu Ihrem Widerruf ..."></textarea>
+        </div>
+        <div class="kb-wf-check-group" id="kb-wf-check-wrap">
+          <input type="checkbox" id="kb-wf-consent" name="contact[consent]">
+          <label for="kb-wf-consent">
+            Ich m&ouml;chte den Kaufvertrag innerhalb der gesetzlichen Widerrufsfrist widerrufen.<span class="kb-req">*</span>
+          </label>
+        </div>
+        <div class="kb-wf-error-msg" id="kb-err-consent">Bitte best&auml;tigen Sie den Widerruf.</div>
+        <button type="submit" class="kb-wf-submit" id="kb-wf-submit">Widerruf absenden</button>
+      </form>
+    </div>
+    <div class="kb-wf-success" id="kb-wf-success">
+      <div class="kb-wf-success__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <p class="kb-wf-success__title">Widerruf erfolgreich &uuml;bermittelt</p>
+      <p class="kb-wf-success__text">
+        Vielen Dank. Ihr Widerruf wurde erfolgreich &uuml;bermittelt.<br>
+        Wir best&auml;tigen den Eingang per E-Mail und informieren Sie &uuml;ber die weiteren Schritte.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var overlay  = document.getElementById('kb-wf-overlay');
+  var openBtn  = document.getElementById('kb-wf-open');
+  var closeBtn = document.getElementById('kb-wf-close');
+  var form     = document.getElementById('kb-wf-form');
+  var formWrap = document.getElementById('kb-wf-form-wrap');
+  var success  = document.getElementById('kb-wf-success');
+  var iframe   = document.getElementById('kb-wf-iframe');
+  if (!overlay || !openBtn) return;
+
+  function openModal() { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeModal() { overlay.classList.remove('open'); document.body.style.overflow = ''; }
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+  function showErr(el, msg) { el.classList.add('kb-error'); msg.classList.add('show'); }
+  function clearErr(el, msg) { el.classList.remove('kb-error'); msg.classList.remove('show'); }
+
+  form.addEventListener('submit', function(e) {
+    var hp = form.querySelector('input[name="contact[website]"]');
+    if (hp && hp.value) { e.preventDefault(); return; }
+
+    var order   = document.getElementById('kb-wf-order');
+    var email   = document.getElementById('kb-wf-email');
+    var consent = document.getElementById('kb-wf-consent');
+    var ckWrap  = document.getElementById('kb-wf-check-wrap');
+    var eOrder  = document.getElementById('kb-err-order');
+    var eEmail  = document.getElementById('kb-err-email');
+    var eConst  = document.getElementById('kb-err-consent');
+    clearErr(order, eOrder); clearErr(email, eEmail);
+    ckWrap.classList.remove('kb-error'); eConst.classList.remove('show');
+
+    var ok = true;
+    if (!order.value.trim()) { showErr(order, eOrder); ok = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) { showErr(email, eEmail); ok = false; }
+    if (!consent.checked) { ckWrap.classList.add('kb-error'); eConst.classList.add('show'); ok = false; }
+    if (!ok) { e.preventDefault(); return; }
+
+    var fname   = document.getElementById('kb-wf-fname').value.trim();
+    var lname   = document.getElementById('kb-wf-lname').value.trim();
+    var phone   = document.getElementById('kb-wf-phone').value.trim();
+    var artikel = document.getElementById('kb-wf-artikel').value.trim();
+    var msg     = document.getElementById('kb-wf-msg').value.trim();
+    var body = 'ONLINE-WIDERRUF\n========================\n';
+    body += 'Bestellnummer: ' + order.value.trim() + '\n';
+    body += 'E-Mail: ' + email.value.trim() + '\n';
+    if (fname || lname) body += 'Name: ' + [fname,lname].filter(Boolean).join(' ') + '\n';
+    if (phone)   body += 'Telefon: ' + phone + '\n';
+    if (artikel) body += 'Artikel: ' + artikel + '\n';
+    if (msg)     body += 'Nachricht: ' + msg + '\n';
+    body += '========================\nWiderruf bestaetigt: JA';
+
+    document.getElementById('kb-wf-body').value = body;
+
+    var btn = document.getElementById('kb-wf-submit');
+    btn.disabled = true;
+    btn.textContent = 'Wird gesendet ...';
+
+    iframe.addEventListener('load', function onLoad() {
+      iframe.removeEventListener('load', onLoad);
+      formWrap.style.display = 'none';
+      success.style.display = 'block';
+    });
+  });
+})();
+</script>

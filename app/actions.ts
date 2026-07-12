@@ -213,16 +213,17 @@ export async function createInvoice(data: {
   shippingCost: number | null;
   shippingMwst: number;
   paymentMethod: string;
-  docType: "rechnung" | "angebot";
+  docType: "rechnung" | "angebot" | "gutschrift";
+  originalInvoiceId?: string;
+  originalInvoiceNum?: string;
   items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
 }) {
   const user = await requireUser();
 
   const now = new Date();
-  const isAngebot = data.docType === "angebot";
-  const prefix = isAngebot
-    ? `AN-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-`
-    : `RE-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-`;
+  const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const prefix = data.docType === "angebot" ? `AN-${ym}-` : data.docType === "gutschrift" ? `GS-${ym}-` : `RE-${ym}-`;
+  const noStock = data.docType === "angebot" || data.docType === "gutschrift";
 
   const last = await prisma.invoice.findFirst({
     where: { number: { startsWith: prefix }, docType: data.docType },
@@ -246,6 +247,8 @@ export async function createInvoice(data: {
         notes: data.notes || null,
         paymentInfo: data.paymentInfo || null,
         docType: data.docType,
+        originalInvoiceId: data.originalInvoiceId ?? null,
+        originalInvoiceNum: data.originalInvoiceNum ?? null,
         userId: user.id,
         items: {
           create: data.items.map((it) => ({
@@ -259,8 +262,8 @@ export async function createInvoice(data: {
       },
     });
 
-    // Reduce stock only for Rechnungen (not Angebote)
-    if (!isAngebot) {
+    // Reduce stock only for Rechnungen (not Angebote / Gutschriften)
+    if (!noStock) {
       for (const it of data.items) {
         const qty = Math.round(it.quantity);
         for (const s of it.skus) {
@@ -281,9 +284,12 @@ export async function createInvoice(data: {
 
   revalidatePath("/buchhaltung");
   revalidatePath("/angebot");
+  revalidatePath("/gutschrift");
   revalidatePath("/inventory");
   revalidatePath("/");
-  redirect(isAngebot ? `/angebot/${invoice.id}` : `/buchhaltung/${invoice.id}`);
+  if (data.docType === "angebot") redirect(`/angebot/${invoice.id}`);
+  if (data.docType === "gutschrift") redirect(`/gutschrift/${invoice.id}`);
+  redirect(`/buchhaltung/${invoice.id}`);
 }
 
 export async function stornoInvoice(id: string) {
@@ -345,7 +351,7 @@ export async function updateInvoice(
     });
 
     // Alten Lagerbestand rückbuchen (nur für Rechnungen)
-    if (old && old.docType !== "angebot") {
+    if (old && old.docType !== "angebot" && old.docType !== "gutschrift") {
       for (const it of old.items) {
         const qty = Math.round(it.quantity);
         for (const s of it.skus) {
@@ -389,7 +395,7 @@ export async function updateInvoice(
     });
 
     // Neuen Lagerbestand abbuchen (nur für Rechnungen)
-    if (!old || old.docType !== "angebot") {
+    if (!old || (old.docType !== "angebot" && old.docType !== "gutschrift")) {
       for (const it of data.items) {
         const qty = Math.round(it.quantity);
         for (const s of it.skus) {

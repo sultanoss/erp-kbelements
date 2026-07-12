@@ -1,0 +1,312 @@
+{% comment %}KB ELEMENTS Cart Drawer — Premium, Conversion-optimiert, Mobile-first{% endcomment %}
+
+<script src="{{ 'cart-drawer.js' | asset_url }}" type="module"></script>
+<script src="{{ 'component-cart-items.js' | asset_url }}" type="module"></script>
+
+<style>
+  .cart-items__wrapper,
+  .cart-drawer__summary {
+    --cart-secondary-font-family: var(--font-{{settings.cart_price_font}}--family);
+    --cart-secondary-font-style: var(--font-{{settings.cart_price_font}}--style);
+    --cart-secondary-font-weight: var(--font-{{settings.cart_price_font}}--weight);
+  }
+
+  .cart-drawer__dialog { overflow: hidden; }
+
+  .cart-drawer__inner {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cart-items-component {
+    width: 100%;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cart-drawer__header {
+    background-color: var(--color-background);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .kb-cart-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-foreground);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .kb-cart-header-title svg {
+    width: 20px;
+    height: 20px;
+    opacity: 0.65;
+    flex-shrink: 0;
+  }
+
+  .kb-cart-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: #C0182A;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 11px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .cart-drawer__close-button {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+    cursor: pointer;
+    color: var(--color-foreground);
+  }
+
+  .cart-drawer__close-button:hover { background: rgba(0,0,0,0.06); }
+
+  .cart-drawer__close-button svg { width: 16px; height: 16px; }
+
+  .cart-drawer__content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .cart-drawer__items { flex-shrink: 0; padding: 0 20px; }
+
+  .cart-drawer__summary {
+    flex-shrink: 0;
+    background-color: var(--color-background);
+    padding: 0 20px 28px;
+  }
+
+  .kb-cart-mobile-checkout { display: none; }
+
+  .kb-cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+    gap: 14px;
+  }
+
+  .kb-cart-empty svg { width: 44px; height: 44px; opacity: 0.18; color: var(--color-foreground); }
+  .kb-cart-empty__title { font-size: 16px; font-weight: 600; color: var(--color-foreground); margin: 0; }
+  .kb-cart-empty__text { font-size: 13px; color: var(--color-foreground); opacity: 0.5; margin: 0; }
+
+  .kb-cart-empty__cta {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 12px 28px;
+    background: #C0182A;
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--style-border-radius-buttons-primary, 4px);
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .kb-cart-empty__cta:hover { background: #a01220; }
+
+  @media screen and (max-width: 749px) {
+    .cart-drawer__header { padding: 15px 16px 13px; }
+    .cart-drawer__content {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0;
+    }
+    .cart-drawer__items {
+      flex: 0 0 auto;
+      overflow: visible;
+      padding: 0 16px;
+    }
+    .cart-drawer__summary {
+      padding: 0 16px 24px;
+    }
+    .cart-drawer__summary .kb-checkout-btn { display: none; }
+    .kb-cart-mobile-checkout {
+      display: block;
+      flex: 0 0 auto;
+      z-index: var(--layer-raised);
+      padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--color-border);
+      background: var(--color-background);
+      box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.1);
+    }
+    .kb-cart-mobile-checkout .kb-checkout-btn {
+      width: 100%;
+      margin: 0;
+    }
+    .kb-cart-header-title { font-size: 15px; }
+  }
+</style>
+
+<cart-drawer-component
+  class="cart-drawer"
+  {{ block.shopify_attributes }}
+  {{ cart_drawer_sizes }}
+  {% if settings.auto_open_cart_drawer %}auto-open{% endif %}
+>
+  <button
+    class="button header-actions__action button-unstyled"
+    on:click="/open"
+    aria-label="{{ 'accessibility.open_cart_drawer' | t }}"
+  >
+    {% render 'cart-icon-component' %}
+  </button>
+
+  <dialog
+    ref="dialog"
+    class="cart-drawer__dialog dialog-modal dialog-drawer color-{{ settings.drawer_color_scheme }}{% if cart.empty? %} cart-drawer--empty{% endif %}"
+    scroll-lock
+  >
+    <div class="cart-drawer__inner">
+      <cart-items-component
+        class="cart-items-component"
+        data-section-id="{{ section.id }}"
+      >
+        {%- if cart.empty? -%}
+
+          <div class="cart-drawer__header">
+            <span class="kb-cart-header-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+              Ihr Warenkorb
+            </span>
+            <button ref="closeButton" on:click="cart-drawer-component/close" class="button cart-drawer__close-button button-unstyled" aria-label="{{ 'actions.close_dialog' | t }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div class="cart-drawer__content motion-reduce" aria-label="{{ 'accessibility.cart' | t }}">
+            <div class="kb-cart-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+              <p class="kb-cart-empty__title">Ihr Warenkorb ist leer</p>
+              <p class="kb-cart-empty__text">Entdecken Sie unsere meistgekauften Einbauger&auml;te</p>
+              <a href="/collections/bestseller" class="kb-cart-empty__cta">Zu den Bestsellern</a>
+            </div>
+          </div>
+
+        {%- else -%}
+
+          <div class="cart-drawer__header" id="cart-drawer-header">
+            <span class="kb-cart-header-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+              Ihr Warenkorb
+              <span class="kb-cart-count-badge" ref="cartItemCount" aria-live="polite">{{ cart.item_count }}</span>
+            </span>
+            <button ref="closeButton" on:click="cart-drawer-component/close" class="button cart-drawer__close-button button-unstyled" aria-label="{{ 'actions.close_dialog' | t }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div class="cart-drawer__content motion-reduce" aria-label="{{ 'accessibility.cart' | t }}">
+            <div class="cart-drawer__items">{% render 'cart-products' %}</div>
+            <div class="cart-drawer__summary">{% render 'cart-summary' %}</div>
+          </div>
+
+          <div class="kb-cart-mobile-checkout" data-mobile-checkout-footer>
+            <button type="submit" id="checkout-mobile" class="kb-checkout-btn" name="checkout" form="cart-form">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              Zur Kasse
+            </button>
+          </div>
+
+        {%- endif -%}
+      </cart-items-component>
+    </div>
+  </dialog>
+</cart-drawer-component>
+
+<script>
+// KB Upsell Checkbox — Event-Delegation auf Drawer-Ebene
+// Bleibt persistent auch nach sectionRenderer-Refresh
+(function() {
+  var SK = 'kb_wohnung_checked';
+
+  function syncUpsell(drawer) {
+    var cb = drawer.querySelector('#kb-upsell-cb');
+    var row = drawer.querySelector('#kb-wohnung-row');
+    var totalEl = drawer.querySelector('#kb-total-value');
+
+    if (!totalEl || !cb) return;
+
+    var hasSpedition = totalEl.dataset.hasSped === 'true';
+    if (!hasSpedition) { sessionStorage.removeItem(SK); return; }
+
+    var checked = sessionStorage.getItem(SK) === '1';
+    cb.classList.toggle('kb-checked', checked);
+    if (row) row.style.display = checked ? 'flex' : 'none';
+    totalEl.textContent = checked ? totalEl.dataset.withWohnung : totalEl.dataset.base;
+  }
+
+  function setupDrawerObserver() {
+    var drawer = document.querySelector('cart-drawer-component');
+    if (!drawer) return;
+
+    // One delegated listener survives section replacements without duplication.
+    drawer.addEventListener('click', function(event) {
+      var label = event.target.closest('#kb-upsell-label');
+      if (!label || !drawer.contains(label)) return;
+
+      var cb = drawer.querySelector('#kb-upsell-cb');
+      if (!cb) return;
+
+      sessionStorage.setItem(SK, cb.classList.contains('kb-checked') ? '0' : '1');
+      syncUpsell(drawer);
+    });
+
+    syncUpsell(drawer);
+
+    // Observe only replaced child nodes; attribute changes must not retrigger sync.
+    var observer = new MutationObserver(function() {
+      syncUpsell(drawer);
+    });
+
+    observer.observe(drawer, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupDrawerObserver);
+  } else {
+    setupDrawerObserver();
+  }
+})();
+</script>

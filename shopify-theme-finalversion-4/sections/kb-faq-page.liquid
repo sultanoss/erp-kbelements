@@ -1,0 +1,122 @@
+<style>
+.kb-faq-page { max-width: 900px; margin: 0 auto; padding: 64px 24px; }
+.kb-faq-page__headline { font-size: 28px; font-weight: 700; margin: 0 0 48px; text-transform: none !important; }
+.kb-faq-cat { margin-bottom: 48px; }
+.kb-faq-cat__title { font-size: 18px; font-weight: 700; padding-bottom: 12px; margin: 0 0 0; border-bottom: 2px solid currentColor; text-transform: none !important; letter-spacing: 0 !important; }
+.kb-faq-item { border-bottom: 1px solid rgba(0,0,0,0.1); }
+.kb-faq-item:last-child { border-bottom: none; }
+.kb-faq-btn { width: 100%; background: none; border: none; padding: 15px 0; text-align: left; font-size: 14px; font-weight: 600; color: currentColor; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-family: inherit; text-transform: none; }
+.kb-faq-btn:hover { color: #C0182A; }
+.kb-faq-icon { flex-shrink: 0; width: 18px; height: 18px; position: relative; }
+.kb-faq-icon::before, .kb-faq-icon::after { content: ''; position: absolute; background: currentColor; border-radius: 2px; }
+.kb-faq-icon::before { width: 10px; height: 1.5px; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.kb-faq-icon::after { width: 1.5px; height: 10px; top: 50%; left: 50%; transform: translate(-50%,-50%); transition: transform 0.25s, opacity 0.25s; }
+.kb-faq-item.is-open .kb-faq-icon::after { transform: translate(-50%,-50%) rotate(90deg); opacity: 0; }
+.kb-faq-ans { font-size: 14px; line-height: 1.7; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; padding: 0; opacity: 0.75; }
+.kb-faq-item.is-open .kb-faq-ans { max-height: 500px; padding-bottom: 14px; }
+@media (max-width: 749px) { .kb-faq-page { padding: 40px 16px; } }
+</style>
+
+<div class="kb-faq-page page-width">
+  <h1 class="kb-faq-page__headline">Fragen und Antworten</h1>
+
+  <div class="kb-faq-cat">
+    <h2 class="kb-faq-cat__title">Einbaubacköfen</h2>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Welche Anschlussart benötigt der Backofen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Unsere Einbaubacköfen verfügen über einen vormontierten Schuko-Stecker und können an einer geeigneten 220–240 V Haushaltssteckdose betrieben werden.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Benötige ich einen Elektriker für den Anschluss?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Bei Modellen mit Schuko-Stecker ist in der Regel kein Elektroanschluss durch einen Elektriker erforderlich. Wir empfehlen dennoch, die Installation gemäß den örtlichen Vorschriften und der Bedienungsanleitung durchzuführen.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wie erfolgt die Lieferung des Backofens?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Lieferung erfolgt in der Regel innerhalb von 3 bis 5 Werktagen per Spedition. Die Spedition kontaktiert Sie vor der Zustellung, um einen individuellen Liefertermin zu vereinbaren.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Welche Funktionen bietet der Backofen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Je nach Modell verfügt der Backofen über Circle Fan Heater, Ober-/Unterhitze, Umluftgrill, Maxi-Grill, Pizza-Funktion, Air Fry, Steam Clean, Abtauen und weitere Betriebsarten.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist die Circle Fan Heater Funktion?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Circle Fan Heater Technologie verfügt über ein zusätzliches Ringheizelement rund um den Ventilator. Dadurch wird die Wärme gleichmäßig im gesamten Garraum verteilt – für gleichmäßigere Backergebnisse auf mehreren Ebenen und kürzere Garzeiten.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist die Steam-Clean-Funktion?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Steam Clean unterstützt die Reinigung des Garraums mithilfe von Wasserdampf. Verschmutzungen werden aufgeweicht und können anschließend leichter entfernt werden.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist die Air-Fry-Funktion?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Mit der Air-Fry-Funktion können Speisen besonders knusprig und fettarm zubereitet werden. Ideal für Pommes, Gemüse, Hähnchen und viele weitere Gerichte.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Ist ein Air-Fry-Korb im Lieferumfang enthalten?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Bei Modellen mit Air-Fry-Funktion ist der passende Air-Fry-Korb im Lieferumfang enthalten.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist die Pizza-Funktion?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Pizza-Funktion kombiniert die Heizarten optimal für knusprige Böden und gleichmäßig gebackene Beläge. Ideal für Pizza, Flammkuchen und ähnliche Gerichte.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wie groß ist das Garraumvolumen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Unsere Einbaubacköfen verfügen je nach Modell über ein Garraumvolumen von bis zu 73 Litern.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Verfügt der Backofen über ein Kühlsystem?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Unsere Einbaubacköfen verfügen über ein integriertes Kühlsystem, das die entstehende Wärme kontrolliert ableitet und die umliegenden Küchenschränke schützt.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Welche Energieeffizienzklasse hat der Backofen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Unsere Einbaubacköfen verfügen über die Energieeffizienzklasse A+ und verbinden hohe Leistung mit effizientem Energieverbrauch.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wo kann ich Ersatzteile oder Zubehör bestellen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Passende Ersatzteile und Zubehör finden Sie direkt in unserem Shop. Unser Kundenservice hilft Ihnen gerne weiter.</div></div>
+  </div>
+
+  <div class="kb-faq-cat">
+    <h2 class="kb-faq-cat__title">Gaskochfelder</h2>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Für welche Gasart ist das Gaskochfeld werkseitig eingestellt?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Alle KB ELEMENTS Gaskochfelder sind werkseitig für Erdgas (NG) voreingestellt. Für den Betrieb mit Flüssiggas (LPG) liegen die passenden LPG-Düsen für 30 mbar und 50 mbar bereits im Lieferumfang bei.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Können die Gaskochfelder mit Erdgas und Flüssiggas betrieben werden?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Unsere Gaskochfelder können sowohl mit Erdgas (NG) als auch mit Flüssiggas (LPG) betrieben werden. Die benötigten LPG-Düsen sind bereits im Lieferumfang enthalten.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Ist ein Umbau auf Flüssiggas möglich?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Mit den mitgelieferten LPG-Düsen kann das Kochfeld auf Flüssiggas umgerüstet werden. Wir empfehlen, den Umbau durch eine qualifizierte Fachkraft durchführen zu lassen.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Sind die LPG-Düsen im Lieferumfang enthalten?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Alle KB ELEMENTS Gaskochfelder werden mit LPG-Gasdüsen für 30 mbar und 50 mbar geliefert.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Verfügt das Gaskochfeld über eine automatische Zündung?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Alle KB ELEMENTS Gaskochfelder verfügen über eine integrierte elektrische Zündung für eine komfortable Bedienung.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was passiert, wenn die Flamme erlischt?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Alle unsere Gaskochfelder verfügen über eine Flammensicherheitsvorrichtung. Wird die Flamme unbeabsichtigt gelöscht, wird die Gaszufuhr automatisch unterbrochen.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Aus welchem Material bestehen die Topfträger?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Unsere Gaskochfelder sind mit hochwertigen Gusseisen-Topfträgern ausgestattet, die eine hohe Stabilität und lange Lebensdauer bieten.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Kann ich einen Wok auf dem Gaskochfeld verwenden?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Modelle mit Wok-Brenner eignen sich hervorragend für Woks, große Pfannen und schnelles Anbraten bei hoher Hitze.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Benötige ich einen Fachmann für den Anschluss?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Der Anschluss eines Gaskochfelds sollte grundsätzlich durch eine qualifizierte Fachkraft erfolgen.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Welche Vorteile bietet Kochen mit Gas?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Gas ermöglicht eine besonders schnelle und präzise Regelung der Hitze. Die Leistungsänderung erfolgt unmittelbar und bietet maximale Kontrolle beim Kochen.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wo kann ich Ersatzteile oder Zubehör bestellen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Passende Ersatzteile und Zubehör finden Sie direkt in unserem Shop. Unser Kundenservice hilft Ihnen gerne weiter.</div></div>
+  </div>
+
+  <div class="kb-faq-cat">
+    <h2 class="kb-faq-cat__title">Induktionskochfelder</h2>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist die Low Power Continuous Heating-Technologie?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Low Power Continuous Heating-Technologie sorgt dafür, dass Speisen bei niedrigen Leistungsstufen besonders gleichmäßig erwärmt werden. Anbrennen wird verhindert und empfindliche Speisen wie Schokolade, Saucen oder Milch werden schonend erhitzt.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Verfügt das Kochfeld über eine Warmhaltefunktion?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Alle KB ELEMENTS Induktionskochfelder verfügen über eine integrierte Warmhaltefunktion mit 45°C, 55°C und 65°C. Ideal zum Warmhalten von Speisen, Schmelzen von Schokolade oder Butter sowie zum schonenden Erwärmen empfindlicher Zutaten.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Benötige ich spezielles Kochgeschirr für ein Induktionskochfeld?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Für Induktionskochfelder wird induktionsgeeignetes Kochgeschirr benötigt. Ob Ihr Kochgeschirr geeignet ist, können Sie prüfen, indem Sie einen Magneten an den Topfboden halten. Bleibt der Magnet haften, ist das Kochgeschirr in der Regel geeignet.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist eine Flexzone?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Flexzone ermöglicht es, zwei Kochzonen zu einer großen Kochfläche zusammenzuschalten. Dadurch können auch große Töpfe, Bräter oder Grillplatten komfortabel genutzt werden.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Verfügt das Kochfeld über eine PowerBoost-Funktion?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ausgewählte Modelle verfügen über eine PowerBoost-Funktion. Diese erhöht die Leistung einer Kochzone kurzfristig, um beispielsweise Wasser besonders schnell zum Kochen zu bringen.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Verfügt das Kochfeld über eine Kindersicherung?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Unsere Induktionskochfelder verfügen über eine Kindersicherung, um eine unbeabsichtigte Bedienung zu verhindern.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Besitzt das Kochfeld eine Restwwärmeanzeige?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Die Restwwärmeanzeige informiert Sie darüber, ob eine Kochzone nach dem Kochen noch heiß ist.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Welche Sicherheitsfunktionen bietet das Kochfeld?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Unsere Induktionskochfelder verfügen über Kindersicherung, Überhitzungsschutz, Topferkennung, Restwwärmeanzeige und automatische Abschaltung.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was bedeutet Topferkennung?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Das Kochfeld erkennt automatisch, ob geeignetes Kochgeschirr auf der Kochzone steht. Ohne passenden Topf oder Pfanne wird keine Wärme erzeugt.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Kann ich mehrere Kochzonen gleichzeitig nutzen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Alle Kochzonen können gleichzeitig betrieben werden. Die verfügbare Leistung wird dabei automatisch auf die aktiven Kochzonen verteilt.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Benötige ich einen Elektriker für den Anschluss?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Bei fest anzuschließenden Modellen empfehlen wir den Anschluss durch eine qualifizierte Elektrofachkraft. Modelle mit vormontiertem Schuko-Stecker können direkt an einer geeigneten Haushaltssteckdose angeschlossen werden.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wo kann ich Ersatzteile oder Zubehör bestellen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Passende Ersatzteile und Zubehör finden Sie direkt in unserem Shop. Unser Kundenservice hilft Ihnen gerne weiter.</div></div>
+  </div>
+
+  <div class="kb-faq-cat">
+    <h2 class="kb-faq-cat__title">Glaskeramikkochfelder</h2>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Benötige ich spezielles Kochgeschirr für ein Glaskeramikkochfeld?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Nein. Glaskeramikkochfelder können mit den meisten handelsüblichen Töpfen und Pfannen verwendet werden. Spezielles Induktionskochgeschirr ist nicht erforderlich.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist die Dual-Ring-Zone?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Dual-Ring-Zone ermöglicht die Vergrößerung einer Kochzone per Tastendruck, sodass sowohl kleine als auch große Töpfe, Pfannen oder Bräter effizient beheizt werden können.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Was ist eine Flexzone?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Flexzone ermöglicht es, zwei Kochzonen zu einer größeren Kochfläche zusammenzuschalten. Ideal für große Bräter, Grillplatten oder Fischpfannen.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Verfügt das Kochfeld über eine Kindersicherung?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Unsere Glaskeramikkochfelder verfügen über eine Kindersicherung, um eine unbeabsichtigte Bedienung zu verhindern.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Besitzt das Kochfeld eine Restwwärmeanzeige?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Die Restwwärmeanzeige informiert Sie darüber, ob eine Kochzone nach dem Kochen noch heiß ist.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Welche Sicherheitsfunktionen bietet das Kochfeld?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Unsere Glaskeramikkochfelder verfügen über Kindersicherung, Überhitzungsschutz, Restwwärmeanzeige und automatische Abschaltung.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Warum schaltet sich das Kochfeld automatisch aus?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die automatische Abschaltung dient Ihrer Sicherheit und schützt das Gerät vor Überhitzung oder unbeabsichtigtem Dauerbetrieb.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Ist die Oberfläche kratzfest?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die hochwertige Glaskeramikoberfläche ist robust und für den täglichen Gebrauch ausgelegt. Wir empfehlen die Verwendung von geeignetem Kochgeschirr und regelmäßige Reinigung.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Benötige ich einen Elektriker für den Anschluss?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Wir empfehlen den Anschluss durch eine qualifizierte Elektrofachkraft. Die genauen Anschlussdaten finden Sie in der Bedienungsanleitung des jeweiligen Modells.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wo kann ich Ersatzteile oder Zubehör bestellen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Passende Ersatzteile und Zubehör finden Sie direkt in unserem Shop. Unser Kundenservice hilft Ihnen gerne weiter.</div></div>
+  </div>
+
+  <div class="kb-faq-cat">
+    <h2 class="kb-faq-cat__title">Dunstabzugshauben</h2>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Kann die Dunstabzugshaube im Umluftbetrieb genutzt werden?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Unsere Dunstabzugshauben können sowohl im Umluft- als auch im Abluftbetrieb verwendet werden. Ausgenommen sind unsere Inselhauben, die ausschließlich für den Umluftbetrieb ausgelegt sind.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Sind Aktivkohlefilter im Lieferumfang enthalten?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Die benötigten Aktivkohlefilter sind im Lieferumfang enthalten und bereits vormontiert. Für den Abluftbetrieb sollten die Aktivkohlefilter vor der Inbetriebnahme entfernt werden.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wie oft sollten die Aktivkohlefilter gewechselt werden?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Wir empfehlen, die Aktivkohlefilter etwa alle 6 Monate auszutauschen. Die tatsächliche Lebensdauer hängt von der Nutzungshäufigkeit und den individuellen Kochgewohnheiten ab.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Sind die Fettfilter spülmaschinengeeignet?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Die Baffle-Fettfilter sind grundsätzlich spülmaschinengeeignet. Wir empfehlen jedoch die Reinigung von Hand, da einige Reinigungsmittel zu Farbveränderungen führen können.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Können die LED-Leuchten ausgetauscht werden?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Ja. Die LED-Beleuchtung kann bei Bedarf ausgetauscht werden.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wie laut ist die Dunstabzugshaube?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Je nach Modell und Leistungsstufe liegt die maximale Lautstärke bei etwa 58 dB und ermöglicht einen angenehm leisen Betrieb in der Küche.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Benötige ich zusätzliches Zubehör für die Montage?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Nein. Das benötigte Montagematerial sowie das erforderliche Zubehör für den Betrieb sind im Lieferumfang enthalten.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Welche Vorteile bietet der Umluftbetrieb?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Im Umluftbetrieb werden Kochgerüche und Fettpartikel durch die Aktivkohle- und Fettfilter gefiltert und die Luft zurückgeführt. Kein Abluftanschluss nach außen erforderlich.</div></div>
+    <div class="kb-faq-item"><button class="kb-faq-btn" aria-expanded="false">Wo kann ich Ersatzfilter oder Ersatzteile bestellen?<span class="kb-faq-icon" aria-hidden="true"></span></button><div class="kb-faq-ans">Passende Aktivkohlefilter, Fettfilter und weitere Ersatzteile finden Sie direkt in unserem Shop. Bei Fragen unterstützt Sie unser Kundenservice gerne.</div></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  document.querySelectorAll('.kb-faq-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.closest('.kb-faq-item');
+      var isOpen = item.classList.contains('is-open');
+      document.querySelectorAll('.kb-faq-item.is-open').forEach(function(el){
+        el.classList.remove('is-open');
+        el.querySelector('.kb-faq-btn').setAttribute('aria-expanded','false');
+      });
+      if(!isOpen){ item.classList.add('is-open'); btn.setAttribute('aria-expanded','true'); }
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Fragen und Antworten",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

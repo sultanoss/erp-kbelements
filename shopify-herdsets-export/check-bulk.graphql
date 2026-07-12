@@ -1,0 +1,11 @@
+query CheckBulkExport {
+  currentBulkOperation(type: QUERY) {
+    id
+    status
+    errorCode
+    objectCount
+    fileSize
+    url
+    partialDataUrl
+  }
+}

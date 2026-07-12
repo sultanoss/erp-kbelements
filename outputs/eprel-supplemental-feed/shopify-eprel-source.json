@@ -1,0 +1,771 @@
+{
+  "generated_at": "2026-07-06T08:25:24.750Z",
+  "product_count": 111,
+  "rows": [
+    {
+      "product_id": "gid://shopify/Product/12035285221640",
+      "product_title": "KB ELEMENTS Einbaubackofen 60 cm – Air Fry, 11 Funktionen, 73 Liter, Energieklasse A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58051445096712",
+      "sku": "ELK75EV1P",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12038134268168",
+      "product_title": "KB ELEMENTS Einbaubackofen 60 cm – Air Fry, 11 Funktionen, 73 Liter, Energieklasse A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58057723281672",
+      "sku": "ELK75EV2P",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12038211436808",
+      "product_title": "KB ELEMENTS Einbaubackofen 60 cm – Air Fry, Teleskopauszug, 15 Funktionen, 73 Liter, A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58057838690568",
+      "sku": "ELK75DV1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12038233817352",
+      "product_title": "KB ELEMENTS Einbaubackofen 60 cm – Air Fry, Teleskopauszug, 15 Funktionen, 73 Liter, A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58057871294728",
+      "sku": "ELK75DV2",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12038279332104",
+      "product_title": "KB ELEMENTS Einbaubackofen 60 cm – Air Fry, Teleskopauszug, Full Touch Display, 15 Funktionen, A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58057931456776",
+      "sku": "ELK75DV3",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12038305480968",
+      "product_title": "KB ELEMENTS Einbaubackofen 60 cm – Rotisserie, Air Fry, TFT-Display, 15 Funktionen, A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58058057744648",
+      "sku": "ELK60TM1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776701",
+      "eprel_id": "2776701"
+    },
+    {
+      "product_id": "gid://shopify/Product/12038326583560",
+      "product_title": "KB ELEMENTS Einbaubackofen 90 cm – Air Fry, Rotisserie, Full Touch Display, 125 Liter, A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58058334699784",
+      "sku": "ELK90DV1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776708",
+      "eprel_id": "2776708"
+    },
+    {
+      "product_id": "gid://shopify/Product/12038364561672",
+      "product_title": "KB ELEMENTS Einbaubackofen 45 cm – Circle Fan Heater, Air Fry, Aqua Clean, 9 Funktionen, A+",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58058556244232",
+      "sku": "ELK45EV1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776704",
+      "eprel_id": "2776704"
+    },
+    {
+      "product_id": "gid://shopify/Product/12043298898184",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm | Air Fry, 11 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58070011347208",
+      "sku": "ELK75EV1P/ELK60CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12043618189576",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm + Glaskeramikkochfeld 60 cm | Air Fry, A+, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58070849683720",
+      "sku": "ELK75EV2P/ELK60CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12043624841480",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm Flexzone | Air Fry, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58070929441032",
+      "sku": "ELK75EV1P/ELK60FB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12043625890056",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm | Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58070942875912",
+      "sku": "ELK75EV2P/ELK60FB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12043766432008",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld Plug & Play | Air Fry, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58072133665032",
+      "sku": "ELK75EV1P/ELK60PB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12043911069960",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm | Air Fry, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58073074663688",
+      "sku": "ELK75EV1P/ELK111AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12044286427400",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld Plug & Play | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58073701613832",
+      "sku": "ELK75EV1P/ELK112AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12046057275656",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 77 cm | 5 Zonen, 9400 W, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58076874506504",
+      "sku": "ELK75EV1P/ELK105PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12046072217864",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 90 cm | 5 Zonen, 9400 W, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58076890038536",
+      "sku": "ELK75EV1P/ELK106PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12046078607624",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 60 cm | 4 Brenner, Gas-Stop-Timer, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58076896526600",
+      "sku": "ELK75EV1P/ELK60GH1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12046093549832",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 76 cm | 5 Brenner, 10,3 kW, Gas-Stop-Timer, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58076914057480",
+      "sku": "ELK75EV1P/ELK76GH1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12046115995912",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm & Dunstabzugshaube 60 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58076938895624",
+      "sku": "ELK75EV1P/ELK60CR1/ELK156S60B",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049076846856",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm & Kopffreihaube 60 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084328014088",
+      "sku": "ELK75EV1P/ELK60CR1/ELK150H60",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049174397192",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm & Dunstabzugshaube 60 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084433690888",
+      "sku": "ELK75EV1P/ELK60FB1/ELK156S60B",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049214963976",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm & Dunstabzugshaube 60 cm Kopffrei | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084478189832",
+      "sku": "ELK75EV1P/ELK60FB1/ELK150H60",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049224007944",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm Schuko & Dunstabzugshaube 60 cm Kopffrei | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084493689096",
+      "sku": "ELK75EV1P/ELK60PB1/ELK150H60",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049252679944",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm Schuko & Dunstabzugshaube 60 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084538679560",
+      "sku": "ELK75EV1P/ELK60PB1/ELK156S60B",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049263296776",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm AntiScratch Schuko & Dunstabzugshaube 60 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084551164168",
+      "sku": "ELK75EV1P/ELK112AS/ELK156S60B",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049285087496",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm AntiScratch Schuko & Dunstabzugshaube 60 cm Kopffrei | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084586717448",
+      "sku": "ELK75EV1P/ELK112AS/ELK150H60",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049406460168",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm AntiScratch 2 Flexzonen & Dunstabzugshaube 60 cm Kopffrei | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084723491080",
+      "sku": "ELK75EV1P/ELK111AS/ELK150H60",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049423433992",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm AntiScratch 2 Flexzonen & Dunstabzugshaube 60 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58084743414024",
+      "sku": "ELK75EV1P/ELK111AS/ELK156S60B",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049730011400",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 77 cm 5 Zonen & Kopffreihaube 80 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085292245256",
+      "sku": "ELK75EV1P/ELK105PF/ELK151H80",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049746886920",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 77 cm 5 Zonen & Kopffreihaube 80 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085333565704",
+      "sku": "ELK75EV1P/ELK77CR1/ELK151H80",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049779687688",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm | Schuko, Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085408047368",
+      "sku": "ELK75EV2P/ELK60PB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049785094408",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm | AntiScratch, 2 Flexzonen, Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085425545480",
+      "sku": "ELK75EV2P/ELK111AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049806393608",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm | AntiScratch, Schuko, Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085460640008",
+      "sku": "ELK75EV2P/ELK112AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049881628936",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 77 cm | 5 Zonen, 9400 W, Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085826101512",
+      "sku": "ELK75EV2P/ELK105PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049897488648",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 90 cm | 5 Zonen, 9400 W, Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085864571144",
+      "sku": "ELK75EV2P/ELK106PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049907056904",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 60 cm | 4 Brenner, Gas-Stop-Timer, Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085877547272",
+      "sku": "ELK75EV2P/ELK60GH1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12049919607048",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 76 cm | 5 Brenner, 10,3 kW, Gas-Stop-Timer, Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58085913198856",
+      "sku": "ELK75EV2P/ELK76GH1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12050594431240",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm & Dunstabzugshaube 60 cm | Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58088688320776",
+      "sku": "ELK75EV2P/ELK60CR1/ELK156S60S",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051077759240",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm & Kopffreihaube 60 cm | Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58091192385800",
+      "sku": "ELK75EV2P/ELK60CR1/ELK150H60",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051139166472",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm & Dunstabzugshaube 60 cm | Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58091590123784",
+      "sku": "ELK75EV2P/ELK60FB1/ELK156S60S",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051728302344",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm Plug & Play & Dunstabzugshaube 60 cm | Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093198278920",
+      "sku": "ELK75EV2P/ELK60PB1/ELK156S60S",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051742425352",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 77 cm 5 Zonen & Kopffreihaube 80 cm | Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093257949448",
+      "sku": "ELK75EV2P/ELK77CR1/ELK151H80",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051757957384",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 90 cm 5 Zonen & Dunstabzugshaube 90 cm | Schwarz Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093308150024",
+      "sku": "ELK75EV2P/ELK106PF/ELK156S90S",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776700",
+      "eprel_id": "2776700"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051759956232",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 90 cm 5 Zonen & Dunstabzugshaube 90 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093313392904",
+      "sku": "ELK75EV1P/ELK106PF/ELK156S90B",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051776536840",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm & Dunstabzugshaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093348159752",
+      "sku": "ELK75EV1P/ELK60CR1/ELK156S60B/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051820380424",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm & Kopffreihaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093466779912",
+      "sku": "ELK75EV1P/ELK60CR1/ELK150H60/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051850756360",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm & Dunstabzugshaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093531562248",
+      "sku": "ELK75EV1P/ELK60FB1/ELK156S60B/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051943457032",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm & Kopffreihaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093730300168",
+      "sku": "ELK75EV1P/ELK60FB1/ELK150H60/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051948011784",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld Plug & Play & Kopffreihaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093740917000",
+      "sku": "ELK75EV1P/ELK60PB1/ELK150H60/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12051952107784",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld Plug & Play & Dunstabzugshaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58093750419720",
+      "sku": "ELK75EV1P/ELK60PB1/ELK156S60B/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052134822152",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm & Kopffreihaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58094617198856",
+      "sku": "ELK75EV1P/ELK111AS/ELK150H60/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052136263944",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld Plug & Play & Kopffreihaube 60 cm & Einbau-Mikrowelle 25 L | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58094628634888",
+      "sku": "ELK75EV1P/ELK112AS/ELK150H60/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052664254728",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 60 cm 4 Brenner & Dunstabzugshaube 60 cm & Einbau-Mikrowelle 25 L",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095732457736",
+      "sku": "ELK75EV1P/ELK60GH2/ELK156S60B/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052678607112",
+      "product_title": "KB ELEMENTS Herdset 4-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 60 cm 4 Brenner & Kopffreihaube 60 cm & Einbau-Mikrowelle 25 L",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095752970504",
+      "sku": "ELK75EV1P/ELK60GH2/ELK150H60/ELK25MB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776699",
+      "eprel_id": "2776699"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052720255240",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 45 cm A+ Plug & Play & Domino Induktionskochfeld 30 cm Schuko | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095801893128",
+      "sku": "ELK45EV1/ELK29PB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776704",
+      "eprel_id": "2776704"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052728545544",
+      "product_title": "KB ELEMENTS Herdset 3-teilig – Einbaubackofen 45 cm A+ Plug & Play & Domino Induktionskochfeld 30 cm & Dunstabzugshaube 60 cm | Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095810773256",
+      "sku": "ELK45EV1/ELK29PB1/ELK156S60B",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776704",
+      "eprel_id": "2776704"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052812202248",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095911797000",
+      "sku": "ELK75DV1/ELK60CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052837466376",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095946858760",
+      "sku": "ELK75DV1/ELK60FB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052856013064",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm Schuko | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095971270920",
+      "sku": "ELK75DV1/ELK60PB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052862894344",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095984279816",
+      "sku": "ELK75DV1/ELK111AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052863877384",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm Schuko | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58095992078600",
+      "sku": "ELK75DV1/ELK112AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052882456840",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 77 cm 5 Zonen | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096027369736",
+      "sku": "ELK75DV1/ELK105PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12052910604552",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 90 cm 5 Zonen | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096084615432",
+      "sku": "ELK75DV1/ELK106PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053032632584",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096344563976",
+      "sku": "ELK75DV2/ELK60CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053079884040",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096556146952",
+      "sku": "ELK75DV2/ELK60FB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053086601480",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm Schuko | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096615129352",
+      "sku": "ELK75DV2/ELK60PB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053093384456",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096644555016",
+      "sku": "ELK75DV2/ELK111AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053101609224",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm Schuko | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096672407816",
+      "sku": "ELK75DV2/ELK112AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053117206792",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 77 cm 5 Zonen | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58096800268552",
+      "sku": "ELK75DV2/ELK105PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053158985992",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 90 cm 5 Zonen | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097024860424",
+      "sku": "ELK75DV2/ELK106PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053187461384",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 77 cm 5 Zonen | Full Touch Display, 15 Funktionen, Schwarz/Silber",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097064771848",
+      "sku": "ELK75DV2/ELK77CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370724",
+      "eprel_id": "2370724"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053198405896",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 77 cm 5 Zonen | Full Touch Display, 15 Funktionen, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097086988552",
+      "sku": "ELK75DV1/ELK77CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2370688",
+      "eprel_id": "2370688"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053256765704",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 60 cm | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097203773704",
+      "sku": "ELK75DV3/ELK60CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053273116936",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Glaskeramikkochfeld 77 cm 5 Zonen | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097228349704",
+      "sku": "ELK75DV3/ELK77CR1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053289402632",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097253220616",
+      "sku": "ELK75DV3/ELK60FB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053312012552",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 60 cm Schuko | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097286086920",
+      "sku": "ELK75DV3/ELK60PB1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053337833736",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097319117064",
+      "sku": "ELK75DV3/ELK111AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053348417800",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & AntiScratch Induktionskochfeld 60 cm Schuko | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097340973320",
+      "sku": "ELK75DV3/ELK112AS",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053363032328",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 77 cm 5 Zonen | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097379016968",
+      "sku": "ELK75DV3/ELK105PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053377909000",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Induktionskochfeld 90 cm 5 Zonen | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097400414472",
+      "sku": "ELK75DV3/ELK106PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053388951816",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 90 cm 125 Liter Rotisserie & Induktionskochfeld 90 cm 5 Zonen | Full Touch Display, A+, Schwarz",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097420206344",
+      "sku": "ELK90DV1/ELK106PF",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776708",
+      "eprel_id": "2776708"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053406875912",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 60 cm 4 Brenner | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097449107720",
+      "sku": "ELK75DV3/ELK60GH2",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053453144328",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 70 cm 5 Brenner | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097511694600",
+      "sku": "ELK75DV3/ELK70GH1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    },
+    {
+      "product_id": "gid://shopify/Product/12053465760008",
+      "product_title": "KB ELEMENTS Herdset 2-teilig – Einbaubackofen 60 cm A+ & Gaskochfeld 90 cm 5 Brenner | Full Touch Display, 15 Funktionen, Silber/Edelstahl",
+      "product_status": "ACTIVE",
+      "variant_id": "gid://shopify/ProductVariant/58097535680776",
+      "sku": "ELK75DV3/ELK90GH1",
+      "eprel_url": "https://eprel.ec.europa.eu/qr/2776698",
+      "eprel_id": "2776698"
+    }
+  ]
+}

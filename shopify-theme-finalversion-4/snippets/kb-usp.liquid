@@ -1,0 +1,52 @@
+<style>
+.kb-usp{padding:48px 0;background:#F5F3EF;border-top:1px solid #EAE8E4}
+.kb-usp__header{text-align:center;margin-bottom:32px;padding:0 24px}
+.kb-usp__label{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#888;margin:0 0 8px}
+.kb-usp__title{font-size:clamp(22px,3vw,36px);font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#1C1917;margin:0}
+.kb-usp__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;max-width:1440px;margin:0 auto}
+.kb-usp__item{min-width:0;background:#fff;padding:32px;overflow-wrap:anywhere}
+@media(max-width:768px){.kb-usp__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kb-usp__item{padding:24px 16px}}
+.kb-usp__icon{width:44px;height:44px;margin-bottom:16px;color:#1C1917}
+.kb-usp__icon svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.kb-usp__name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#1C1917;margin-bottom:8px}
+.kb-usp__desc{font-size:14px;color:#666;line-height:1.6;margin:0}
+</style>
+
+<div class='kb-usp'>
+  <div class='kb-usp__header'>
+    <p class='kb-usp__label'>Ihr Vorteil</p>
+    <h2 class='kb-usp__title'>Warum KB-ELEMENTS?</h2>
+  </div>
+  <div class='kb-usp__grid'>
+    <div class='kb-usp__item'>
+      <div class='kb-usp__icon'><svg viewBox='0 0 24 24'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/></svg></div>
+      <div class='kb-usp__name'>Eigene Werkstatt</div>
+      <p class='kb-usp__desc'>Reparaturen direkt bei uns &ndash; schnell, zuverl&auml;ssig, ohne Umwege.</p>
+    </div>
+    <div class='kb-usp__item'>
+      <div class='kb-usp__icon'><svg viewBox='0 0 24 24'><circle cx='12' cy='8' r='6'/><path d='M15.477 12.89L17 22l-5-3-5 3 1.523-9.11'/></svg></div>
+      <div class='kb-usp__name'>Zertifizierte Techniker</div>
+      <p class='kb-usp__desc'>Fachpersonal mit Herstellerzertifizierung f&uuml;r h&ouml;chste Servicequalit&auml;t.</p>
+    </div>
+    <div class='kb-usp__item'>
+      <div class='kb-usp__icon'><svg viewBox='0 0 24 24'><path d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/><polyline points='3.27 6.96 12 12.01 20.73 6.96'/><line x1='12' y1='22.08' x2='12' y2='12'/></svg></div>
+      <div class='kb-usp__name'>Ersatzteile vorr&auml;tig</div>
+      <p class='kb-usp__desc'>Auch nach Garantieablauf: Ersatzteile f&uuml;r Ihre Ger&auml;te immer auf Lager.</p>
+    </div>
+    <div class='kb-usp__item'>
+      <div class='kb-usp__icon'><svg viewBox='0 0 24 24'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/></svg></div>
+      <div class='kb-usp__name'>2 Jahre Garantie</div>
+      <p class='kb-usp__desc'>Gesetzliche Garantie auf alle Produkte &ndash; direkt vom Hersteller.</p>
+    </div>
+    <div class='kb-usp__item'>
+      <div class='kb-usp__icon'><svg viewBox='0 0 24 24'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg></div>
+      <div class='kb-usp__name'>Service auf Deutsch</div>
+      <p class='kb-usp__desc'>Beratung und Support in Ihrer Sprache &ndash; pers&ouml;nlich und kompetent.</p>
+    </div>
+    <div class='kb-usp__item'>
+      <div class='kb-usp__icon'><svg viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg></div>
+      <div class='kb-usp__name'>Express-Abwicklung</div>
+      <p class='kb-usp__desc'>Schnelle Reparatur oder Austausch &ndash; kurze Wartezeiten garantiert.</p>
+    </div>
+  </div>
+</div>

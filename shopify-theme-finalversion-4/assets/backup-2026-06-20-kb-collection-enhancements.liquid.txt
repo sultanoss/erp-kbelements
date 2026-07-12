@@ -1,0 +1,158 @@
+{{ 'kb-collection.css' | asset_url | stylesheet_tag }}
+
+<style>
+  .kb-sort { display:flex; align-items:center; gap:6px; margin-left:auto; }
+  .kb-sort__label { font-size:13px; color:#555; font-weight:600; white-space:nowrap; }
+  .kb-sort__select { font-size:13px; color:#1C1917; border:1px solid #ddd; border-radius:6px; padding:7px 10px; background:#fff; cursor:pointer; }
+  .kb-sort__select:focus { outline:none; border-color:#C0182A; }
+  @media (max-width: 749px) { .kb-sort__label { display:none; } }
+</style>
+
+<script>
+window.kbColData = window.kbColData || {};
+{%- assign col_min_price = collection.products.first.price -%}
+{%- assign col_max_price = collection.products.first.price -%}
+{%- for p in collection.products -%}
+  {%- if p.price < col_min_price -%}{%- assign col_min_price = p.price -%}{%- endif -%}
+  {%- if p.price > col_max_price -%}{%- assign col_max_price = p.price -%}{%- endif -%}
+{%- endfor -%}
+window.kbColPriceMin = {{ col_min_price | divided_by: 100.0 | round }};
+window.kbColPriceMax = {{ col_max_price | divided_by: 100.0 | round }};
+{% for product in collection.products %}
+  {%- liquid
+    assign uvp      = product.metafields.kbe.originalpreis.value | plus: 0
+    assign aktuell  = product.price | divided_by: 100.0
+    assign ersparnis = 0
+    if uvp > 0 and uvp > aktuell
+      assign ersparnis = uvp | minus: aktuell | divided_by: uvp | times: 100 | round
+    endif
+    assign e_klasse = product.metafields.energie.klasse.value
+    assign e_farbe = '#F5E000'
+    if e_klasse == 'A+++'
+      assign e_farbe = '#009A44'
+    elsif e_klasse == 'A++'
+      assign e_farbe = '#52AE32'
+    elsif e_klasse == 'A+'
+      assign e_farbe = '#8DC63F'
+    elsif e_klasse == 'A'
+      assign e_farbe = '#F5E000'
+    elsif e_klasse == 'B'
+      assign e_farbe = '#F0C000'
+    elsif e_klasse == 'C'
+      assign e_farbe = '#F0A500'
+    elsif e_klasse == 'D'
+      assign e_farbe = '#E2231A'
+    endif
+  -%}
+  window.kbColData[{{ product.handle | json }}] = {
+    discount: {{ ersparnis }},
+    energyClass: {{ e_klasse | default: '' | json }},
+    energyColor: {{ e_farbe | json }},
+    available: {{ product.available | json }},
+    variantId: {{ product.variants.first.id }},
+    title: {{ product.title | json }},
+    price: {{ product.price | money | json }},
+    priceRaw: {{ product.price | divided_by: 100.0 | round }},
+    image: {{ product.featured_image | image_url: width: 500 | json }},
+    url: {{ product.url | json }},
+    tags: {{ product.tags | json }}
+  };
+{% endfor %}
+</script>
+
+{%- assign kb_is_dunstabzug = false -%}
+{%- assign kb_is_backofen = false -%}
+{%- if collection.handle == 'dunstabzugshauben' -%}{%- assign kb_is_dunstabzug = true -%}{%- endif -%}
+{%- if collection.handle == 'einbaubackofen' -%}{%- assign kb_is_backofen = true -%}{%- endif -%}
+
+{%- if kb_is_dunstabzug or kb_is_backofen -%}
+{%- assign kb_current_sort = collection.sort_by | default: collection.default_sort_by -%}
+<div id="kb-filter-bar" class="kb-filter-bar">
+  <button id="kb-filter-toggle" class="kb-filter-toggle" type="button" aria-expanded="false">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+    <span id="kb-filter-toggle-label">Filtern</span>
+    <span id="kb-filter-badge" class="kb-filter-badge" hidden></span>
+  </button>
+  <span id="kb-filter-result" class="kb-filter-result" hidden></span>
+  <button id="kb-filter-reset" class="kb-filter-reset" type="button" hidden>
+    <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Zurücksetzen
+  </button>
+  <div class="kb-sort">
+    <label class="kb-sort__label" for="kb-sort-select">Sortieren:</label>
+    <select id="kb-sort-select" class="kb-sort__select" aria-label="Sortieren nach">
+      {%- for opt in collection.sort_options -%}
+        <option value="{{ opt.value }}"{% if opt.value == kb_current_sort %} selected{% endif %}>{{ opt.name }}</option>
+      {%- endfor -%}
+    </select>
+  </div>
+  <div id="kb-filter-panel" class="kb-filter-panel" hidden>
+    {%- if kb_is_dunstabzug -%}
+    <div class="kb-filter-panel__section">
+      <p class="kb-filter-panel__heading">Breite</p>
+      <div class="kb-filter-chips" data-group="breite">
+        <button class="kb-chip active" data-value="" type="button">Alle</button>
+        <button class="kb-chip" data-value="breite-60cm" type="button">60 cm</button>
+        <button class="kb-chip" data-value="breite-80cm" type="button">80 cm</button>
+        <button class="kb-chip" data-value="breite-90cm" type="button">90 cm</button>
+      </div>
+    </div>
+    <div class="kb-filter-panel__section">
+      <p class="kb-filter-panel__heading">Bauart</p>
+      <div class="kb-filter-chips" data-group="bauart">
+        <button class="kb-chip active" data-value="" type="button">Alle</button>
+        <button class="kb-chip" data-value="bauart-unterbauhaube" type="button">Unterbauhaube</button>
+        <button class="kb-chip" data-value="bauart-kopffreihaube" type="button">Kopffreihaube</button>
+        <button class="kb-chip" data-value="bauart-pyramidenhaube" type="button">Pyramidenhaube</button>
+        <button class="kb-chip" data-value="bauart-inselhaube" type="button">Inselhaube</button>
+        <button class="kb-chip" data-value="bauart-t-foermige" type="button">T-Förmige Haube</button>
+      </div>
+    </div>
+    <div class="kb-filter-panel__section">
+      <p class="kb-filter-panel__heading">Farbe</p>
+      <div class="kb-filter-chips" data-group="farbe">
+        <button class="kb-chip active" data-value="" type="button">Alle</button>
+        <button class="kb-chip" data-value="farbe-schwarz" type="button"><span class="kb-chip__swatch" style="background:#1C1917"></span>Schwarz</button>
+        <button class="kb-chip" data-value="farbe-silber-edelstahl" type="button"><span class="kb-chip__swatch" style="background:linear-gradient(135deg,#e0e0e0,#a0a0a0)"></span>Silber / Edelstahl</button>
+      </div>
+    </div>
+    {%- endif -%}
+    {%- if kb_is_backofen -%}
+    <div class="kb-filter-panel__section">
+      <p class="kb-filter-panel__heading">Breite</p>
+      <div class="kb-filter-chips" data-group="breite">
+        <button class="kb-chip active" data-value="" type="button">Alle</button>
+        <button class="kb-chip" data-value="breite-45cm" type="button">45 cm</button>
+        <button class="kb-chip" data-value="breite-60cm" type="button">60 cm</button>
+        <button class="kb-chip" data-value="breite-90cm" type="button">90 cm</button>
+      </div>
+    </div>
+    <div class="kb-filter-panel__section">
+      <p class="kb-filter-panel__heading">Farbe</p>
+      <div class="kb-filter-chips" data-group="farbe">
+        <button class="kb-chip active" data-value="" type="button">Alle</button>
+        <button class="kb-chip" data-value="farbe-schwarz" type="button"><span class="kb-chip__swatch" style="background:#1C1917"></span>Schwarz</button>
+        <button class="kb-chip" data-value="farbe-schwarz-silber" type="button"><span class="kb-chip__swatch" style="background:linear-gradient(135deg,#1C1917 50%,#c0c0c0 50%)"></span>Schwarz / Silber</button>
+        <button class="kb-chip" data-value="farbe-silber-edelstahl" type="button"><span class="kb-chip__swatch" style="background:linear-gradient(135deg,#e0e0e0,#a0a0a0)"></span>Silber / Edelstahl</button>
+        <button class="kb-chip" data-value="farbe-dunkelgrau" type="button"><span class="kb-chip__swatch" style="background:#555"></span>Matt / Dunkelgrau</button>
+      </div>
+    </div>
+    {%- endif -%}
+    <div class="kb-filter-panel__section">
+      <p class="kb-filter-panel__heading">Preis</p>
+      <div class="kb-price-range-wrap">
+        <div class="kb-price-range-labels"><span id="kb-price-from">0 €</span><span id="kb-price-to">999 €</span></div>
+        <div class="kb-price-track">
+          <div class="kb-price-fill" id="kb-price-fill"></div>
+          <input type="range" id="kb-range-min" class="kb-range" min="0" max="999" step="1" value="0">
+          <input type="range" id="kb-range-max" class="kb-range" min="0" max="999" step="1" value="999">
+        </div>
+      </div>
+    </div>
+    <div class="kb-filter-panel__actions">
+      <button id="kb-filter-clear" class="kb-filter-clear" type="button">Filter zurücksetzen</button>
+      <button id="kb-filter-apply" class="kb-filter-apply" type="button">Anwenden</button>
+    </div>
+  </div>
+</div>
+{%- endif -%}

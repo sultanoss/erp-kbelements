@@ -133,10 +133,12 @@ model Invoice {
   paymentMethod   String        @default("konto")
   notes           String?
   paymentInfo     String?
-  status          String        @default("aktiv")
-  storniertAt     DateTime?
-  docType         String        @default("rechnung")
-  createdAt       DateTime      @default(now())
+  status             String        @default("aktiv")
+  storniertAt        DateTime?
+  docType            String        @default("rechnung")
+  originalInvoiceId  String?
+  originalInvoiceNum String?
+  createdAt          DateTime      @default(now())
   userId          String
   user            User          @relation(fields: [userId], references: [id])
   items           InvoiceItem[]

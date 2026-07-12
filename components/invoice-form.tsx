@@ -3,14 +3,14 @@
 import { useState, useTransition, useRef } from "react";
 import { createInvoice, updateInvoice } from "@/app/actions";
 
-type DocType = "rechnung" | "angebot";
+type DocType = "rechnung" | "angebot" | "gutschrift";
 
 type SkuEntry = { id: number; sku: string; lager: string };
 type LineItem = { id: number; pos: number; quantity: number; description: string; unitPrice: number; skus: SkuEntry[] };
 type SkuData = { sku: string; name: string; stock: number; stockNS: number };
 
 export type InvoiceInitialData = {
-  invoiceId: string;
+  invoiceId?: string;
   date: string;
   customerName: string;
   customerAddress: string;
@@ -32,7 +32,7 @@ function newLine(pos: number): LineItem {
   return { id: nextId++, pos, quantity: 1, description: "", unitPrice: 0, skus: [{ id: nextSkuId++, sku: "", lager: "neuware" }] };
 }
 
-export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus: SkuData[]; initialData?: InvoiceInitialData; docType?: DocType }) {
+export function InvoiceForm({ skus, initialData, docType = "rechnung", originalInvoiceId, originalInvoiceNum }: { skus: SkuData[]; initialData?: InvoiceInitialData; docType?: DocType; originalInvoiceId?: string; originalInvoiceNum?: string }) {
   const [items, setItems] = useState<LineItem[]>(initialData?.items ?? [newLine(1)]);
   const [mwstRate, setMwstRate] = useState(initialData?.mwstRate ?? 19);
   const [shippingCost, setShippingCost] = useState<string>(initialData?.shippingCost ?? "");
@@ -113,6 +113,7 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus:
     const customerAddress = String(fd.get("customerAddress") ?? "").trim();
     const customerNum = String(fd.get("customerNum") ?? "").trim();
     const notes = String(fd.get("notes") ?? "").trim();
+    const noPayment = docType === "angebot" || docType === "gutschrift";
     const paymentInfo = paymentMethod === "konto" ? String(fd.get("paymentInfo") ?? "").trim() : null;
 
     if (!customerName) { setError("Kundenname fehlt"); return; }
@@ -123,10 +124,12 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus:
       date, customerName, customerAddress, customerNum, mwstRate,
       shippingCost: shippingCost !== "" ? shippingVal : null,
       shippingMwst,
-      paymentMethod: docType === "angebot" ? "konto" : paymentMethod,
+      paymentMethod: noPayment ? "konto" : paymentMethod,
       notes,
-      paymentInfo: docType === "angebot" ? null : (paymentInfo || null),
+      paymentInfo: noPayment ? null : (paymentInfo || null),
       docType,
+      originalInvoiceId: originalInvoiceId ?? undefined,
+      originalInvoiceNum: originalInvoiceNum ?? undefined,
       items: items.map((it) => ({
         pos: it.pos,
         quantity: it.quantity,
@@ -136,7 +139,7 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus:
       })),
     };
     startTransition(() => {
-      if (initialData) {
+      if (initialData?.invoiceId) {
         updateInvoice(initialData.invoiceId, payload);
       } else {
         createInvoice(payload);
@@ -356,7 +359,7 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus:
             </div>
           )}
           <div className="flex justify-between border-t border-grey-border pt-2 font-mono text-sm font-bold text-grey-dark">
-            <span>{docType === "angebot" ? "Angebotsbetrag" : "Rechnungsbetrag"}</span>
+            <span>{docType === "angebot" ? "Angebotsbetrag" : docType === "gutschrift" ? "Gutschriftsbetrag" : "Rechnungsbetrag"}</span>
             <span className="tabular-nums">{bruttoGesamt.toFixed(2)} €</span>
           </div>
           {mwstRate > 0 && (
@@ -369,12 +372,12 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus:
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
-            Notiz (erscheint auf {docType === "angebot" ? "Angebot" : "Rechnung"})
+            Notiz (erscheint auf {docType === "angebot" ? "Angebot" : docType === "gutschrift" ? "Gutschrift" : "Rechnung"})
           </label>
           <textarea name="notes" rows={2} defaultValue={initialData?.notes ?? ""} placeholder="z.B. Gültig bis 31.07.2026, Lieferbedingungen ..."
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
         </div>
-        {docType !== "angebot" && (
+        {docType !== "angebot" && docType !== "gutschrift" && (
           <div className="grid gap-3">
             <div>
               <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezahlart</div>
@@ -414,9 +417,9 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus:
         ) : <div />}
         <button type="submit" disabled={isPending}
           className="rounded-lg bg-brand-red px-6 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50 transition-colors">
-          {isPending ? "Wird gespeichert…" : initialData
+          {isPending ? "Wird gespeichert…" : initialData?.invoiceId
             ? (docType === "angebot" ? "Angebot speichern" : "Korrektur speichern")
-            : (docType === "angebot" ? "Angebot erstellen" : "Rechnung erstellen")}
+            : (docType === "angebot" ? "Angebot erstellen" : docType === "gutschrift" ? "Gutschrift erstellen" : "Rechnung erstellen")}
         </button>
       </div>
     </form>

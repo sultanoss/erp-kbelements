@@ -1,0 +1,126 @@
+{%- if template.name == 'product' -%}
+
+<style>
+.kb-breadcrumb{font-size:12px;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px var(--page-margin,24px) 0;max-width:var(--page-width,1280px);margin:0 auto}
+.kb-breadcrumb a{color:rgba(0,0,0,.45);text-decoration:none}
+.kb-breadcrumb a:hover{color:#C0182A}
+.kb-breadcrumb__sep{opacity:.4}
+
+.kb-usp-trust{max-width:var(--page-width,1280px);margin:0 auto;padding:0 var(--page-margin,24px)}
+
+.kb-usp{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin:16px 0;padding:16px;background:#f8f8f8;border-radius:8px;border-left:3px solid #C0182A;list-style:none}
+.kb-usp__item{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#111;line-height:1.3}
+.kb-usp__item svg{flex-shrink:0;color:#C0182A}
+
+.kb-trust{display:flex;border:1px solid #e8e8e8;border-radius:8px;overflow:hidden;margin-top:0}
+.kb-trust__item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:14px 8px;text-align:center;border-right:1px solid #e8e8e8;font-size:11px;color:#444;line-height:1.4}
+.kb-trust__item:last-child{border-right:none}
+.kb-trust__item svg{color:#C0182A}
+.kb-trust__item strong{display:block;font-size:12px;font-weight:600;color:#111}
+
+.kb-sticky{position:fixed;bottom:0;left:0;right:0;z-index:999;background:#fff;border-top:1px solid #e8e8e8;padding:12px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 -4px 20px rgba(0,0,0,.08);transform:translateY(100%);transition:transform .3s ease}
+.kb-sticky.is-visible{transform:translateY(0)}
+.kb-sticky__info{flex:1;min-width:0}
+.kb-sticky__title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#111}
+.kb-sticky__price{font-size:16px;font-weight:700;color:#111}
+.kb-sticky__btn{background:#111;color:#fff;border:none;padding:14px 32px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s;flex-shrink:0}
+.kb-sticky__btn:hover{background:#C0182A}
+
+@media(max-width:749px){
+  .kb-usp{grid-template-columns:1fr}
+  .kb-trust{flex-wrap:wrap}
+  .kb-trust__item{min-width:50%;border-bottom:1px solid #e8e8e8}
+  .kb-sticky__info{display:none}
+  .kb-usp-trust{padding:0 16px}
+}
+</style>
+
+{%- comment -%} BREADCRUMB + Schema {%- endcomment -%}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ shop.url }}"},{"@type":"ListItem","position":2,"name":"{{ product.collections.first.title | escape }}","item":"{{ shop.url }}{{ product.collections.first.url }}"},{"@type":"ListItem","position":3,"name":"{{ product.title | escape }}","item":"{{ shop.url }}{{ product.url }}"}]}
+</script>
+
+<nav class="kb-breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span class="kb-breadcrumb__sep">›</span>
+  {%- if product.collections.first != blank -%}
+    <a href="{{ product.collections.first.url }}">{{ product.collections.first.title }}</a>
+    <span class="kb-breadcrumb__sep">›</span>
+  {%- endif -%}
+  <span style="color:#111">{{ product.title | truncate: 50 }}</span>
+</nav>
+
+<div class="kb-usp-trust">
+
+  {%- comment -%} USP BULLETS {%- endcomment -%}
+  <ul class="kb-usp">
+    {%- assign specs = product.metafields.kb_specs -%}
+    <li class="kb-usp__item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Absaugleistung bis zu <strong>&nbsp;{{ specs.absaugleistung.value | default: '650 m³/h' }}</strong></li>
+    <li class="kb-usp__item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{{ specs.steuerung.value | default: 'Touch- & Gestensteuerung' }}</li>
+    <li class="kb-usp__item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{{ specs.betriebsart.value | default: 'Abluft- & Umluftbetrieb' }}</li>
+    <li class="kb-usp__item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Energieeffizienzklasse A</li>
+    <li class="kb-usp__item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{{ specs.beleuchtung.value | default: 'LED-Beleuchtung' }} &amp; Nachlauf</li>
+    <li class="kb-usp__item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Inkl. Baffle- &amp; Aktivkohlefilter</li>
+  </ul>
+
+  {%- comment -%} TRUST BADGES {%- endcomment -%}
+  <div class="kb-trust">
+    <div class="kb-trust__item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      <strong>Kostenloser Versand</strong>nach Deutschland
+    </div>
+    <div class="kb-trust__item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <strong>2 Jahre Garantie</strong>auf alle Geräte
+    </div>
+    <div class="kb-trust__item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      <strong>14 Tage Rückgabe</strong>ohne Fragen
+    </div>
+    <div class="kb-trust__item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <strong>Sichere Zahlung</strong>PayPal &amp; Karte
+    </div>
+  </div>
+
+</div>
+
+{%- comment -%} STICKY BUTTON {%- endcomment -%}
+<div class="kb-sticky" id="kb-sticky-bar" aria-hidden="true">
+  <div class="kb-sticky__info">
+    <div class="kb-sticky__title">{{ product.title | truncate: 50 }}</div>
+    <div class="kb-sticky__price">{{ product.selected_or_first_available_variant.price | money }}</div>
+  </div>
+  <button class="kb-sticky__btn" id="kb-sticky-btn">In den Warenkorb</button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var sticky = document.getElementById('kb-sticky-bar');
+  var stickyBtn = document.getElementById('kb-sticky-btn');
+  if (!sticky) return;
+
+  // Sticky zeigen wenn ATC Button nicht sichtbar
+  var atcTarget = document.querySelector('button[name="add"]') || document.querySelector('.buy-buttons');
+  if (atcTarget) {
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        sticky.classList.toggle('is-visible', !e.isIntersecting);
+        sticky.setAttribute('aria-hidden', e.isIntersecting ? 'true' : 'false');
+      });
+    }, {threshold: 0.1});
+    obs.observe(atcTarget);
+  }
+
+  // Sticky Button klick
+  if (stickyBtn) {
+    stickyBtn.addEventListener('click', function(){
+      var atcBtn = document.querySelector('button[name="add"]');
+      if (atcBtn) { atcBtn.click(); }
+      else { window.scrollTo({top: 0, behavior: 'smooth'}); }
+    });
+  }
+});
+</script>
+
+{%- endif -%}

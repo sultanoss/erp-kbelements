@@ -1,0 +1,41 @@
+<style>
+.kb-plugin{padding:80px 0;background:#1C1917;color:#fff}
+.kb-plugin__inner{max-width:1440px;margin:0 auto;padding:0 64px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+@media(max-width:768px){.kb-plugin__inner{grid-template-columns:1fr;gap:32px;padding:0 24px}}
+.kb-plugin__img-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:2px}
+.kb-plugin__img{width:100%;height:100%;object-fit:contain;object-position:center;background:#252220}
+@media(max-width:768px){.kb-plugin__img-wrap{aspect-ratio:4/3;max-width:100%}}
+.kb-plugin__content{display:flex;flex-direction:column;gap:20px}
+.kb-plugin__icon{font-size:48px;line-height:1}
+.kb-plugin__label{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#888;margin:0}
+.kb-plugin__title{font-size:clamp(24px,3.5vw,42px);font-weight:700;text-transform:uppercase;letter-spacing:2px;line-height:1.1;margin:0}
+.kb-plugin__title span{color:#C0182A}
+.kb-plugin__text{font-size:15px;color:#aaa;line-height:1.7;margin:0}
+.kb-plugin__features{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.kb-plugin__features li{display:flex;align-items:center;gap:12px;font-size:14px;color:#ccc}
+.kb-plugin__features li::before{content:'\2713';color:#C0182A;font-weight:700;font-size:16px;flex-shrink:0}
+.kb-plugin__btn{display:inline-block;background:#fff;color:#1C1917;padding:14px 32px;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;text-decoration:none;align-self:flex-start;margin-top:8px;border-radius:4px;transition:background 0.2s}
+.kb-plugin__btn:hover{background:#C0182A;color:#fff}
+@media(max-width:600px){.kb-plugin{padding:48px 0}.kb-plugin__icon{font-size:36px}.kb-plugin__btn{padding:12px 24px;font-size:11px}}
+</style>
+
+<div class='kb-plugin'>
+  <div class='kb-plugin__inner'>
+    <div class='kb-plugin__img-wrap'>
+      <img class='kb-plugin__img' src='https://cdn.shopify.com/s/files/1/0963/1852/1608/files/shuko.png?v=1781425009' alt='Schuko Anschluss - Einfache Installation' loading='lazy'>
+    </div>
+    <div class='kb-plugin__content'>
+      <div class='kb-plugin__icon'>&#x26A1;</div>
+      <p class='kb-plugin__label'>Einfache Installation</p>
+      <h2 class='kb-plugin__title'>Plug &amp; <span>Play</span></h2>
+      <p class='kb-plugin__text'>Unsere Kochfelder und Back&ouml;fen lassen sich per Schuko-Stecker direkt einstecken &ndash; kein Elektriker n&ouml;tig, keine aufwendige Installation.</p>
+      <ul class='kb-plugin__features'>
+        <li>Kein Elektriker erforderlich</li>
+        <li>Direkt einstecken &amp; loslegen</li>
+        <li>Standard-Schuko-Anschluss 230V</li>
+        <li>Verf&uuml;gbar f&uuml;r Kochfelder &amp; Back&ouml;fen</li>
+      </ul>
+      <a href='/collections/sets-kombinationen' class='kb-plugin__btn'>Jetzt entdecken &rarr;</a>
+    </div>
+  </div>
+</div>

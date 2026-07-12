@@ -1,0 +1,109 @@
+/* =============================================================
+   KB ELEMENTS - Globale Akzentfarbe
+   Crimson: #C0182A | Warm Black: #1C1917
+   ============================================================= */
+:root {
+  --kb-accent: #C0182A;
+  --kb-black: #1C1917;
+  --narrow-page-width: 90rem;
+  --max-content-width: 1440px;
+}
+
+/* =============================================================
+   Max-Width 1440px
+   ============================================================= */
+@media screen and (width >= 1440px) {
+  .section--page-width > *,
+  .section--full-width-margin > * { max-width: var(--max-content-width); margin-inline: auto; }
+  .header__columns { max-width: var(--max-content-width); margin-inline: auto; }
+  .grid {
+    grid-template-columns: 1fr repeat(var(--centered-column-number), minmax(0, calc(var(--max-content-width) / var(--centered-column-number)))) 1fr;
+  }
+  .section {
+    --full-page-grid-central-column-width: min(calc(var(--narrow-page-width) - var(--page-margin) * 2), calc(100% - var(--page-margin) * 2));
+  }
+}
+@media screen and (width >= 1440px) {
+  slideshow-slide > .slide__image-container { max-width: var(--max-content-width); left: 50%; transform: translateX(-50%); width: 100%; }
+  .slide__content { max-width: var(--max-content-width); margin-inline: auto; width: 100%; }
+  slideshow-arrows { max-width: var(--max-content-width); left: 50%; transform: translateX(-50%); width: 100%; }
+}
+@media screen and (width >= 1440px) {
+  .footer__content, .footer .spacing-style > * { max-width: var(--max-content-width); margin-inline: auto; }
+}
+
+/* =============================================================
+   Footer - Warm Black
+   ============================================================= */
+.shopify-section-group-footer-group,
+.shopify-section-group-footer-group .section,
+[class*='footer'] { background-color: #1C1917 !important; }
+
+/* =============================================================
+   Slideshow Mobile
+   ============================================================= */
+@media screen and (max-width: 768px) {
+  slideshow-slide .slide__overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%) !important;
+  }
+}
+@media screen and (width < 768px) {
+  slideshow-controls, .slideshow__controls {
+    position: relative !important; bottom: auto !important; left: auto !important;
+    transform: none !important; display: flex !important; justify-content: center !important; padding: 16px 0 8px !important;
+  }
+  .slide__content { padding-bottom: 56px !important; }
+}
+
+/* =============================================================
+   User-Icon verstecken
+   ============================================================= */
+header-component .header__account,
+header-component a[href*='account'],
+header-component [class*='account'],
+.header__icon--account { display: none !important; }
+
+/* =============================================================
+   Mobile: Nav-Zeile verstecken
+   ============================================================= */
+@media screen and (max-width: 989px) {
+  .header__navigation-bar { display: none !important; }
+  header-component > div > nav,
+  header-component > section > nav,
+  .header > nav,
+  [class*='header'] > nav:not([class*='drawer']):not([class*='mobile']):not([class*='menu']) { display: none !important; }
+  header-component .header__row:last-of-type:not(:first-of-type) { display: none !important; }
+}
+
+/* =============================================================
+   Akzentfarbe #C0182A überall
+   ============================================================= */
+a.kb-nav-offer { color: #C0182A !important; font-weight: 700 !important; }
+.kb-offers__label { color: #C0182A !important; }
+.kb-offer-card__badge { background: #C0182A !important; }
+.kb-offer-card__new { color: #C0182A !important; }
+.kb-offer-card__btn:hover { background: #C0182A !important; }
+.kb-special-card__tag { color: #C0182A !important; }
+.kb-plugin__title span { color: #C0182A !important; }
+.kb-plugin__features li::before { color: #C0182A !important; }
+.kb-marquee-cta { background: #C0182A !important; }
+.kb-marquee-cta:hover { background: #a01020 !important; }
+
+/* =============================================================
+   Mobile Top Angebote - kompakter
+   ============================================================= */
+@media screen and (max-width: 600px) {
+  .kb-offers { padding: 32px 0 24px !important; }
+  .kb-offers__header { margin-bottom: 20px !important; }
+  .kb-offers__title { font-size: 20px !important; }
+  .kb-offers__sub { font-size: 12px !important; }
+  .kb-offer-card { min-width: 62vw !important; max-width: 62vw !important; }
+  .kb-offer-card__img-wrap { aspect-ratio: 4/3 !important; }
+  .kb-offer-card__info { padding: 10px !important; }
+  .kb-offer-card__name { font-size: 10px !important; }
+  .kb-offer-card__desc { display: none !important; }
+  .kb-offer-card__new { font-size: 14px !important; }
+  .kb-offer-card__btn { padding: 8px !important; font-size: 10px !important; }
+  .kb-offers__cta { margin-top: 16px !important; }
+  .kb-offers__cta a { padding: 10px 28px !important; font-size: 11px !important; }
+}

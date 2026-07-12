@@ -1,0 +1,56 @@
+query ExportHerdsets {
+  products(first: 250, query: "product_type:Herdset", sortKey: TITLE) {
+    pageInfo { hasNextPage endCursor }
+    nodes {
+      id
+      legacyResourceId
+      handle
+      title
+      description
+      descriptionHtml
+      vendor
+      productType
+      status
+      tags
+      templateSuffix
+      createdAt
+      updatedAt
+      publishedAt
+      onlineStoreUrl
+      totalInventory
+      tracksInventory
+      seo { title description }
+      category { id name fullName }
+      options { id name position optionValues { id name hasVariants } }
+      collections(first: 50) {
+        nodes { id handle title }
+        pageInfo { hasNextPage endCursor }
+      }
+      metafields(first: 100) {
+        nodes { id namespace key type value description }
+        pageInfo { hasNextPage endCursor }
+      }
+      variants(first: 100) {
+        nodes {
+          id
+          legacyResourceId
+          title
+          sku
+          barcode
+          price
+          compareAtPrice
+          availableForSale
+          inventoryQuantity
+          taxable
+          selectedOptions { name value }
+          inventoryItem { id tracked measurement { weight { value unit } } }
+          metafields(first: 100) {
+            nodes { id namespace key type value description }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}

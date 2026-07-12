@@ -1,0 +1,95 @@
+{{ 'kb-footer.css' | asset_url | stylesheet_tag }}
+
+<div class="kb-footer">
+  <div class="kb-footer__bg"></div>
+
+  <div class="kb-footer__inner">
+
+    <div class="kb-footer__top">
+      <a href="/" class="kb-footer__logo">
+        {%- if section.settings.logo != blank -%}
+          <img src="{{ section.settings.logo | image_url: width: 300 }}" alt="{{ shop.name }}" width="141" height="100" loading="lazy">
+        {%- else -%}
+          <span style="color:#fff;font-size:22px;font-weight:800;">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+    </div>
+
+    <div class="kb-footer__divider"></div>
+
+    <nav class="kb-footer__nav" aria-label="Footer">
+      {%- assign nav_menus  = 'footer-rechtliches,footer-service-hilfe,footer-zahlung-versand,footer-ueber-kb-elements' | split: ',' -%}
+      {%- assign nav_titles = 'RECHTLICHES,SERVICE & HILFE,ZAHLUNG & VERSAND,ÜBER KB ELEMENTS' | split: ',' -%}
+
+      {%- for i in (0..3) -%}
+        {%- assign panel_id = 'kb-panel-' | append: i -%}
+        <div class="kb-footer__nav-col">
+          <button class="kb-footer__acc-trigger" type="button" aria-expanded="false" aria-controls="{{ panel_id }}">
+            {{ nav_titles[i] }}
+            <svg class="kb-acc-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="kb-footer__acc-panel" id="{{ panel_id }}" role="region">
+            {%- assign nav_menu = linklists[nav_menus[i]] -%}
+            {%- if nav_menu.links.size > 0 -%}
+              <ul>
+                {%- for link in nav_menu.links -%}
+                  <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </nav>
+
+    <div class="kb-footer__bottom">
+      <p class="kb-footer__copyright">
+        &copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. Alle Rechte vorbehalten.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var triggers = document.querySelectorAll('.kb-footer__acc-trigger');
+  triggers.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var icon = btn.querySelector('.kb-acc-icon');
+      if (!icon || getComputedStyle(icon).display === 'none') return;
+      var panelId = btn.getAttribute('aria-controls');
+      var panel = document.getElementById(panelId);
+      if (!panel) return;
+      var isOpen = btn.getAttribute('aria-expanded') === 'true';
+      triggers.forEach(function (other) {
+        if (other === btn) return;
+        other.setAttribute('aria-expanded', 'false');
+        var op = document.getElementById(other.getAttribute('aria-controls'));
+        if (op) op.classList.remove('kb-open');
+      });
+      btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      panel.classList.toggle('kb-open', !isOpen);
+    });
+  });
+});
+</script>
+
+{% schema %}
+{
+  "name": "t:names.footer",
+  "class": "section-wrapper",
+  "tag": "footer",
+  "blocks": [
+    {"type":"_divider"},{"type":"@app"},{"type":"button"},{"type":"email-signup"},
+    {"type":"follow-on-shop"},{"type":"footer-utilities"},{"type":"group"},
+    {"type":"icon"},{"type":"image"},{"type":"menu"},{"type":"payment-icons"},
+    {"type":"text"},{"type":"logo"},{"type":"jumbo-text"}
+  ],
+  "enabled_on": {"groups":["footer"]},
+  "settings": [{"type":"image_picker","id":"logo","label":"Logo"}]
+}
+{% endschema %}

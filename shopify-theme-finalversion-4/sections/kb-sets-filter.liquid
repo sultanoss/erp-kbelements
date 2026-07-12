@@ -1,0 +1,213 @@
+{{ 'kb-collection.css' | asset_url | stylesheet_tag }}
+
+<style>
+.kb-sets-filter-wrap{max-width:var(--page-width,1440px);margin:0 auto;padding:0 var(--page-margin,24px);box-sizing:border-box;}
+.kb-sort{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.kb-sort__label{font-size:13px;color:#555;font-weight:600;white-space:nowrap;}
+.kb-sort__select{font-size:13px;color:#1C1917;border:1px solid #ddd;border-radius:6px;padding:7px 10px;background:#fff;cursor:pointer;}
+.kb-sort__select:focus{outline:none;border-color:#C0182A;}
+@media(max-width:749px){.kb-sort__label{display:none;}}
+</style>
+
+{%- assign kb_current_sort = collection.sort_by | default: collection.default_sort_by -%}
+
+{%- comment -%} Aktive Filter aus URL lesen {%- endcomment -%}
+{%- assign active_set = '' -%}
+{%- assign active_betriebsart = '' -%}
+{%- assign active_eigenschaft = '' -%}
+{%- assign active_price_min = '' -%}
+{%- assign active_price_max = '' -%}
+{%- assign active_count = 0 -%}
+{%- for f in collection.filters -%}
+  {%- if f.type == 'list' -%}
+    {%- for v in f.active_values -%}
+      {%- if v.value contains 'set-' -%}{%- assign active_set = v.value -%}{%- assign active_count = active_count | plus: 1 -%}{%- endif -%}
+      {%- if v.value contains 'betriebsart-' -%}{%- assign active_betriebsart = v.value -%}{%- assign active_count = active_count | plus: 1 -%}{%- endif -%}
+      {%- if v.value == 'schuko' or v.value == 'antiscratch' or v.value == 'breite-45cm' -%}{%- assign active_eigenschaft = v.value -%}{%- assign active_count = active_count | plus: 1 -%}{%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  {%- if f.type == 'price_range' -%}
+    {%- unless f.min_value.value == blank and f.max_value.value == blank -%}{%- assign active_count = active_count | plus: 1 -%}{%- endunless -%}
+    {%- assign active_price_min = f.min_value.value -%}
+    {%- assign active_price_max = f.max_value.value -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- comment -%} Preisgrenzen der Collection {%- endcomment -%}
+{%- assign col_price_min = 0 -%}
+{%- assign col_price_max = 0 -%}
+{%- for f in collection.filters -%}
+  {%- if f.type == 'price_range' -%}
+    {%- assign col_price_min = f.range_min | divided_by: 100.0 | round -%}
+    {%- assign col_price_max = f.range_max | divided_by: 100.0 | round -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<div class="kb-sets-filter-wrap">
+  <div id="kb-filter-bar" class="kb-filter-bar">
+    <button id="kb-filter-toggle" class="kb-filter-toggle{% if active_count > 0 %} kb-filter-toggle--active{% endif %}" type="button" aria-expanded="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      <span>Filtern</span>
+      {%- if active_count > 0 -%}<span class="kb-filter-badge">{{ active_count }}</span>{%- endif -%}
+    </button>
+    {%- if active_count > 0 -%}
+    <span class="kb-filter-result">{{ collection.products_count }} Produkt{% if collection.products_count != 1 %}e{% endif %} gefunden</span>
+    <a href="{{ collection.url }}" class="kb-filter-reset" style="text-decoration:none;">
+      <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Zur&uuml;cksetzen
+    </a>
+    {%- endif -%}
+    <div class="kb-sort">
+      <label class="kb-sort__label" for="kb-sets-sort-select">Sortieren:</label>
+      <select id="kb-sets-sort-select" class="kb-sort__select" aria-label="Sortieren nach">
+        {%- for opt in collection.sort_options -%}
+          <option value="{{ opt.value }}"{% if opt.value == kb_current_sort %} selected{% endif %}>{{ opt.name }}</option>
+        {%- endfor -%}
+      </select>
+    </div>
+    <div id="kb-filter-panel" class="kb-filter-panel" hidden>
+      <div class="kb-filter-panel__section">
+        <p class="kb-filter-panel__heading">Set-Typ</p>
+        <div class="kb-filter-chips" data-group="set">
+          <button class="kb-chip{% if active_set == '' %} active{% endif %}" data-value="" type="button">Alle</button>
+          <button class="kb-chip{% if active_set == 'set-2er' %} active{% endif %}" data-value="set-2er" type="button">2-teilig</button>
+          <button class="kb-chip{% if active_set == 'set-3er' %} active{% endif %}" data-value="set-3er" type="button">3-teilig</button>
+          <button class="kb-chip{% if active_set == 'set-4er' %} active{% endif %}" data-value="set-4er" type="button">4-teilig</button>
+        </div>
+      </div>
+      <div class="kb-filter-panel__section">
+        <p class="kb-filter-panel__heading">Kochfeld-Typ</p>
+        <div class="kb-filter-chips" data-group="betriebsart">
+          <button class="kb-chip{% if active_betriebsart == '' %} active{% endif %}" data-value="" type="button">Alle</button>
+          <button class="kb-chip{% if active_betriebsart == 'betriebsart-induktion' %} active{% endif %}" data-value="betriebsart-induktion" type="button">Induktion</button>
+          <button class="kb-chip{% if active_betriebsart == 'betriebsart-glaskeramik' %} active{% endif %}" data-value="betriebsart-glaskeramik" type="button">Glaskeramik</button>
+          <button class="kb-chip{% if active_betriebsart == 'betriebsart-gas' %} active{% endif %}" data-value="betriebsart-gas" type="button">Gas</button>
+        </div>
+      </div>
+      <div class="kb-filter-panel__section">
+        <p class="kb-filter-panel__heading">Besondere Eigenschaften</p>
+        <div class="kb-filter-chips" data-group="eigenschaft">
+          <button class="kb-chip{% if active_eigenschaft == '' %} active{% endif %}" data-value="" type="button">Alle</button>
+          <button class="kb-chip{% if active_eigenschaft == 'schuko' %} active{% endif %}" data-value="schuko" type="button">&#x1F50C; Plug &amp; Play</button>
+          <button class="kb-chip{% if active_eigenschaft == 'antiscratch' %} active{% endif %}" data-value="antiscratch" type="button">&#x2728; AntiScratch</button>
+          <button class="kb-chip{% if active_eigenschaft == 'breite-45cm' %} active{% endif %}" data-value="breite-45cm" type="button">&#x1F4CF; Kompakt 45 cm</button>
+        </div>
+      </div>
+      <div class="kb-filter-panel__section">
+        <p class="kb-filter-panel__heading">Preis</p>
+        <div class="kb-price-range-wrap">
+          <div class="kb-price-range-labels">
+            <span id="kb-price-from">{{ active_price_min | default: col_price_min }} &euro;</span>
+            <span id="kb-price-to">{{ active_price_max | default: col_price_max }} &euro;</span>
+          </div>
+          <div class="kb-price-track">
+            <div class="kb-price-fill" id="kb-price-fill"></div>
+            <input type="range" id="kb-range-min" class="kb-range"
+              min="{{ col_price_min }}" max="{{ col_price_max }}" step="1"
+              value="{{ active_price_min | default: col_price_min }}">
+            <input type="range" id="kb-range-max" class="kb-range"
+              min="{{ col_price_min }}" max="{{ col_price_max }}" step="1"
+              value="{{ active_price_max | default: col_price_max }}">
+          </div>
+        </div>
+      </div>
+      <div class="kb-filter-panel__actions">
+        <a href="{{ collection.url }}" class="kb-filter-clear" style="text-decoration:none;">Filter zur&uuml;cksetzen</a>
+        <button id="kb-filter-apply" class="kb-filter-apply" type="button">Anwenden</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var colUrl = {{ collection.url | json }};
+  var colPriceMin = {{ col_price_min }};
+  var colPriceMax = {{ col_price_max }};
+
+  // Sortierung
+  var sortSel = document.getElementById('kb-sets-sort-select');
+  if (sortSel) {
+    sortSel.addEventListener('change', function() {
+      var u = new URL(window.location.href);
+      u.searchParams.set('sort_by', sortSel.value);
+      u.searchParams.delete('page');
+      window.location.href = u.toString();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var panel    = document.getElementById('kb-filter-panel');
+    var toggle   = document.getElementById('kb-filter-toggle');
+    var applyBtn = document.getElementById('kb-filter-apply');
+    var rMin     = document.getElementById('kb-range-min');
+    var rMax     = document.getElementById('kb-range-max');
+    var pFrom    = document.getElementById('kb-price-from');
+    var pTo      = document.getElementById('kb-price-to');
+    var pFill    = document.getElementById('kb-price-fill');
+
+    // Draft-State
+    var draft = {
+      set: '{{ active_set }}',
+      betriebsart: '{{ active_betriebsart }}',
+      eigenschaft: '{{ active_eigenschaft }}',
+      priceMin: {{ active_price_min | default: col_price_min }},
+      priceMax: {{ active_price_max | default: col_price_max }}
+    };
+
+    function openPanel()  { panel.hidden = false; toggle.setAttribute('aria-expanded','true');  toggle.classList.add('kb-filter-toggle--open'); }
+    function closePanel() { panel.hidden = true;  toggle.setAttribute('aria-expanded','false'); toggle.classList.remove('kb-filter-toggle--open'); }
+    toggle.addEventListener('click', function(e) { e.stopPropagation(); panel.hidden ? openPanel() : closePanel(); });
+    document.addEventListener('click', function(e) { var bar = document.getElementById('kb-filter-bar'); if (bar && !bar.contains(e.target)) closePanel(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePanel(); });
+
+    document.querySelectorAll('.kb-filter-chips').forEach(function(group) {
+      group.querySelectorAll('.kb-chip').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          group.querySelectorAll('.kb-chip').forEach(function(c) { c.classList.remove('active'); });
+          chip.classList.add('active');
+          draft[group.dataset.group] = chip.dataset.value;
+        });
+      });
+    });
+
+    function updateSliderUI() {
+      var lo = parseInt(rMin.value), hi = parseInt(rMax.value);
+      if (pFrom) pFrom.textContent = lo + ' €';
+      if (pTo)   pTo.textContent   = hi + ' €';
+      if (pFill) {
+        var range = colPriceMax - colPriceMin || 1;
+        pFill.style.left  = ((lo - colPriceMin) / range * 100) + '%';
+        pFill.style.width = (((hi - colPriceMin) / range * 100) - ((lo - colPriceMin) / range * 100)) + '%';
+      }
+      draft.priceMin = lo;
+      draft.priceMax = hi;
+    }
+    updateSliderUI();
+
+    if (rMin) rMin.addEventListener('input', function() { if (parseInt(rMin.value) > parseInt(rMax.value) - 1) rMin.value = parseInt(rMax.value) - 1; updateSliderUI(); });
+    if (rMax) rMax.addEventListener('input', function() { if (parseInt(rMax.value) < parseInt(rMin.value) + 1) rMax.value = parseInt(rMin.value) + 1; updateSliderUI(); });
+
+    // Anwenden → URL bauen und navigieren
+    if (applyBtn) applyBtn.addEventListener('click', function() {
+      var u = new URL(window.location.origin + colUrl);
+      if (draft.set)          u.searchParams.append('filter.p.tag', draft.set);
+      if (draft.betriebsart)  u.searchParams.append('filter.p.tag', draft.betriebsart);
+      if (draft.eigenschaft)  u.searchParams.append('filter.p.tag', draft.eigenschaft);
+      if (draft.priceMin > colPriceMin) u.searchParams.set('filter.v.price.gte', draft.priceMin);
+      if (draft.priceMax < colPriceMax) u.searchParams.set('filter.v.price.lte', draft.priceMax);
+      var currentSort = document.getElementById('kb-sets-sort-select');
+      if (currentSort && currentSort.value) u.searchParams.set('sort_by', currentSort.value);
+      window.location.href = u.toString();
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "KB Sets Filter",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

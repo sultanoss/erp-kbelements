@@ -1,0 +1,293 @@
+<style>
+.kb-faq-section { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+.kb-faq__block-toggle { width: 100%; background: none; border: none; border-bottom: 2px solid currentColor; padding: 0 0 12px; margin-bottom: 0; text-align: left; font-size: 18px; font-weight: 700; color: var(--color-foreground); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-family: inherit; text-transform: none; letter-spacing: 0; }
+.kb-faq__block-toggle:hover { color: #C0182A; }
+.kb-faq__block-toggle svg { flex-shrink: 0; transition: transform 0.25s ease; }
+.kb-faq__block-toggle.open svg { transform: rotate(180deg); }
+.kb-faq__block-body { overflow: hidden; max-height: 0; transition: max-height 0.4s ease; }
+.kb-faq__block-body.open { max-height: 9999px; }
+.kb-faq__item { border-bottom: 1px solid rgba(0,0,0,0.1); }
+.kb-faq__item:first-child { border-top: 1px solid rgba(0,0,0,0.1); }
+.kb-faq__item:last-child { border-bottom: none; }
+.kb-faq__question { width: 100%; background: none; border: none; padding: 16px 0; text-align: left; font-size: 15px; font-weight: 600; color: var(--color-foreground); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-family: inherit; text-transform: none; }
+.kb-faq__question:hover { color: #C0182A; }
+.kb-faq__question svg { flex-shrink: 0; transition: transform 0.25s ease; }
+.kb-faq__item.is-open .kb-faq__question svg { transform: rotate(180deg); }
+.kb-faq__answer { font-size: 14px; color: var(--color-foreground); opacity: 0.75; line-height: 1.7; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; padding: 0; }
+.kb-faq__item.is-open .kb-faq__answer { max-height: 600px; padding-bottom: 16px; }
+@media (max-width: 749px) { .kb-faq__question { font-size: 14px; } .kb-faq-section { padding: 32px 16px; } }
+.kb-anschluss-box { max-width: 900px; margin: 0 auto 0; padding: 0 24px 8px; }
+.kb-anschluss-box__title { font-size: 18px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid currentColor; display: flex; align-items: center; gap: 10px; }
+.kb-anschluss-box__title svg { flex-shrink: 0; }
+.kb-anschluss-box__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.kb-anschluss-box__card { border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; padding: 20px; }
+.kb-anschluss-box__card-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.kb-anschluss-box__card-title svg { color: #C0182A; flex-shrink: 0; }
+.kb-anschluss-box__card-text { font-size: 13px; line-height: 1.6; opacity: 0.75; }
+.kb-anschluss-box__link { font-size: 13px; color: #C0182A; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.kb-anschluss-box__link:hover { text-decoration: underline; }
+@media (max-width: 749px) { .kb-anschluss-box { padding: 0 16px 8px; } .kb-anschluss-box__grid { grid-template-columns: 1fr; } }
+</style>
+
+{%- liquid
+  assign is_backofen = false
+  assign is_induktion = false
+  assign is_glaskeramik = false
+  assign is_gas = false
+  assign is_mikrowelle = false
+  assign is_herdset = false
+  if product.type == 'Einbaubackofen'
+    assign is_backofen = true
+  elsif product.type == 'Mikrowelle'
+    assign is_mikrowelle = true
+  elsif product.type == 'Herdset'
+    assign is_herdset = true
+  elsif product.type == 'Kochfeld'
+    assign kb_betriebsart = product.metafields.kb_specs.betriebsart.value
+    if kb_betriebsart == 'Glaskeramik'
+      assign is_glaskeramik = true
+    elsif kb_betriebsart == 'Gas'
+      assign is_gas = true
+    else
+      assign is_induktion = true
+    endif
+  endif
+-%}
+
+{%- capture arrow_icon -%}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>{%- endcapture -%}
+{%- capture zap_icon -%}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>{%- endcapture -%}
+
+{%- if is_backofen -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Welche Anschlussart ben\u00f6tigt der Backofen?","acceptedAnswer":{"@type":"Answer","text":"Unsere Einbauback\u00f6fen verf\u00fcgen \u00fcber einen vormontierten Schuko-Stecker und k\u00f6nnen an einer geeigneten 220\u2013240 V Haushaltssteckdose betrieben werden."}},
+    {"@type":"Question","name":"Ben\u00f6tige ich einen Elektriker f\u00fcr den Anschluss?","acceptedAnswer":{"@type":"Answer","text":"Bei Modellen mit Schuko-Stecker ist in der Regel kein Elektroanschluss durch einen Elektriker erforderlich."}},
+    {"@type":"Question","name":"Wie erfolgt die Lieferung des Backofens?","acceptedAnswer":{"@type":"Answer","text":"Die Lieferung erfolgt innerhalb von 4 bis 5 Werktagen per Spedition."}},
+    {"@type":"Question","name":"Was ist die Circle Fan Heater Funktion?","acceptedAnswer":{"@type":"Answer","text":"Die Circle Fan Heater Technologie verf\u00fcgt \u00fcber ein zus\u00e4tzliches Ringheizelement rund um den Ventilator."}},
+    {"@type":"Question","name":"Was ist die Air Fry Funktion?","acceptedAnswer":{"@type":"Answer","text":"Mit der Air Fry Funktion k\u00f6nnen Speisen besonders knusprig und fettarm zubereitet werden."}},
+    {"@type":"Question","name":"Wo kann ich Ersatzteile bestellen?","acceptedAnswer":{"@type":"Answer","text":"Passende Ersatzteile finden Sie direkt in unserem Shop."}}
+  ]
+}
+</script>
+
+<div class="kb-faq-section page-width">
+  <button class="kb-faq__block-toggle" data-kb-faq-toggle aria-expanded="false">H&auml;ufig gestellte Fragen zum Einbaubackofen {{ arrow_icon }}</button>
+  <div class="kb-faq__block-body" data-kb-faq-body>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Welche Anschlussart ben&ouml;tigt der Backofen?{{ arrow_icon }}</button><div class="kb-faq__answer">Unsere Einbubac&ouml;fen verf&uuml;gen &uuml;ber einen vormontierten Schuko-Stecker und k&ouml;nnen an einer geeigneten 220&ndash;240 V Haushaltssteckdose betrieben werden.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ben&ouml;tige ich einen Elektriker f&uuml;r den Anschluss?{{ arrow_icon }}</button><div class="kb-faq__answer">Bei Modellen mit Schuko-Stecker ist in der Regel kein Elektroanschluss durch einen Elektriker erforderlich. Wir empfehlen dennoch, die Installation gem&auml;&szlig; den &ouml;rtlichen Vorschriften und der Bedienungsanleitung durchzuf&uuml;hren.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie erfolgt die Lieferung des Backofens?{{ arrow_icon }}</button><div class="kb-faq__answer">Die Lieferung erfolgt in der Regel innerhalb von 4 bis 5 Werktagen per Spedition. Bitte stellen Sie sicher, dass bei der Bestellung eine g&uuml;ltige Telefonnummer angegeben wird. Die Spedition kontaktiert Sie vor der Zustellung, um einen individuellen Liefertermin zu vereinbaren.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist die Circle Fan Heater Funktion?{{ arrow_icon }}</button><div class="kb-faq__answer">Die Circle Fan Heater Technologie ist eine erweiterte Form der Umluftfunktion. Im Gegensatz zu herk&ouml;mmlichen Umluftsystemen verf&uuml;gt sie &uuml;ber ein zus&auml;tzliches Ringheizelement rund um den Ventilator. Dadurch wird die W&auml;rme gleichm&auml;&szlig;ig im gesamten Garraum verteilt &ndash; Speisen auf mehreren Ebenen k&ouml;nnen gleichzeitig optimal gegart werden.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist die Steam Clean Funktion?{{ arrow_icon }}</button><div class="kb-faq__answer">Steam Clean unterst&uuml;tzt die Reinigung des Garraums mithilfe von Wasserdampf. Verschmutzungen werden aufgeweicht und k&ouml;nnen anschlie&szlig;end leichter entfernt werden.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist die Air Fry Funktion?{{ arrow_icon }}</button><div class="kb-faq__answer">Mit der Air Fry Funktion k&ouml;nnen Speisen besonders knusprig und fettarm zubereitet werden. Die hei&szlig;e Luft zirkuliert gleichm&auml;&szlig;ig im Garraum und sorgt f&uuml;r optimale Ergebnisse bei Pommes, Gem&uuml;se, H&auml;hnchen und vielen weiteren Gerichten.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ist ein Air Fry Korb im Lieferumfang enthalten?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Bei Modellen mit Air Fry Funktion ist der passende Air Fry Korb im Lieferumfang enthalten.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie gro&szlig; ist das Garraumvolumen?{{ arrow_icon }}</button><div class="kb-faq__answer">Unsere Einbubac&ouml;fen verf&uuml;gen je nach Modell &uuml;ber ein Garraumvolumen von bis zu 73 Litern.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Verf&uuml;gt die Backofent&uuml;r &uuml;ber eine Mehrfachverglasung?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Unsere Back&ouml;fen verf&uuml;gen je nach Modell &uuml;ber eine 2-fach- oder 3-fach-verglaste T&uuml;r. Die Mehrfachverglasung tr&auml;gt zur W&auml;rmed&auml;mmung bei, verbessert die Energieeffizienz und reduziert die Erw&auml;rmung der &auml;u&szlig;eren T&uuml;rscheibe.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Welche Energieeffizienzklasse hat der Backofen?{{ arrow_icon }}</button><div class="kb-faq__answer">Unsere Einbubac&ouml;fen verf&uuml;gen &uuml;ber die Energieeffizienzklasse A+ und verbinden hohe Leistung mit einem effizienten Energieverbrauch.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wo kann ich Ersatzteile oder Zubeh&ouml;r bestellen?{{ arrow_icon }}</button><div class="kb-faq__answer">Passende Ersatzteile und Zubeh&ouml;r finden Sie direkt in unserem Shop. Sollten Sie ein bestimmtes Ersatzteil nicht finden, hilft Ihnen unser Kundenservice gerne weiter.</div></div>
+  </div>
+</div>
+
+{%- elsif is_herdset -%}
+
+{%- assign kochfeld_anschluss = product.metafields.kbe.kochfeld_anschluss.value -%}
+{%- assign is_gas_herdset = false -%}
+{%- if product.tags contains 'betriebsart-gas' -%}
+  {%- assign is_gas_herdset = true -%}
+{%- endif -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Wie wird das Herdset geliefert?","acceptedAnswer":{"@type":"Answer","text":"Das Herdset wird per Spedition durch GEL Express geliefert."}},
+    {"@type":"Question","name":"Wo kann ich Ersatzteile bestellen?","acceptedAnswer":{"@type":"Answer","text":"Passende Ersatzteile finden Sie direkt in unserem Shop."}}
+  ]
+}
+</script>
+
+{%- unless is_gas_herdset -%}
+<div class="kb-anschluss-box page-width">
+  <h2 class="kb-anschluss-box__title">{{ zap_icon }}Anschlussinformationen</h2>
+  <div class="kb-anschluss-box__grid">
+    <div class="kb-anschluss-box__card">
+      <div class="kb-anschluss-box__card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Einbaubackofen &ndash; Schuko-Stecker
+      </div>
+      <p class="kb-anschluss-box__card-text">Der Backofen wird &uuml;ber einen vormontierten <strong>Schuko-Stecker (220&ndash;240 V)</strong> angeschlossen. Eine normale Haushaltssteckdose gen&uuml;gt &ndash; kein Elektriker erforderlich. Die Steckdose muss mit mindestens <strong>16 A</strong> abgesichert sein.</p>
+    </div>
+    {%- if kochfeld_anschluss == 'schuko' -%}
+    <div class="kb-anschluss-box__card">
+      <div class="kb-anschluss-box__card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Kochfeld &ndash; Schuko-Stecker
+      </div>
+      <p class="kb-anschluss-box__card-text">Das Kochfeld wird &uuml;ber einen vormontierten <strong>Schuko-Stecker (220&ndash;240 V)</strong> angeschlossen. Eine normale Haushaltssteckdose gen&uuml;gt &ndash; kein Elektriker erforderlich. Die Steckdose muss mit mindestens <strong>16 A</strong> abgesichert sein.</p>
+    </div>
+    {%- else -%}
+    <div class="kb-anschluss-box__card">
+      <div class="kb-anschluss-box__card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Kochfeld &ndash; Direkter Stromanschluss
+      </div>
+      <p class="kb-anschluss-box__card-text">Das Kochfeld wird &uuml;ber einen <strong>direkten Stromanschluss (2 &times; 220&ndash;240 V)</strong> fest mit der Hausinstallation verbunden. Der Anschluss muss durch eine <strong>qualifizierte Elektrofachkraft</strong> erfolgen.</p>
+    </div>
+    {%- endif -%}
+  </div>
+  <a href="/pages/einbau-anschluss" class="kb-anschluss-box__link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Vollst&auml;ndige Einbau- &amp; Anschlussinformationen
+  </a>
+</div>
+{%- endunless -%}
+
+<div class="kb-faq-section page-width">
+  <button class="kb-faq__block-toggle" data-kb-faq-toggle aria-expanded="false">H&auml;ufig gestellte Fragen zum Herdset {{ arrow_icon }}</button>
+  <div class="kb-faq__block-body" data-kb-faq-body>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie wird das Herdset geliefert?{{ arrow_icon }}</button><div class="kb-faq__answer">Das Herdset wird per Spedition durch <strong>GEL Express</strong> geliefert. Die Lieferzeit betr&auml;gt in der Regel <strong>4&ndash;5 Werktage</strong>. Die Spedition setzt sich vorab mit Ihnen in Verbindung, um einen individuellen Liefertermin zu vereinbaren.<br><br>Nach dem Versand erhalten Sie eine <strong>Sendungsverfolgungsnummer</strong>: <a href="https://www.gel-express.de/sendungsverfolgung" target="_blank" rel="noopener" style="color:#C0182A;font-weight:600;">www.gel-express.de/sendungsverfolgung</a><br><br>Bitte teilen Sie uns Ihre Telefonnummer zusammen mit Ihrer Bestellnummer per E-Mail an sales2@kbelements.de mit.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Kann ich mein Altger&auml;t bei der Lieferung mitgeben?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Bitte teilen Sie uns nach Ihrer Bestellung mit, ob Sie eine Altger&auml;temitnahme w&uuml;nschen, und senden Sie uns die <strong>Ma&szlig;e des Altger&auml;ts</strong> sowie die Ger&auml;teart per E-Mail an sales2@kbelements.de.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was muss ich bei der Bel&uuml;ftung beachten?{{ arrow_icon }}</button><div class="kb-faq__answer">Bitte halten Sie die in der jeweiligen Bedienungsanleitung angegebenen Einbauabma&szlig;e, L&uuml;ftungs&ouml;ffnungen und Mindestabst&auml;nde ein.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was muss ich bei der Kombination von Kochfeld und Backofen beachten?{{ arrow_icon }}</button><div class="kb-faq__answer">Die vom Hersteller vorgegebenen Einbauabma&szlig;e und Bel&uuml;ftungsabst&auml;nde m&uuml;ssen eingehalten werden, damit die W&auml;rme ordnungsgem&auml;&szlig; abgef&uuml;hrt werden kann.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wer darf das Herdset einbauen?{{ arrow_icon }}</button><div class="kb-faq__answer">Wir empfehlen, den Einbau sowie den elektrischen Anschluss ausschlie&szlig;lich durch qualifiziertes Fachpersonal durchf&uuml;hren zu lassen.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ben&ouml;tige ich einen Elektriker f&uuml;r den Anschluss des Backofens?{{ arrow_icon }}</button><div class="kb-faq__answer">Der Backofen verf&uuml;gt &uuml;ber einen vormontierten Schuko-Stecker (220&ndash;240 V) und kann direkt an einer Haushaltssteckdose betrieben werden. Ein Elektriker ist in der Regel nicht erforderlich.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie wird das Kochfeld angeschlossen?{{ arrow_icon }}</button><div class="kb-faq__answer">{%- if kochfeld_anschluss == 'schuko' -%}Das Kochfeld verf&uuml;gt &uuml;ber einen vormontierten Schuko-Stecker (220&ndash;240 V) und kann direkt an einer Haushaltssteckdose betrieben werden. Ein Elektriker ist in der Regel nicht erforderlich.{%- elsif is_gas_herdset -%}Das Gaskochfeld wird an die vorhandene Gasleitung angeschlossen. Der Anschluss muss durch eine <strong>qualifizierte Fachkraft</strong> erfolgen. Die Piezo-Z&uuml;ndung ben&ouml;tigt eine 220&ndash;240 V Steckdose in der N&auml;he.{%- else -%}Das Kochfeld wird &uuml;ber einen direkten Stromanschluss (2 &times; 220&ndash;240 V) angeschlossen. Wir empfehlen den Anschluss durch eine qualifizierte Elektrofachkraft.{%- endif -%}</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist die Circle Fan Heater Funktion?{{ arrow_icon }}</button><div class="kb-faq__answer">Circle Fan Heater ist ein erweitertes Umluftsystem mit ringf&ouml;rmigem Heizelement und Gebl&auml;se f&uuml;r gleichm&auml;&szlig;ige W&auml;rmeverteilung auf allen Garraumebenen.</div></div>
+    {%- unless is_gas_herdset -%}
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist die Low Power Continuous Heating Funktion?{{ arrow_icon }}</button><div class="kb-faq__answer">Die kontinuierliche Niederleistungsw&auml;rme h&auml;lt Speisen gleichm&auml;&szlig;ig warm, ohne sie zu &uuml;berhitzen &ndash; besonders geeignet f&uuml;r Saucen und Schmorgerichte.</div></div>
+    {%- endunless -%}
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Verf&uuml;gt das Kochfeld &uuml;ber Sicherheitsfunktionen?{{ arrow_icon }}</button><div class="kb-faq__answer">{%- if is_gas_herdset -%}Ja. Das Gaskochfeld verf&uuml;gt &uuml;ber eine <strong>Flammenausfallsicherung</strong>, die bei Flammenausfall automatisch die Gaszufuhr unterbricht, sowie &uuml;ber einen Gas-Stop-Timer pro Brenner.{%- else -%}Ja. Das Kochfeld verf&uuml;gt &uuml;ber Kindersicherung, &Uuml;berhitzungsschutz, automatische Abschaltung und Restw&auml;rmeanzeige.{%- endif -%}</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wo kann ich Ersatzteile oder Zubeh&ouml;r bestellen?{{ arrow_icon }}</button><div class="kb-faq__answer">Passende Ersatzteile und Zubeh&ouml;r finden Sie direkt in unserem Shop.</div></div>
+  </div>
+</div>
+
+{%- elsif is_mikrowelle -%}
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Welche Funktionen bietet die Einbaumikrowelle?","acceptedAnswer":{"@type":"Answer","text":"Mikrowellen-, Grill- und Kombinationsfunktion."}},{"@type":"Question","name":"Wo kann ich Ersatzteile bestellen?","acceptedAnswer":{"@type":"Answer","text":"Passende Ersatzteile finden Sie direkt in unserem Shop."}}]}
+</script>
+
+<div class="kb-faq-section page-width">
+  <button class="kb-faq__block-toggle" data-kb-faq-toggle aria-expanded="false">H&auml;ufig gestellte Fragen zur Einbau-Mikrowelle {{ arrow_icon }}</button>
+  <div class="kb-faq__block-body" data-kb-faq-body>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Welche Funktionen bietet die Einbaumikrowelle?{{ arrow_icon }}</button><div class="kb-faq__answer">Unsere Einbaumikrowellen verf&uuml;gen &uuml;ber Mikrowellen-, Grill- und Kombinationsfunktion sowie automatische Kochprogramme, Auftaufunktionen und eine Schnellstartfunktion.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Kann die Mikrowelle auch zum Grillen verwendet werden?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Die integrierte Grillfunktion mit 1200 Watt erm&ouml;glicht knuspriges &Uuml;berbacken und Grillen direkt in der Mikrowelle.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie gro&szlig; ist der Garraum?{{ arrow_icon }}</button><div class="kb-faq__answer">Der Garraum fasst 25 Liter.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Aus welchem Material besteht der Innenraum?{{ arrow_icon }}</button><div class="kb-faq__answer">Der Innenraum besteht aus hochwertigem Edelstahl 304.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Verf&uuml;gt die Mikrowelle &uuml;ber eine Auftaufunktion?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Es stehen 2 Auftauprogramme zur Verf&uuml;gung.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Verf&uuml;gt die Mikrowelle &uuml;ber eine Kindersicherung?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Die Tastensperre verhindert eine unbeabsichtigte Bedienung.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie wird die Mikrowelle angeschlossen?{{ arrow_icon }}</button><div class="kb-faq__answer">Die Einbaumikrowelle verf&uuml;gt &uuml;ber einen vormontierten Schuko-Stecker und kann direkt an einer 220&ndash;240 V Haushaltssteckdose betrieben werden.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was muss ich beim Einbau beachten?{{ arrow_icon }}</button><div class="kb-faq__answer">Bitte beachten Sie die in der Bedienungsanleitung angegebenen Einbauabmessungen und Mindestabst&auml;nde.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wo kann ich Ersatzteile oder Zubeh&ouml;r bestellen?{{ arrow_icon }}</button><div class="kb-faq__answer">Passende Ersatzteile finden Sie direkt in unserem Shop.</div></div>
+  </div>
+</div>
+
+{%- elsif is_glaskeramik -%}
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Ben\u00f6tige ich spezielles Kochgeschirr?","acceptedAnswer":{"@type":"Answer","text":"Nein."}},{"@type":"Question","name":"Wo kann ich Ersatzteile bestellen?","acceptedAnswer":{"@type":"Answer","text":"Passende Ersatzteile finden Sie direkt in unserem Shop."}}]}
+</script>
+
+<div class="kb-faq-section page-width">
+  <button class="kb-faq__block-toggle" data-kb-faq-toggle aria-expanded="false">H&auml;ufig gestellte Fragen zum Glaskeramikkochfeld {{ arrow_icon }}</button>
+  <div class="kb-faq__block-body" data-kb-faq-body>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ben&ouml;tige ich spezielles Kochgeschirr f&uuml;r ein Glaskeramikkochfeld?{{ arrow_icon }}</button><div class="kb-faq__answer">Nein. Glaskeramikkochfelder k&ouml;nnen mit den meisten herk&ouml;mmlichen T&ouml;pfen und Pfannen verwendet werden.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist die Dual-Ring-Zone?{{ arrow_icon }}</button><div class="kb-faq__answer">Die Dual-Ring-Zone erm&ouml;glicht die Vergr&ouml;&szlig;erung einer Kochzone per Tastendruck f&uuml;r gro&szlig;e T&ouml;pfe und Br&auml;ter.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist eine Flexzone?{{ arrow_icon }}</button><div class="kb-faq__answer">Die Flexzone erm&ouml;glicht es, zwei Kochzonen zu einer gr&ouml;&szlig;eren Kochfl&auml;che zusammenzuschalten.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Verf&uuml;gt das Kochfeld &uuml;ber eine Kindersicherung?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Welche Sicherheitsfunktionen bietet das Kochfeld?{{ arrow_icon }}</button><div class="kb-faq__answer">Kindersicherung, &Uuml;berhitzungsschutz, Restwärmeanzeige und automatische Abschaltung.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ben&ouml;tige ich einen Elektriker f&uuml;r den Anschluss?{{ arrow_icon }}</button><div class="kb-faq__answer">Wir empfehlen den Anschluss durch eine qualifizierte Elektrofachkraft.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wo kann ich Ersatzteile oder Zubeh&ouml;r bestellen?{{ arrow_icon }}</button><div class="kb-faq__answer">Passende Ersatzteile finden Sie direkt in unserem Shop.</div></div>
+  </div>
+</div>
+
+{%- elsif is_gas -%}
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"F\u00fcr welche Gasart ist das Gaskochfeld eingestellt?","acceptedAnswer":{"@type":"Answer","text":"Werkseitig f\u00fcr Erdgas (NG) voreingestellt."}},{"@type":"Question","name":"Wo kann ich Ersatzteile bestellen?","acceptedAnswer":{"@type":"Answer","text":"Passende Ersatzteile finden Sie direkt in unserem Shop."}}]}
+</script>
+
+<div class="kb-faq-section page-width">
+  <button class="kb-faq__block-toggle" data-kb-faq-toggle aria-expanded="false">H&auml;ufig gestellte Fragen zum Gaskochfeld {{ arrow_icon }}</button>
+  <div class="kb-faq__block-body" data-kb-faq-body>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">F&uuml;r welche Gasart ist das Gaskochfeld werkseitig eingestellt?{{ arrow_icon }}</button><div class="kb-faq__answer">Werkseitig f&uuml;r Erdgas (NG). LPG-D&uuml;sen (30/50 mbar) sind im Lieferumfang enthalten.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">K&ouml;nnen die Gaskochfelder mit Fl&uuml;ssiggas betrieben werden?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Mit den mitgelieferten LPG-D&uuml;sen kann das Kochfeld umger&uuml;stet werden. Wir empfehlen den Umbau durch eine qualifizierte Fachkraft.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Verf&uuml;gt das Gaskochfeld &uuml;ber eine automatische Z&uuml;ndung?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Alle KB ELEMENTS Gaskochfelder verf&uuml;gen &uuml;ber eine integrierte elektrische Z&uuml;ndung.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was passiert, wenn die Flamme erl&ouml;scht?{{ arrow_icon }}</button><div class="kb-faq__answer">Die Flammensicherheitsvorrichtung unterbricht automatisch die Gaszufuhr.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ben&ouml;tige ich einen Fachmann f&uuml;r den Anschluss?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Der Anschluss sollte durch eine qualifizierte Fachkraft erfolgen.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wo kann ich Ersatzteile oder Zubeh&ouml;r bestellen?{{ arrow_icon }}</button><div class="kb-faq__answer">Passende Ersatzteile finden Sie direkt in unserem Shop.</div></div>
+  </div>
+</div>
+
+{%- elsif is_induktion -%}
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Ben\u00f6tige ich spezielles Kochgeschirr?","acceptedAnswer":{"@type":"Answer","text":"Ja."}},{"@type":"Question","name":"Wo kann ich Ersatzteile bestellen?","acceptedAnswer":{"@type":"Answer","text":"Passende Ersatzteile finden Sie direkt in unserem Shop."}}]}
+</script>
+
+<div class="kb-faq-section page-width">
+  <button class="kb-faq__block-toggle" data-kb-faq-toggle aria-expanded="false">H&auml;ufig gestellte Fragen zum Induktionskochfeld {{ arrow_icon }}</button>
+  <div class="kb-faq__block-body" data-kb-faq-body>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist die Low Power Continuous Heating-Technologie?{{ arrow_icon }}</button><div class="kb-faq__answer">Sorgt daf&uuml;r, dass Speisen bei niedrigen Leistungsstufen besonders gleichm&auml;&szlig;ig erw&auml;rmt werden.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ben&ouml;tige ich spezielles Kochgeschirr f&uuml;r ein Induktionskochfeld?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Induktionsgeeignetes Kochgeschirr wird ben&ouml;tigt. Test: Magnet am Topfboden halten.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Was ist eine Flexzone?{{ arrow_icon }}</button><div class="kb-faq__answer">Zwei Kochzonen zusammenschaltbar f&uuml;r gro&szlig;e T&ouml;pfe, Br&auml;ter oder Grillplatten.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Verf&uuml;gt das Kochfeld &uuml;ber eine Kindersicherung?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Welche Sicherheitsfunktionen bietet das Kochfeld?{{ arrow_icon }}</button><div class="kb-faq__answer">Kindersicherung, &Uuml;berhitzungsschutz, Topferkennung, Restwärmeanzeige und automatische Abschaltung.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Ben&ouml;tige ich einen Elektriker f&uuml;r den Anschluss?{{ arrow_icon }}</button><div class="kb-faq__answer">Bei Modellen mit Schuko-Stecker direkt an der Haushaltssteckdose anschlie&szlig;bar. Bei Direktanschluss-Modellen empfehlen wir eine qualifizierte Elektrofachkraft.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wo kann ich Ersatzteile oder Zubeh&ouml;r bestellen?{{ arrow_icon }}</button><div class="kb-faq__answer">Passende Ersatzteile finden Sie direkt in unserem Shop.</div></div>
+  </div>
+</div>
+
+{%- else -%}
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Kann die Dunstabzugshaube im Umluftbetrieb genutzt werden?","acceptedAnswer":{"@type":"Answer","text":"Ja."}},{"@type":"Question","name":"Wo kann ich Ersatzfilter bestellen?","acceptedAnswer":{"@type":"Answer","text":"Passende Ersatzteile finden Sie direkt in unserem Shop."}}]}
+</script>
+
+<div class="kb-faq-section page-width">
+  <button class="kb-faq__block-toggle" data-kb-faq-toggle aria-expanded="false">H&auml;ufig gestellte Fragen zur Dunstabzugshaube {{ arrow_icon }}</button>
+  <div class="kb-faq__block-body" data-kb-faq-body>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Kann die Dunstabzugshaube im Umluftbetrieb genutzt werden?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Unsere Dunstabzugshauben k&ouml;nnen sowohl im Umluft- als auch im Abluftbetrieb verwendet werden. Ausgenommen sind Inselhauben, die ausschlie&szlig;lich f&uuml;r den Umluftbetrieb ausgelegt sind.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Sind Aktivkohlefilter im Lieferumfang enthalten?{{ arrow_icon }}</button><div class="kb-faq__answer">Ja. Die Aktivkohlefilter sind im Lieferumfang enthalten und bereits vormontiert. F&uuml;r den Abluftbetrieb vor Inbetriebnahme entfernen.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie oft sollten die Aktivkohlefilter gewechselt werden?{{ arrow_icon }}</button><div class="kb-faq__answer">Wir empfehlen einen Wechsel alle 6 Monate.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Sind die Fettfilter sp&uuml;lmaschinengeeignet?{{ arrow_icon }}</button><div class="kb-faq__answer">Die Baffle-Fettfilter sind grunds&auml;tzlich sp&uuml;lmaschinengeeignet. Handw&auml;sche empfohlen f&uuml;r l&auml;ngere Lebensdauer.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wie laut ist die Dunstabzugshaube?{{ arrow_icon }}</button><div class="kb-faq__answer">Je nach Modell und Leistungsstufe liegt die maximale Lautst&auml;rke bei etwa 58 dB.</div></div>
+    <div class="kb-faq__item"><button class="kb-faq__question" aria-expanded="false">Wo kann ich Ersatzfilter oder Ersatzteile bestellen?{{ arrow_icon }}</button><div class="kb-faq__answer">Passende Aktivkohlefilter, Fettfilter und Ersatzteile finden Sie direkt in unserem Shop.</div></div>
+  </div>
+</div>
+
+{%- endif -%}
+
+<script>
+(function(){
+  document.querySelectorAll('[data-kb-faq-toggle]').forEach(function(toggle){
+    var body = toggle.nextElementSibling;
+    toggle.addEventListener('click', function(){
+      var isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      toggle.classList.toggle('open', !isOpen);
+      toggle.setAttribute('aria-expanded', String(!isOpen));
+    });
+  });
+  document.querySelectorAll('.kb-faq__question').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.closest('.kb-faq__item');
+      var isOpen = item.classList.contains('is-open');
+      document.querySelectorAll('.kb-faq__item.is-open').forEach(function(el){ el.classList.remove('is-open'); el.querySelector('.kb-faq__question').setAttribute('aria-expanded','false'); });
+      if(!isOpen){ item.classList.add('is-open'); btn.setAttribute('aria-expanded','true'); }
+    });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Fragen und Antworten",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

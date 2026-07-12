@@ -1,0 +1,107 @@
+<style>
+.kb-offers{padding:48px 0;background:#fff}
+.kb-offers__header{text-align:center;margin-bottom:32px;padding:0 24px}
+.kb-offers__label{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#C0182A;margin:0 0 8px}
+.kb-offers__title{font-size:clamp(24px,3vw,40px);font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#1C1917;margin:0 0 12px}
+.kb-offers__sub{font-size:15px;color:#666;margin:0}
+.kb-offers__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1440px;margin:0 auto;padding:0 24px}
+@media(max-width:1024px){.kb-offers__grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.kb-offers__grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:0 16px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:none}}
+@media(max-width:600px){.kb-offers__grid::-webkit-scrollbar{display:none}}
+.kb-offer-card{background:#fff;border:1px solid #eee;display:flex;flex-direction:column;text-decoration:none;transition:box-shadow 0.2s,transform 0.2s;position:relative;overflow:hidden}
+.kb-offer-card:hover{box-shadow:0 8px 32px rgba(28,25,23,0.12);transform:translateY(-2px)}
+@media(max-width:600px){.kb-offer-card{min-width:62vw;max-width:62vw;scroll-snap-align:start;flex-shrink:0}}
+.kb-offer-card__badge{position:absolute;top:8px;left:8px;background:#C0182A;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;z-index:1}
+.kb-offer-card__badge--new{background:#1C1917}
+.kb-offer-card__badge--gas{background:#E8700A}
+.kb-offer-card__img-wrap{aspect-ratio:1/1;overflow:hidden;background:#fff}
+@media(max-width:600px){.kb-offer-card__img-wrap{aspect-ratio:4/3}}
+.kb-offer-card__img{width:100%;height:100%;object-fit:contain;object-position:center;padding:8px;transition:transform 0.3s}
+.kb-offer-card:hover .kb-offer-card__img{transform:scale(1.04)}
+.kb-offer-card__info{padding:16px;display:flex;flex-direction:column;flex:1}
+@media(max-width:600px){.kb-offer-card__info{padding:8px 10px 10px}}
+.kb-offer-card__name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1C1917;margin:0 0 6px}
+@media(max-width:600px){.kb-offer-card__name{font-size:10px;letter-spacing:0;margin:0 0 4px}}
+.kb-offer-card__desc{font-size:12px;color:#888;margin:0 0 12px;line-height:1.5;flex:1}
+@media(max-width:600px){.kb-offer-card__desc{display:none}}
+.kb-offer-card__prices{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.kb-offer-card__old{font-size:11px;color:#aaa;text-decoration:line-through}
+.kb-offer-card__new{font-size:18px;font-weight:700;color:#C0182A}
+.kb-offer-card__price-only{font-size:18px;font-weight:700;color:#1C1917}
+@media(max-width:600px){.kb-offer-card__new,.kb-offer-card__price-only{font-size:15px}}
+.kb-offer-card__btn{display:block;background:#1C1917;color:#fff;text-align:center;padding:10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;border-radius:4px;transition:background 0.2s}
+.kb-offer-card__btn:hover{background:#C0182A}
+.kb-offers__cta{text-align:center;margin-top:24px}
+.kb-offers__cta a{display:inline-block;border:2px solid #1C1917;color:#1C1917;background:transparent;padding:12px 36px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:4px;transition:all 0.2s}
+.kb-offers__cta a:hover{background:#1C1917;color:#fff}
+@media(max-width:600px){.kb-offers__cta{margin-top:16px}.kb-offers__cta a{padding:10px 28px;font-size:11px}}
+.kb-offers__dots{display:none;justify-content:center;gap:6px;margin-top:12px}
+@media(max-width:600px){.kb-offers__dots{display:flex}}
+.kb-offers__dot{width:6px;height:6px;border-radius:50%;background:#ddd}
+.kb-offers__dot.active{background:#1C1917}
+</style>
+
+<div class='kb-offers'>
+  <div class='kb-offers__header'>
+    <p class='kb-offers__label'>&#x2B50; Unsere Bestseller</p>
+    <h2 class='kb-offers__title'>Bestseller</h2>
+    <p class='kb-offers__sub'>Unsere meistgekauften Einbauger&auml;te &ndash; von Kunden geliebt und von Experten empfohlen</p>
+  </div>
+  <div class='kb-offers__grid' id='kb-offers-grid'>
+
+    <a href='/products/kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-induktionskochfeld-60-cm-schuko-schwarz' class='kb-offer-card'>
+      <span class='kb-offer-card__badge'>Plug &amp; Play</span>
+      <div class='kb-offer-card__img-wrap'><img class='kb-offer-card__img' src='https://cdn.shopify.com/s/files/1/0963/1852/1608/files/EV1-60PB1_25bb35da-6742-44d8-a28d-041e3f8cbe4a.png?v=1782143327' alt='Herdset 2-teilig Schuko Plug &amp; Play' loading='lazy'></div>
+      <div class='kb-offer-card__info'>
+        <p class='kb-offer-card__name'>Herdset 2-teilig Schuko</p>
+        <p class='kb-offer-card__desc'>Backofen A+ + Induktion &ndash; kein Elektriker n&ouml;tig</p>
+        <div class='kb-offer-card__prices'><span class='kb-offer-card__price-only'>439 &euro;</span></div>
+        <span class='kb-offer-card__btn'>Jetzt kaufen</span>
+      </div>
+    </a>
+
+    <a href='/products/kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-induktionskochfeld-60-cm-antiscratch-2-flexzonen-schwarz' class='kb-offer-card'>
+      <span class='kb-offer-card__badge'>AntiScratch</span>
+      <div class='kb-offer-card__img-wrap'><img class='kb-offer-card__img' src='https://cdn.shopify.com/s/files/1/0963/1852/1608/files/EV1-111.png?v=1782152019' alt='Herdset 2-teilig AntiScratch 2 Flexzonen' loading='lazy'></div>
+      <div class='kb-offer-card__info'>
+        <p class='kb-offer-card__name'>Herdset 2-teilig AntiScratch</p>
+        <p class='kb-offer-card__desc'>Backofen A+ + Induktion 2 Flexzonen AntiScratch</p>
+        <div class='kb-offer-card__prices'><span class='kb-offer-card__price-only'>469 &euro;</span></div>
+        <span class='kb-offer-card__btn'>Jetzt kaufen</span>
+      </div>
+    </a>
+
+    <a href='/products/kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-induktionskochfeld-60-cm-full-touch-display-15-funktionen-schwarz' class='kb-offer-card'>
+      <span class='kb-offer-card__badge kb-offer-card__badge--new'>Full Touch</span>
+      <div class='kb-offer-card__img-wrap'><img class='kb-offer-card__img' src='https://cdn.shopify.com/s/files/1/0963/1852/1608/files/DV1-60FB_ee18891e-d3fe-4ff9-8804-f6232705a5d1.jpg?v=1782456897' alt='Herdset 2-teilig Full Touch Display' loading='lazy'></div>
+      <div class='kb-offer-card__info'>
+        <p class='kb-offer-card__name'>Herdset 2-teilig Full Touch</p>
+        <p class='kb-offer-card__desc'>Backofen Full Touch Display + Induktion 2 Flexzonen</p>
+        <div class='kb-offer-card__prices'><span class='kb-offer-card__price-only'>529 &euro;</span></div>
+        <span class='kb-offer-card__btn'>Jetzt kaufen</span>
+      </div>
+    </a>
+
+    <a href='/products/kb-elements-dunstabzugshaube-60-cm-kopffrei-selbstreinigend' class='kb-offer-card'>
+      <span class='kb-offer-card__badge'>A+</span>
+      <div class='kb-offer-card__img-wrap'><img class='kb-offer-card__img' src='https://cdn.shopify.com/s/files/1/0963/1852/1608/files/main-1-amazon_e6d7766e-9fc9-4186-b4b0-c3c30e3dfea1.jpg?v=1781717172' alt='Dunstabzugshaube 60 cm Kopffrei Selbstreinigung' loading='lazy'></div>
+      <div class='kb-offer-card__info'>
+        <p class='kb-offer-card__name'>Kopffreihaube 60 cm</p>
+        <p class='kb-offer-card__desc'>1350 m&sup3;/h, Selbstreinigung, A+, Abluft &amp; Umluft</p>
+        <div class='kb-offer-card__prices'><span class='kb-offer-card__price-only'>229 &euro;</span></div>
+        <span class='kb-offer-card__btn'>Jetzt kaufen</span>
+      </div>
+    </a>
+
+  </div>
+  <div class='kb-offers__dots' id='kb-offers-dots'>
+    <div class='kb-offers__dot active'></div>
+    <div class='kb-offers__dot'></div>
+    <div class='kb-offers__dot'></div>
+    <div class='kb-offers__dot'></div>
+  </div>
+  <div class='kb-offers__cta'>
+    <a href='/collections/bestseller'>Alle Bestseller ansehen &rarr;</a>
+  </div>
+</div>
+<script>(function(){var g=document.getElementById('kb-offers-grid');var d=document.querySelectorAll('#kb-offers-dots .kb-offers__dot');if(!g||!d.length)return;g.addEventListener('scroll',function(){var c=g.querySelectorAll('.kb-offer-card');if(!c.length)return;var w=c[0].offsetWidth+10;var i=Math.round(g.scrollLeft/w);d.forEach(function(x,j){x.classList.toggle('active',j===i);});});})();</script>

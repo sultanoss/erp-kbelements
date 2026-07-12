@@ -1,0 +1,143 @@
+{{ 'kb-collection.css' | asset_url | stylesheet_tag }}
+
+<style>
+.kb-asf-wrap{
+  max-width:var(--page-width,1440px);
+  margin:0 auto;
+  padding:0 var(--page-margin,24px);
+  box-sizing:border-box;
+}
+.kb-sort{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.kb-sort__label{font-size:13px;color:#555;font-weight:600;white-space:nowrap;}
+.kb-sort__select{font-size:13px;color:#1C1917;border:1px solid #ddd;border-radius:6px;padding:7px 10px;background:#fff;cursor:pointer;}
+.kb-sort__select:focus{outline:none;border-color:#C0182A;}
+@media(max-width:749px){.kb-sort__label{display:none;}}
+</style>
+
+{%- assign kb_current_sort = collection.sort_by | default: collection.default_sort_by -%}
+{%- assign min_p = collection.products.first.price -%}
+{%- assign max_p = collection.products.first.price -%}
+{%- for p in collection.products -%}{%- if p.price < min_p -%}{%- assign min_p = p.price -%}{%- endif -%}{%- if p.price > max_p -%}{%- assign max_p = p.price -%}{%- endif -%}{%- endfor -%}
+
+<script>
+(function(){
+  var kbColData={};
+  var priceMin={{ min_p | divided_by: 100.0 | round }};
+  var priceMax={{ max_p | divided_by: 100.0 | round }};
+  {% for product in collection.products %}
+  kbColData[{{ product.handle | json }}]={tags:{{ product.tags | json }},priceRaw:{{ product.price | divided_by: 100.0 | round }}};
+  {% endfor %}
+  window.kbColData=kbColData;
+  window.kbColPriceMin=priceMin;
+  window.kbColPriceMax=priceMax;
+})();
+</script>
+
+<div class="kb-asf-wrap">
+  <div id="kb-filter-bar" class="kb-filter-bar">
+    <button id="kb-filter-toggle" class="kb-filter-toggle" type="button" aria-expanded="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      <span id="kb-filter-toggle-label">Filtern</span>
+      <span id="kb-filter-badge" class="kb-filter-badge" hidden></span>
+    </button>
+    <span id="kb-filter-result" class="kb-filter-result" hidden></span>
+    <button id="kb-filter-reset" class="kb-filter-reset" type="button" hidden>
+      <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Zur&uuml;cksetzen
+    </button>
+    <div class="kb-sort">
+      <label class="kb-sort__label" for="kb-asf-sort-select">Sortieren:</label>
+      <select id="kb-asf-sort-select" class="kb-sort__select" aria-label="Sortieren nach">
+        {%- for opt in collection.sort_options -%}
+          <option value="{{ opt.value }}"{% if opt.value == kb_current_sort %} selected{% endif %}>{{ opt.name }}</option>
+        {%- endfor -%}
+      </select>
+    </div>
+    <div id="kb-filter-panel" class="kb-filter-panel" hidden>
+      <div class="kb-filter-panel__section">
+        <p class="kb-filter-panel__heading">Produkttyp</p>
+        <div class="kb-filter-chips" data-group="typ">
+          <button class="kb-chip active" data-value="" type="button">Alle</button>
+          <button class="kb-chip" data-value="nur-kochfeld" type="button">Nur Kochfeld</button>
+          <button class="kb-chip" data-value="set-2er" type="button">2er Set</button>
+          <button class="kb-chip" data-value="set-3er" type="button">3er Set</button>
+          <button class="kb-chip" data-value="set-4er" type="button">4er Set</button>
+        </div>
+      </div>
+      <div class="kb-filter-panel__section">
+        <p class="kb-filter-panel__heading">Anschluss</p>
+        <div class="kb-filter-chips" data-group="anschluss">
+          <button class="kb-chip active" data-value="" type="button">Alle</button>
+          <button class="kb-chip" data-value="plug-and-play" type="button">&#x1F50C; Plug &amp; Play</button>
+        </div>
+      </div>
+      <div class="kb-filter-panel__section">
+        <p class="kb-filter-panel__heading">Preis</p>
+        <div class="kb-price-range-wrap">
+          <div class="kb-price-range-labels"><span id="kb-price-from">0 &euro;</span><span id="kb-price-to">999 &euro;</span></div>
+          <div class="kb-price-track">
+            <div class="kb-price-fill" id="kb-price-fill"></div>
+            <input type="range" id="kb-range-min" class="kb-range" min="0" max="999" step="1" value="0">
+            <input type="range" id="kb-range-max" class="kb-range" min="0" max="999" step="1" value="999">
+          </div>
+        </div>
+      </div>
+      <div class="kb-filter-panel__actions">
+        <button id="kb-filter-clear" class="kb-filter-clear" type="button">Filter zur&uuml;cksetzen</button>
+        <button id="kb-filter-apply" class="kb-filter-apply" type="button">Anwenden</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  document.addEventListener('DOMContentLoaded',function(){
+    var data=window.kbColData||{};
+    var priceMin=window.kbColPriceMin||0;
+    var priceMax=window.kbColPriceMax||999;
+    var panel=document.getElementById('kb-filter-panel');
+    var toggle=document.getElementById('kb-filter-toggle');
+    var badge=document.getElementById('kb-filter-badge');
+    var resultEl=document.getElementById('kb-filter-result');
+    var resetBtn=document.getElementById('kb-filter-reset');
+    var clearBtn=document.getElementById('kb-filter-clear');
+    var applyBtn=document.getElementById('kb-filter-apply');
+    var sortSel=document.getElementById('kb-asf-sort-select');
+
+    if(sortSel){sortSel.addEventListener('change',function(){var u=new URL(window.location.href);u.searchParams.set('sort_by',sortSel.value);u.searchParams.delete('page');window.location.href=u.toString();});}
+
+    var state={typ:'',anschluss:'',priceMin:priceMin,priceMax:priceMax};
+    var draft={typ:'',anschluss:'',priceMin:priceMin,priceMax:priceMax};
+
+    function openPanel(){panel.hidden=false;toggle.setAttribute('aria-expanded','true');toggle.classList.add('kb-filter-toggle--open');}
+    function closePanel(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.classList.remove('kb-filter-toggle--open');}
+    toggle.addEventListener('click',function(e){e.stopPropagation();panel.hidden?openPanel():closePanel();});
+    document.addEventListener('click',function(e){var bar=document.getElementById('kb-filter-bar');if(bar&&!bar.contains(e.target))closePanel();});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')closePanel();});
+
+    document.querySelectorAll('.kb-filter-chips').forEach(function(group){
+      group.querySelectorAll('.kb-chip').forEach(function(chip){
+        chip.addEventListener('click',function(){group.querySelectorAll('.kb-chip').forEach(function(c){c.classList.remove('active');});chip.classList.add('active');draft[group.dataset.group]=chip.dataset.value;});
+      });
+    });
+
+    var rMin=document.getElementById('kb-range-min'),rMax=document.getElementById('kb-range-max');
+    var pFrom=document.getElementById('kb-price-from'),pTo=document.getElementById('kb-price-to'),pFill=document.getElementById('kb-price-fill');
+    function updateSliderUI(){var lo=parseInt(rMin.value),hi=parseInt(rMax.value);if(pFrom)pFrom.textContent=lo+' \u20ac';if(pTo)pTo.textContent=hi+' \u20ac';if(pFill){var p1=(lo-priceMin)/(priceMax-priceMin)*100,p2=(hi-priceMin)/(priceMax-priceMin)*100;pFill.style.left=p1+'%';pFill.style.width=(p2-p1)+'%';}draft.priceMin=lo;draft.priceMax=hi;}
+    if(rMin&&rMax){rMin.min=rMax.min=priceMin;rMin.max=rMax.max=priceMax;rMin.value=priceMin;rMax.value=priceMax;updateSliderUI();rMin.addEventListener('input',function(){if(parseInt(rMin.value)>parseInt(rMax.value)-1)rMin.value=parseInt(rMax.value)-1;updateSliderUI();});rMax.addEventListener('input',function(){if(parseInt(rMax.value)<parseInt(rMin.value)+1)rMax.value=parseInt(rMin.value)+1;updateSliderUI();});}
+
+    function getCards(){var r=[],seen={};document.querySelectorAll('a[href*="/products/"]').forEach(function(link){if(!link.querySelector('img'))return;var href=link.getAttribute('href')||'',parts=href.split('/products/');if(parts.length<2)return;var h=parts[1].split('?')[0].split('#')[0];if(!data[h]||seen[h])return;var card=link.closest('product-card')||link.closest('[class*="product-card"]')||link.parentElement;if(!card)return;var gridItem=card.closest('li')||card.closest('[class*="grid__item"]')||card;seen[h]=true;r.push({handle:h,card:card,gridItem:gridItem});});return r;}
+
+    function countActive(){var n=0;if(state.typ)n++;if(state.anschluss)n++;if(state.priceMin>priceMin||state.priceMax<priceMax)n++;return n;}
+
+    function applyFilters(){var cards=getCards(),visible=0;cards.forEach(function(item){var p=data[item.handle],tags=p.tags||[],show=true;if(state.typ&&tags.indexOf(state.typ)===-1)show=false;if(state.anschluss&&tags.indexOf(state.anschluss)===-1)show=false;if(p.priceRaw<state.priceMin||p.priceRaw>state.priceMax)show=false;item.gridItem.style.display=show?'':'none';if(show)visible++;});var n=countActive(),isFiltered=n>0;if(badge){badge.hidden=!isFiltered;if(isFiltered)badge.textContent=n;}if(resultEl){resultEl.hidden=!isFiltered;resultEl.textContent=visible+' Produkt'+(visible!==1?'e':'')+' gefunden';}if(resetBtn)resetBtn.hidden=!isFiltered;toggle.classList.toggle('kb-filter-toggle--active',isFiltered);}
+
+    if(applyBtn)applyBtn.addEventListener('click',function(){state.typ=draft.typ;state.anschluss=draft.anschluss;state.priceMin=draft.priceMin;state.priceMax=draft.priceMax;applyFilters();closePanel();});
+
+    function resetAll(){draft={typ:'',anschluss:'',priceMin:priceMin,priceMax:priceMax};state={typ:'',anschluss:'',priceMin:priceMin,priceMax:priceMax};document.querySelectorAll('.kb-chip').forEach(function(c){c.classList.toggle('active',c.dataset.value==='');});if(rMin)rMin.value=priceMin;if(rMax)rMax.value=priceMax;updateSliderUI();applyFilters();}
+    if(clearBtn)clearBtn.addEventListener('click',function(){resetAll();closePanel();});
+    if(resetBtn)resetBtn.addEventListener('click',function(){resetAll();});
+  });
+})();
+</script>

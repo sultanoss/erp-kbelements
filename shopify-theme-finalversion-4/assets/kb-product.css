@@ -1,0 +1,26 @@
+/* KB Product Enhancements */
+/* HINWEIS (2026-06-30 Performance-Audit): Judge.me Review-Styling und
+   Trust-Bar wurden nach kb-product-reviews.css ausgelagert und werden
+   jetzt nur noch auf Produktseiten geladen (siehe layout/theme.liquid).
+   Die hier verbliebenen Regeln (.product-media-container etc.) bleiben
+   GLOBAL, da .product-media-container auch auf Collection-Karten
+   vorkommt — verifiziert: max-height:500px wird dort aktiv angewendet. */
+.variant-option--buttons,.variant-option--equal-width-buttons{display:none !important}
+button[name=add],.shopify-payment-button__button{border-radius:4px !important}
+.product__media-item img,.product-media-container img,[data-product-media-type-image] img{max-height:500px !important;object-fit:contain !important;width:auto !important}
+@media(max-width:749px){zoom-dialog,zoom-dialog dialog,zoom-dialog>*{display:none !important}drag-zoom-wrapper{pointer-events:none !important;cursor:default !important}.product-media__drag-zoom-wrapper{pointer-events:none !important;cursor:default !important}drag-zoom-wrapper button,drag-zoom-wrapper a{pointer-events:none !important}}
+
+/* KB Fix (2026-06-30): Horizon-Slideshow-Pfeile am Hauptbild der Produktseite
+   entfernen — bereits korrekt via display:none (verifiziert). */
+.product-information .slideshow-control--next,
+.product-information .slideshow-control--previous{display:none !important}
+
+/* KB Fix (2026-06-30 Teil 2): Magic Zoom Plus eigene Navigationspfeile
+   (.MagicToolboxSlides-arrow) am Hauptbild entfernen. Diese lösen beim
+   Klick einen sichtbaren schwarzen Spinner aus (Teil der MagicToolbox
+   Lade-Logik beim Bildwechsel). Navigation bleibt vollständig über die
+   Thumbnails unter dem Hauptbild möglich — keine Funktion geht verloren,
+   nur der redundante/fehleranfällige Pfeil-Navigationsweg entfällt. */
+.MagicToolboxSlides-arrow,
+a.magic-prev,
+a.magic-next{display:none !important}

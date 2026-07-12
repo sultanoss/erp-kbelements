@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-07-06T08:29:35.336Z",
+  "sourceProducts": 111,
+  "includedOffers": 85,
+  "uniqueOfferIds": 85,
+  "uniqueSkus": 85,
+  "uniqueEprelIds": 8,
+  "pilotChecks": [
+    {
+      "sku": "ELK75EV1P/ELK60CR1",
+      "expected": "EC:EPREL:2776699",
+      "actual": "EC:EPREL:2776699",
+      "ok": true
+    },
+    {
+      "sku": "ELK75DV1/ELK60CR1",
+      "expected": "EC:EPREL:2370688",
+      "actual": "EC:EPREL:2370688",
+      "ok": true
+    }
+  ]
+}

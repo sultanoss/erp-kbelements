@@ -1,0 +1,239 @@
+<!doctype html>
+<html class="no-js{% if request.design_mode %} shopify-design-mode{% endif %}" lang="{{ request.locale.iso_code }}">
+  <head>
+    {%- comment -%}
+      KB Performance-Fix (2026-06-30): Preconnect zum Shopify CDN, das ALLE
+      Produkt-/Collection-Bilder ausliefert. Beschleunigt DNS+TLS-Handshake
+      bevor der erste img-Request gestellt wird. Rein additiv, kein visueller
+      Effekt, kein Funktionsrisiko.
+    {%- endcomment -%}
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+    {{ 'mobile-typography.css' | asset_url | stylesheet_tag }}
+    {{ 'layout-1440.css' | asset_url | stylesheet_tag }}
+    {{ 'kb-footer.css' | asset_url | stylesheet_tag }}
+    {{ 'kb-collection.css' | asset_url | stylesheet_tag }}
+    {{ 'kb-card-enhancements.css' | asset_url | stylesheet_tag }}
+    {{ 'kb-collection-header.css' | asset_url | stylesheet_tag }}
+    {{ 'kb-product.css' | asset_url | stylesheet_tag }}
+    {%- if template.name == 'product' -%}
+      {{ 'kb-product-reviews.css' | asset_url | stylesheet_tag }}
+    {%- endif -%}
+    {{ 'kb-sale-price.css' | asset_url | stylesheet_tag }}
+    {{ 'kb-mobile-fixes.css' | asset_url | stylesheet_tag }}
+    {{ 'kb-mobile-filter-redesign.css' | asset_url | stylesheet_tag }}
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- endif -%}
+
+    <link rel="expect" href="#MainContent" blocking="render" id="view-transition-render-blocker">
+
+    {%- render 'meta-tags' -%}
+
+    {%- comment -%} SEO: noindex fuer Duplikat-Seiten {%- endcomment -%}
+    {%- if template.name == 'page' -%}
+      {%- assign noindex_handles = 'fragen-und-antworten' | split: ',' -%}
+      {%- if noindex_handles contains page.handle -%}
+        <meta name="robots" content="noindex, nofollow">
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- render 'fonts' -%}
+    {%- render 'scripts' -%}
+    {%- render 'theme-styles-variables' -%}
+    {%- render 'color-schemes' -%}
+
+    {% if request.design_mode %}{%- render 'theme-editor' -%}{% endif %}
+
+    {{ content_for_header }}
+  </head>
+
+  <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
+    {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    <div id="header-group">{% sections 'header-group' %}</div>
+
+    <main id="MainContent" class="content-for-layout" role="main"
+      data-page-transition-enabled="{{ settings.page_transition_enabled }}"
+      data-product-transition="{{ settings.transition_to_main_product }}"
+      data-template="{{ template }}">
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+    {% render 'search-modal' %}
+
+    {% # theme-check-disable ParserBlockingScript %}
+    <script src="{{ 'critical.js' | asset_url }}"></script>
+    {% # theme-check-enable ParserBlockingScript %}
+
+    {% if settings.quick_add or settings.mobile_quick_add %}{% render 'quick-add-modal' %}{% endif %}
+
+    {%- if template.name == 'product' -%}
+    <div class="kb-sticky" id="kb-sticky" aria-hidden="true">
+      <div class="kb-sticky__info">
+        <div class="kb-sticky__name">{{ product.title | truncate: 50 }}</div>
+        <div class="kb-sticky__price">{{ product.selected_or_first_available_variant.price | money }}</div>
+      </div>
+      <button class="kb-sticky__btn" id="kb-sticky-btn">In den Warenkorb</button>
+    </div>
+    <script>
+    (function(){
+      var bar = document.getElementById('kb-sticky');
+      var btn = document.getElementById('kb-sticky-btn');
+      if(!bar) return;
+      var atc = document.querySelector('button[name="add"]') || document.querySelector('.buy-buttons');
+      if(atc){
+        new IntersectionObserver(function(e){
+          bar.classList.toggle('is-visible', !e[0].isIntersecting);
+          bar.setAttribute('aria-hidden', e[0].isIntersecting ? 'true' : 'false');
+        },{threshold:0.1}).observe(atc);
+      }
+      if(btn) btn.addEventListener('click', function(){
+        var a = document.querySelector('button[name="add"]');
+        if(a) a.click(); else window.scrollTo({top:0,behavior:'smooth'});
+      });
+    })();
+    </script>
+
+    <script>
+    (function(){
+      var recSection = document.querySelector('product-recommendations');
+      if(!recSection) return;
+      recSection.closest('section, .shopify-section') && (recSection.closest('section, .shopify-section').style.display = 'none');
+      var observer = new MutationObserver(function(){
+        var cards = recSection.querySelectorAll('.card, product-card, [data-product-card], .product-card');
+        var parent = recSection.closest('section, .shopify-section');
+        if(parent) parent.style.display = cards.length > 0 ? '' : 'none';
+      });
+      observer.observe(recSection, { childList: true, subtree: true });
+    })();
+    </script>
+    {%- endif -%}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.kb-quicklinks a').forEach(function(a) {
+        if (a.textContent.trim().includes('Kundenbewertungen')) {
+          a.href = '/pages/kundenbewertungen';
+        }
+      });
+    });
+    </script>
+
+    {%- if template.name == 'collection' -%}
+    <script>
+    (function() {
+
+      function renameTexts() {
+        document.querySelectorAll('facet-clear-component, .clear-filter').forEach(function(el) {
+          if (el.textContent.trim() === 'L\u00f6schen') el.textContent = 'Zur\u00fccksetzen';
+        });
+        document.querySelectorAll('.facets__clear-all, button[class*="clear-all"], [class*="clear-all"]').forEach(function(el) {
+          if (el.textContent.trim() === 'Alles l\u00f6schen') el.textContent = 'Alles zur\u00fccksetzen';
+        });
+      }
+
+      function updateOpenButtonStyles() {
+        document.querySelectorAll('.facets__panel').forEach(function(panel) {
+          var summary = panel.querySelector('summary');
+          if (!summary) return;
+          var hasActive = summary.querySelector('.facets__status span:not(:empty)');
+          if (panel.hasAttribute('open') && !hasActive) {
+            summary.classList.add('kb-open-empty');
+          } else {
+            summary.classList.remove('kb-open-empty');
+          }
+        });
+      }
+
+      function fixClearButtons() {
+        document.querySelectorAll('facet-clear-component').forEach(function(btn) {
+          if (btn.dataset.kbFixed || btn.getAttribute('on:click')) return;
+          btn.dataset.kbFixed = '1';
+          var panel = btn.closest('.facets__panel, details');
+          if (!panel) return;
+          btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var url = new URL(window.location.href);
+            var removedKeys = new Set();
+            panel.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+              if (cb.name && !removedKeys.has(cb.name)) {
+                url.searchParams.delete(cb.name);
+                removedKeys.add(cb.name);
+              }
+            });
+            if (removedKeys.size === 0) {
+              var fi = panel.querySelector('[name^="filter."]');
+              if (fi) url.searchParams.delete(fi.name);
+            }
+            window.location.href = url.toString();
+          });
+        });
+      }
+
+      function initPriceApplyButton() {
+        var priceFacet = document.querySelector('price-facet-component');
+        if (!priceFacet || priceFacet.dataset.kbApplyInit) return;
+        priceFacet.dataset.kbApplyInit = '1';
+        var minInput = priceFacet.querySelector('input[name="filter.v.price.gte"]');
+        var maxInput = priceFacet.querySelector('input[name="filter.v.price.lte"]');
+        if (!minInput || !maxInput) return;
+        var applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.className = 'kb-price-apply-btn';
+        applyBtn.textContent = 'Anwenden';
+        priceFacet.appendChild(applyBtn);
+        minInput.addEventListener('change', function(e) { e.stopImmediatePropagation(); }, true);
+        maxInput.addEventListener('change', function(e) { e.stopImmediatePropagation(); }, true);
+        applyBtn.addEventListener('click', function() {
+          var url = new URL(window.location.href);
+          if (minInput.value) url.searchParams.set('filter.v.price.gte', minInput.value);
+          else url.searchParams.delete('filter.v.price.gte');
+          if (maxInput.value) url.searchParams.set('filter.v.price.lte', maxInput.value);
+          else url.searchParams.delete('filter.v.price.lte');
+          window.location.href = url.toString();
+        });
+      }
+
+      function observePanels() {
+        document.querySelectorAll('.facets__panel').forEach(function(panel) {
+          if (panel.dataset.kbObserved) return;
+          panel.dataset.kbObserved = '1';
+          new MutationObserver(function() {
+            updateOpenButtonStyles();
+          }).observe(panel, { attributes: true, attributeFilter: ['open'] });
+        });
+      }
+
+      function init() {
+        renameTexts();
+        updateOpenButtonStyles();
+        fixClearButtons();
+        initPriceApplyButton();
+        observePanels();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      new MutationObserver(function() {
+        renameTexts();
+        fixClearButtons();
+        initPriceApplyButton();
+        observePanels();
+      }).observe(document.body, { childList: true, subtree: true });
+
+    })();
+    </script>
+    {%- endif -%}
+
+    {{ 'kb-cart-fix.js' | asset_url | script_tag }}
+
+  </body>
+</html>

@@ -1,0 +1,52 @@
+/* KB Legal Pages Styles */
+.template-page-legal .page-width-content {
+  max-width: 800px !important;
+}
+
+.template-page-legal .rte h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1C1917;
+  margin: 28px 0 10px;
+  line-height: 1.3;
+}
+
+.template-page-legal .rte h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1C1917;
+  margin: 20px 0 8px;
+}
+
+.template-page-legal .rte p,
+.template-page-legal .rte li {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: #374151;
+}
+
+.template-page-legal .rte ul,
+.template-page-legal .rte ol {
+  padding-left: 1.5rem;
+  margin: 8px 0 16px;
+}
+
+.template-page-legal .rte li {
+  margin-bottom: 4px;
+}
+
+.template-page-legal .rte hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 32px 0;
+}
+
+.template-page-legal .rte a {
+  color: #C0182A;
+  text-decoration: underline;
+}
+
+.template-page-legal .rte strong {
+  font-weight: 600;
+  color: #1C1917;
+}

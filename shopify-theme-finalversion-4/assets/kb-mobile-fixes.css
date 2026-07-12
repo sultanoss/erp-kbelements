@@ -1,0 +1,172 @@
+/* KB Mobile Fixes */
+
+/* 1. Magic Zoom Plus Hint auf Mobile ausblenden */
+@media screen and (max-width: 749px) {
+  .mz-hint,
+  .mz-hint-message,
+  .mz-zoom-window {
+    display: none !important;
+  }
+}
+
+/* 2. Sondermodelle-Text nicht abschneiden */
+.kb-sondermodelle__title,
+.kb-plugin__title {
+  overflow: visible !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+}
+
+/* 3. Cart Drawer — Layout-Fix (sauber, bfcache-sicher) */
+/* Grid-Template passt zu cart-products.liquid mit 6 Grid-Areas */
+.cart-drawer__dialog .cart-items__table-row {
+  display: grid !important;
+  grid-template-columns: 80px minmax(0, 1fr) !important;
+  grid-template-areas:
+    'media details'
+    'media quantity'
+    'media actions'
+    'media delivery'
+    'media error' !important;
+  column-gap: 14px !important;
+  align-items: start !important;
+}
+
+.cart-drawer__dialog .cart-items__media { grid-area: media !important; }
+.cart-drawer__dialog .cart-items__details { grid-area: details !important; }
+.cart-drawer__dialog .cart-items__quantity { grid-area: quantity !important; }
+.cart-drawer__dialog .kb-item-actions { grid-area: actions !important; }
+.cart-drawer__dialog .kb-item-delivery { grid-area: delivery !important; }
+.cart-drawer__dialog .cart-items__error { grid-area: error !important; }
+
+/* Titel auf 2 Zeilen beschränken */
+.cart-drawer__dialog .cart-items__title {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+/* Lösch-Button Stil */
+.cart-drawer__dialog .kb-item-remove {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 12px !important;
+  color: var(--color-foreground) !important;
+  opacity: 0.45;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+}
+
+.cart-drawer__dialog .kb-item-remove:hover {
+  opacity: 1 !important;
+  color: #C0182A !important;
+}
+
+@media screen and (max-width: 749px) {
+  .cart-drawer__dialog .cart-items__table-row {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+    column-gap: 12px !important;
+  }
+}
+
+/* 4. Sale-Badge auf Collection-Seiten */
+.product-grid__item:has(.price--on-sale) .card-gallery {
+  position: relative;
+}
+
+.product-grid__item:has(.price--on-sale) .card-gallery::before {
+  content: 'Sale';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  background: #C0182A;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+  line-height: 1.4;
+}
+
+/* 5. Natives Theme Sale-Badge ausblenden (Duplikat) */
+.product-badges--top-right {
+  display: none !important;
+}
+
+/* ===================================================================
+   6. MOBILE UX AUDIT FIXES (siehe Audit-Dokumentation)
+   =================================================================== */
+
+/* 6a. KRITISCH — Horizontales Scrollen auf Collection-Seiten beheben.
+   Ursache: .facets-block-wrapper--horizontal nutzt margin-left:-21px
+   kombiniert mit width:100% (border-box), wodurch der Wrapper über
+   den Viewport hinausragt (gemessen: scrollWidth 652px vs clientWidth 647px).
+   Fix: width an die negative Margin anpassen statt fixer 100%-Breite. */
+@media screen and (max-width: 989px) {
+  .facets-block-wrapper--horizontal {
+    width: calc(100% + 21px) !important;
+    max-width: calc(100% + 21px) !important;
+  }
+}
+
+/* Globales Sicherheitsnetz: kein horizontales Scrollen auf html/body,
+   unabhängig von der Ursache. Greift nur als letzte Verteidigungslinie
+   NACHDEM die eigentlichen Ursachen (wie 6a) behoben wurden — verdeckt
+   also keine Layout-Fehler, sondern verhindert nur das Scroll-Symptom
+   falls künftig neue Apps/Sections eine Überbreite einschleppen. */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* 6b. KRITISCH — Hero-Slideshow scheint hinter Cart-/Filter-/Search-Drawer durch.
+   Ursache: slideshow-component erzeugt einen eigenen Stacking-Context
+   (position:relative) ohne z-index-Deckelung. Liegt der Hero im Header-
+   Bereich oder direkt im body-Flow, kann er je nach Browser-Compositing
+   über dem <dialog>-Backdrop der Drawer liegen.
+   Fix: Hero-Stacking-Context explizit unter die Drawer-Ebene zwingen,
+   sobald irgendein Dialog (Cart/Filter/Search) offen ist. */
+body:has(dialog[open]) slideshow-component,
+body:has(.cart-drawer__dialog[open]) slideshow-component,
+body:has(dialog-component[open]) slideshow-component {
+  z-index: 0 !important;
+  position: relative !important;
+}
+
+/* Drawer/Dialogs immer über allem anderen */
+cart-drawer-component dialog,
+.cart-drawer__dialog,
+dialog-component dialog,
+.facets-block-wrapper--vertical dialog {
+  z-index: 999 !important;
+}
+
+dialog::backdrop,
+.cart-drawer__backdrop,
+.facets-block-wrapper--vertical::backdrop {
+  z-index: 998 !important;
+}
+
+/* 6c. HOCH — Cart-Drawer: "Zur Kasse"-Button nicht sticky.
+   Ursache: .cart-items-component (Artikel-Liste) hat overflow-y:hidden
+   statt auto, wodurch beim Scrollen der gesamte Drawer-Inhalt inkl.
+   Footer mitwandert statt dass nur die Artikelliste intern scrollt.
+   Fix: Artikelliste eigenständig scrollbar machen, Footer bleibt als
+   fixes Flex-Item (.cart-drawer__inner ist bereits display:flex;
+   flex-direction:column) automatisch am unteren Rand sichtbar. */
+.cart-drawer__dialog .cart-items-component {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cart-drawer__dialog .cart-drawer__summary {
+  flex-shrink: 0;
+}

@@ -1,0 +1,25 @@
+{% if template == 'collection' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var blocks = document.querySelectorAll('.text-block');
+  if (blocks.length < 2) return;
+  var titleBlock = blocks[0];
+  var descBlock = blocks[1];
+  var titleW = titleBlock.getBoundingClientRect().width;
+  descBlock.style.setProperty('width', titleW + 'px', 'important');
+  descBlock.style.setProperty('max-width', '100%', 'important');
+  window.addEventListener('resize', function() {
+    var w = titleBlock.getBoundingClientRect().width;
+    descBlock.style.setProperty('width', w + 'px', 'important');
+  });
+});
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "KB Collection Fix",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

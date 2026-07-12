@@ -1,0 +1,47 @@
+mutation UpdateFiveHerdsetTitlesAndSeo {
+  p1: productUpdate(product: {
+    id: "gid://shopify/Product/12043298898184"
+    handle: "kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-glaskeramikkochfeld-60-cm-schwarz"
+    title: "Herdset mit Glaskeramikkochfeld und Einbaubackofen 60 cm Air Fry"
+    seo: {
+      title: "Herdset mit Glaskeramikkochfeld | Einbauherd 60 cm Air Fry | KB ELEMENTS"
+      description: "Herdset mit Glaskeramikkochfeld und Einbaubackofen 60 cm mit Air Fry, 73 Liter, Energieklasse A+ und Touchdisplay. Speditionslieferung mit Terminvereinbarung."
+    }
+  }) { product { id title handle seo { title description } } userErrors { field message } }
+  p2: productUpdate(product: {
+    id: "gid://shopify/Product/12043624841480"
+    handle: "kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-induktionskochfeld-60-cm-schwarz"
+    title: "Herdset mit Induktionskochfeld Flexzone und Einbaubackofen 60 cm Air Fry"
+    seo: {
+      title: "Herdset mit Induktionskochfeld Flexzone | Einbauherd 60 cm Air Fry | KB ELEMENTS"
+      description: "Herdset mit Induktionskochfeld und Flexzone sowie Einbaubackofen 60 cm mit Air Fry, 73 Liter und Energieklasse A+. Speditionslieferung mit Terminvereinbarung."
+    }
+  }) { product { id title handle seo { title description } } userErrors { field message } }
+  p3: productUpdate(product: {
+    id: "gid://shopify/Product/12043766432008"
+    handle: "kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-induktionskochfeld-60-cm-schuko-schwarz"
+    title: "Herdset mit Induktionskochfeld Plug & Play und Einbaubackofen 60 cm Air Fry"
+    seo: {
+      title: "Herdset mit Induktionskochfeld Plug & Play | Einbauherd 60 cm Air Fry | KB ELEMENTS"
+      description: "Herdset mit Induktionskochfeld Plug & Play und Einbaubackofen 60 cm. Backofen und Kochfeld mit Schuko-Stecker, Air Fry, 73 Liter, Energieklasse A+ und Speditionslieferung mit Terminvereinbarung."
+    }
+  }) { product { id title handle seo { title description } } userErrors { field message } }
+  p4: productUpdate(product: {
+    id: "gid://shopify/Product/12043911069960"
+    handle: "kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-induktionskochfeld-60-cm-antiscratch-2-flexzonen-schwarz"
+    title: "Herdset mit AntiScratch Induktionskochfeld und Einbaubackofen 60 cm Air Fry"
+    seo: {
+      title: "Herdset mit AntiScratch Induktionskochfeld | Einbauherd 60 cm Air Fry | KB ELEMENTS"
+      description: "Herdset mit kratzfestem AntiScratch Induktionskochfeld und Einbaubackofen 60 cm mit Air Fry, 73 Liter und Energieklasse A+. Speditionslieferung mit Terminvereinbarung."
+    }
+  }) { product { id title handle seo { title description } } userErrors { field message } }
+  p5: productUpdate(product: {
+    id: "gid://shopify/Product/12044286427400"
+    handle: "kb-elements-herdset-2-teilig-einbaubackofen-60-cm-a-induktionskochfeld-60-cm-antiscratch-schuko-schwarz"
+    title: "Herdset mit AntiScratch Induktionskochfeld Plug & Play und Einbaubackofen 60 cm Air Fry"
+    seo: {
+      title: "Herdset mit Induktionskochfeld Plug & Play & AntiScratch | Einbauherd 60 cm Air Fry | KB ELEMENTS"
+      description: "Herdset mit Induktionskochfeld Plug & Play und kratzfester AntiScratch-Oberfläche. Einbaubackofen 60 cm mit Air Fry, 73 Liter, Energieklasse A+ und Speditionslieferung mit Terminvereinbarung."
+    }
+  }) { product { id title handle seo { title description } } userErrors { field message } }
+}

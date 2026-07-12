@@ -1,0 +1,142 @@
+{% comment %} kb-plug-play.liquid — Plug & Play Banner Section {% endcomment %}
+
+<section class="kb-pnp-banner">
+  <div class="kb-pnp-banner__inner">
+
+    <div class="kb-pnp-banner__card">
+      <div class="kb-pnp-banner__img-wrap">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0963/1852/1608/files/shuko_78d6f03e-89e3-4445-951f-4bcf9a8d9f75.png?v=1782557470"
+          alt="Plug & Play Herdsets – Einbauküche ohne Elektriker KB ELEMENTS"
+          loading="lazy"
+          width="800" height="600"
+        >
+      </div>
+      <div class="kb-pnp-banner__body">
+        <span class="kb-pnp-banner__badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Plug &amp; Play
+        </span>
+        <h2 class="kb-pnp-banner__title">Plug &amp; Play Sets &ndash;<br>Einfach einstecken &amp; kochen</h2>
+        <p class="kb-pnp-banner__text">Kein Elektriker n&ouml;tig &ndash; einfach in die Schuko-Steckdose einstecken und sofort loslegen. Alle Herdsets mit Plug &amp; Play Kochfeld auf einen Blick.</p>
+        <a href="/collections/plug-and-play-sets" class="kb-pnp-banner__cta">
+          Alle Plug &amp; Play Sets entdecken
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .kb-pnp-banner {
+    background: #1C1917;
+    width: 100%;
+    padding: 64px 0;
+  }
+  .kb-pnp-banner__inner {
+    max-width: var(--page-width, 1440px);
+    margin: 0 auto;
+    padding: 0 var(--page-margin, 24px);
+    box-sizing: border-box;
+  }
+  .kb-pnp-banner__card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #231F1D;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  }
+  .kb-pnp-banner__img-wrap {
+    overflow: hidden;
+    position: relative;
+  }
+  .kb-pnp-banner__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .kb-pnp-banner__card:hover .kb-pnp-banner__img-wrap img {
+    transform: scale(1.03);
+  }
+  .kb-pnp-banner__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 56px 52px;
+    color: #fff;
+  }
+  .kb-pnp-banner__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #C0182A;
+    margin-bottom: 16px;
+  }
+  .kb-pnp-banner__title {
+    font-size: clamp(24px, 2.8vw, 40px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: #fff;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .kb-pnp-banner__text {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #A8A29E;
+    margin: 0 0 32px;
+    max-width: 420px;
+  }
+  .kb-pnp-banner__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #C0182A;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+    align-self: flex-start;
+  }
+  .kb-pnp-banner__cta:hover {
+    background: #a01323;
+    transform: translateY(-1px);
+  }
+  .kb-pnp-banner__cta svg {
+    transition: transform 0.2s;
+  }
+  .kb-pnp-banner__cta:hover svg {
+    transform: translateX(4px);
+  }
+  @media screen and (max-width: 899px) {
+    .kb-pnp-banner__card {
+      grid-template-columns: 1fr;
+    }
+    .kb-pnp-banner__img-wrap {
+      height: 260px;
+    }
+    .kb-pnp-banner__body {
+      padding: 36px 28px 40px;
+    }
+    .kb-pnp-banner__title {
+      font-size: 26px;
+    }
+  }
+  @media screen and (max-width: 479px) {
+    .kb-pnp-banner { padding: 40px 0; }
+    .kb-pnp-banner__body { padding: 28px 20px 32px; }
+  }
+</style>

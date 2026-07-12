@@ -1,0 +1,21 @@
+{{ 'kb-collection-header.css' | asset_url | stylesheet_tag }}
+
+{%- assign show_header = false -%}
+{%- assign header_image = '' -%}
+{%- assign header_badge = '' -%}
+{%- assign usp_versand = 'Kostenloser Versand' -%}
+
+{%- if template == 'collection' -%}
+  {%- case collection.handle -%}
+    {%- when 'dunstabzugshauben' -%}
+      {%- assign show_header = true -%}
+      {%- assign header_image = 'https://cdn.shopify.com/s/files/1/0963/1852/1608/files/1200x700.png?v=1781683221' -%}
+      {%- assign header_badge = 'Dunstabzugshauben' -%}
+      {%- assign usp_versand = 'Kostenloser Versand' -%}
+    {%- when 'einbaubackofen' -%}
+      {%- assign show_header = true -%}
+      {%- assign header_image = 'https://cdn.shopify.com/s/files/1/0963/1852/1608/files/backofen1200x700.png?v=1781786480' -%}
+      {%- assign header_badge = 'Einbaubackofen' -%}
+      {%- assign usp_versand = 'Speditionslieferung' -%}
+  {%- endcase -%}
+{%- endif -%}

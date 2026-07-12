@@ -1,0 +1,4 @@
+BACKUP 2026-06-24 — sections/kb-faq.liquid
+Stand: Gas-Herdset Anschluss-Box ausgeblendet, Gas-spezifische FAQ-Antworten eingebaut.
+
+Zum Rollback: Inhalt dieser Datei nach sections/kb-faq.liquid kopieren.

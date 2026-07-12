@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KB ELEMENTS – Shopify QA-Berichte vom 02.07.2026</title>
+  <style>
+    :root { --ink:#172033; --muted:#667085; --line:#d9e0ea; --paper:#fff; --bg:#f3f6fa; --blue:#1957d2; --green:#087443; --red:#b42318; --amber:#9a6700; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(1180px,calc(100% - 32px)); margin:32px auto 64px; }
+    header,.card { background:var(--paper); border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 28px rgba(23,32,51,.06); }
+    header { padding:32px; border-top:6px solid var(--blue); }
+    .card { padding:26px; margin-top:20px; }
+    h1 { margin:0 0 8px; font-size:clamp(28px,4vw,44px); line-height:1.12; }
+    h2 { margin:0 0 16px; font-size:23px; }
+    h3 { margin:22px 0 10px; font-size:17px; }
+    p { margin:8px 0; }
+    .sub { color:var(--muted); }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+    .pill { padding:7px 11px; border-radius:999px; background:#edf3ff; color:#174ea6; font-weight:650; }
+    .ok { color:var(--green); font-weight:700; }
+    .bad { color:var(--red); font-weight:700; }
+    .open { color:var(--amber); font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+    .metric { border:1px solid var(--line); border-radius:12px; padding:16px; background:#fbfcfe; }
+    .metric strong { display:block; font-size:28px; }
+    .metric span { color:var(--muted); }
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th,td { text-align:left; vertical-align:top; border-bottom:1px solid var(--line); padding:11px 10px; }
+    th { background:#f7f9fc; font-size:13px; color:#475467; }
+    code { background:#f1f4f8; border-radius:5px; padding:2px 5px; overflow-wrap:anywhere; }
+    ul { padding-left:21px; }
+    .notice { border-left:4px solid var(--amber); background:#fff8e7; padding:13px 15px; border-radius:8px; }
+    .safe { border-left-color:var(--green); background:#edfdf5; }
+    footer { color:var(--muted); text-align:center; margin-top:24px; }
+    @media (max-width:850px) { .grid { grid-template-columns:repeat(2,1fr); } table { display:block; overflow-x:auto; } }
+    @media (max-width:520px) { main { width:min(100% - 18px,1180px); margin-top:12px; } header,.card { padding:20px; border-radius:12px; } .grid { grid-template-columns:1fr; } }
+    @media print { body { background:#fff; } main { width:100%; margin:0; } header,.card { box-shadow:none; break-inside:avoid; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Shopify QA-Berichte</h1>
+    <p class="sub">KB ELEMENTS · Zusammenfassung aller heute dokumentierten Prüfungen und Änderungen</p>
+    <div class="meta">
+      <span class="pill">Datum: 02.07.2026</span>
+      <span class="pill">Theme: Kopie von FinalVersion-3</span>
+      <span class="pill">Theme-ID: 198612058376</span>
+      <span class="pill">Status: Entwurf, nicht veröffentlicht</span>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Gesamtstatus</h2>
+    <div class="grid">
+      <div class="metric"><strong>110</strong><span>aktive Produkte geprüft</span></div>
+      <div class="metric"><strong>2</strong><span>Produkte mit Bewertungen</span></div>
+      <div class="metric"><strong>2</strong><span>aktuelle JSON-LD-Dopplungen</span></div>
+      <div class="metric"><strong>0</strong><span>veröffentlichte Änderungen</span></div>
+    </div>
+    <p class="notice safe"><strong>Sicherheitsstatus:</strong> Das Live-Theme und „FinalVersion-3“ wurden nicht bearbeitet. Sämtliche Theme-Arbeiten betrafen ausschließlich „Kopie von FinalVersion-3“. Es wurde nichts veröffentlicht.</p>
+  </section>
+
+  <section class="card">
+    <h2>1. Root-Cause-Analyse: doppelte Product-JSON-LD-Daten</h2>
+    <table>
+      <thead><tr><th>Quelle</th><th>Ausgabe</th><th>Bewertung</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><code>sections/product-information.liquid</code></td><td>Shopify <code>structured_data</code>, Product oder ProductGroup</td><td>Vollständige primäre Shopify-Ausgabe</td><td class="ok">Beibehalten</td></tr>
+        <tr><td><code>sections/kb-jsonld.liquid</code> über <code>templates/product.json</code></td><td>Zusätzlicher eigener Product-Block</td><td>Verursachte die erste Dopplung</td><td class="ok">Einbindung deaktiviert</td></tr>
+        <tr><td><code>sections/kb-product-enhancements.liquid</code>, ehemaliger Block Zeilen 1–21</td><td>Unvollständiger Product-/AggregateRating-Block</td><td>Zusätzliche mögliche Dopplung</td><td class="ok">Nur JSON-LD-Block deaktiviert</td></tr>
+        <tr><td>Judge.me App</td><td><code>jdgm-aggregate-rating-jld</code></td><td>Erzeugt bei bewerteten Produkten weiterhin einen zusätzlichen Product-Block</td><td class="bad">Noch aktiv</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>2. Heute umgesetzte Theme-Anpassungen</h2>
+    <h3><code>templates/product.json</code></h3>
+    <ul>
+      <li>Abschnitt <code>kb_jsonld</code> entfernt.</li>
+      <li><code>kb_jsonld</code> aus der Reihenfolge (<code>order</code>) entfernt.</li>
+      <li><code>sections/kb-jsonld.liquid</code> bewusst nicht gelöscht.</li>
+      <li>Shopifys <code>structured_data</code> in <code>sections/product-information.liquid</code> blieb aktiv und unverändert.</li>
+    </ul>
+    <h3><code>sections/kb-product-enhancements.liquid</code></h3>
+    <ul>
+      <li>Nur der zusätzliche unvollständige Product-/AggregateRating-JSON-LD-Block deaktiviert.</li>
+      <li>Sichtbare Bewertungsbereiche, Badges und Widgets nicht entfernt.</li>
+      <li>Keine Design-, CSS- oder sonstigen Produktseitenfunktionen verändert.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>3. Prüfung nach Judge.me-Deaktivierungsversuch</h2>
+    <table>
+      <thead><tr><th>Produkt</th><th>Bewertungen</th><th>Judge.me JSON-LD</th><th>Theme-JSON-LD</th><th>Dopplung</th><th>Widget</th><th>Fehler</th></tr></thead>
+      <tbody>
+        <tr><td>ELK156S60B<br><code>kb-elements-dunstabzugshaube-60-cm</code></td><td>12</td><td class="bad">Vorhanden</td><td>Product</td><td class="bad">Ja: 2 × Product</td><td class="ok">Sichtbar</td><td>Keine JSON- oder JavaScript-Fehler</td></tr>
+        <tr><td>ELK75DV1<br><code>kb-elements-einbaubackofen-60-cm-air-fry-full-touch-display-aqua-clean-15-funktionen-a</code></td><td>1</td><td class="bad">Vorhanden</td><td>ProductGroup</td><td class="bad">Ja: ProductGroup + Product</td><td class="ok">Sichtbar</td><td>Keine JSON- oder JavaScript-Fehler</td></tr>
+        <tr><td>ELK60PB1, ohne Bewertungen<br><code>kb-elements-induktionskochfeld-60-cm-4-zonen-flexzone-3500-w-touch-control-schuko-stecker-schwarz</code></td><td>0</td><td class="ok">Nicht vorhanden</td><td>Product</td><td class="ok">Nein</td><td class="ok">Widget vorhanden; „Keine Bewertungen“</td><td>Keine JSON- oder JavaScript-Fehler</td></tr>
+      </tbody>
+    </table>
+    <p class="notice"><strong>Ergebnis:</strong> Die Deaktivierung in Judge.me hat bei Produkten mit Bewertungen noch nicht gegriffen. Der Block <code>jdgm-aggregate-rating-jld</code> wird dort weiterhin ausgegeben.</p>
+  </section>
+
+  <section class="card">
+    <h2>4. Katalogweite Prüfung</h2>
+    <p>Die 110 aktiven Produkte wurden katalogweit erfasst und ihre Bewertungsstände geprüft. Nur zwei Produkte besitzen derzeit Bewertungen.</p>
+    <table>
+      <thead><tr><th>Produkt / Gruppe</th><th>Anzahl Bewertungen</th><th>Judge.me JSON-LD</th><th>Theme-JSON-LD</th><th>Dopplung</th></tr></thead>
+      <tbody>
+        <tr><td>ELK156S60B / <code>kb-elements-dunstabzugshaube-60-cm</code></td><td>12</td><td>Ja</td><td>Ja</td><td class="bad">Ja</td></tr>
+        <tr><td>ELK75DV1 / <code>kb-elements-einbaubackofen-60-cm-air-fry-full-touch-display-aqua-clean-15-funktionen-a</code></td><td>1</td><td>Ja</td><td>Ja</td><td class="bad">Ja</td></tr>
+        <tr><td>Übrige 108 aktive Produkte</td><td>0</td><td>Nein</td><td>Ja</td><td class="ok">Nein</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>Produkte mit Bewertungen, aber ohne Dopplung: <strong>keine</strong>.</li>
+      <li>Produkte ohne Bewertungen mit Dopplung: <strong>keine gefunden</strong>.</li>
+      <li>Aktuell betroffen: <strong>nur ELK156S60B und ELK75DV1</strong>.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>5. Technische Qualitätsprüfung</h2>
+    <table>
+      <thead><tr><th>Prüfpunkt</th><th>Ergebnis</th></tr></thead>
+      <tbody>
+        <tr><td>JSON-LD syntaktisch parsebar</td><td class="ok">Ja, keine Parse-Fehler in den geprüften Seiten</td></tr>
+        <tr><td>Shopify Product/ProductGroup bleibt aktiv</td><td class="ok">Ja</td></tr>
+        <tr><td>Eigener <code>kb-jsonld</code>-Product-Block</td><td class="ok">Nicht mehr über das Produkt-Template eingebunden</td></tr>
+        <tr><td>Zusätzlicher Block aus <code>kb-product-enhancements</code></td><td class="ok">Deaktiviert</td></tr>
+        <tr><td>Bewertungsbadges und Widgets</td><td class="ok">Weiterhin vorhanden und sichtbar</td></tr>
+        <tr><td>Neue JavaScript-Fehler</td><td class="ok">Keine festgestellt</td></tr>
+        <tr><td>Live-Theme verändert oder veröffentlicht</td><td class="ok">Nein</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>6. Offener Punkt und Empfehlung</h2>
+    <p class="open">Offen: Judge.me erzeugt auf den beiden bewerteten Produkten weiterhin zusätzliches Product-/AggregateRating-JSON-LD.</p>
+    <ol>
+      <li>In Judge.me unter <strong>Settings → Google and SEO → SEO Rich Snippets</strong> prüfen, ob „Add JSON-LD snippets (Default)“ wirklich deaktiviert und gespeichert ist.</li>
+      <li>Eine mögliche Übernahme-/Cache-Zeit abwarten.</li>
+      <li>Anschließend ELK156S60B und ELK75DV1 erneut im Preview von „Kopie von FinalVersion-3“ prüfen.</li>
+      <li>Erfolgskriterium: kein Script mit Klasse <code>jdgm-aggregate-rating-jld</code>; pro Produkt nur noch der Shopify-Product- beziehungsweise ProductGroup-Block.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>7. Geänderte Dateien</h2>
+    <table>
+      <thead><tr><th>Datei</th><th>Änderung</th></tr></thead>
+      <tbody>
+        <tr><td><code>templates/product.json</code></td><td><code>kb_jsonld</code>-Abschnitt und dessen Eintrag in <code>order</code> entfernt.</td></tr>
+        <tr><td><code>sections/kb-product-enhancements.liquid</code></td><td>Nur zusätzlichen JSON-LD-Bewertungsblock deaktiviert; sichtbare Bewertungsfunktionen erhalten.</td></tr>
+      </tbody>
+    </table>
+    <p>Nicht gelöscht oder verändert: <code>sections/kb-jsonld.liquid</code> und <code>sections/product-information.liquid</code>.</p>
+  </section>
+
+  <section class="card">
+    <h2>8. Google Merchant Center – aktueller Prüfbericht</h2>
+    <p><strong>Konto:</strong> kbelements-shop · <strong>Merchant-ID:</strong> 5816291202 · <strong>Datenquelle:</strong> Shopify App API</p>
+    <table>
+      <thead><tr><th>Status</th><th>Anzahl</th><th>Ergebnis</th></tr></thead>
+      <tbody>
+        <tr><td>Genehmigt</td><td>65</td><td class="ok">Alle vorhandenen Produkte freigegeben</td></tr>
+        <tr><td>Eingeschränkt</td><td>0</td><td class="ok">Keine Einschränkungen</td></tr>
+        <tr><td>Nicht genehmigt</td><td>0</td><td class="ok">Keine Ablehnungen</td></tr>
+        <tr><td>In Prüfung</td><td>0</td><td class="ok">Keine ausstehenden Prüfungen</td></tr>
+      </tbody>
+    </table>
+    <h3>Leistung und Feed</h3>
+    <ul>
+      <li>8 Klicks in den letzten 28 Tagen; vorheriger Vergleichswert: 0.</li>
+      <li>Sichtbare Produkte sind als auf Lager gemeldet und enthalten Preise.</li>
+      <li>Letzte sichtbare Produktaktualisierungen: 01.07.2026.</li>
+      <li>Keine aktive Kampagnenleistung sichtbar; Merchant Center bietet „Start advertising“ an.</li>
+      <li>Store Quality: Google stellt derzeit keine Qualitätsinformationen bereit.</li>
+    </ul>
+    <p class="notice safe"><strong>Gesamtergebnis:</strong> Der aktuelle Merchant-Center-Produktstatus ist sehr gut: 65 von 65 vorhandenen Produkten sind genehmigt.</p>
+    <p class="notice"><strong>Noch separat zu prüfen:</strong> Google Product Category, product_type, GTIN, MPN, Brand, Condition, Energiekennzeichnung, Produktdatenblatt sowie Versand- und Rückgabeattribute auf Angebotsebene. Die Marketingmethoden- und Benachrichtigungsansichten lieferten während der Prüfung keine vollständigen Detaildaten.</p>
+  </section>
+
+  <footer>KB ELEMENTS · Shopify QA-Gesamtbericht · erstellt am 02.07.2026</footer>
+</main>
+</body>
+</html>

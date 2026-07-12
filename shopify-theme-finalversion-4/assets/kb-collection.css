@@ -1,0 +1,156 @@
+/* KB Collection Enhancements */
+.kb-marquee-cta { border-radius: 4px !important; }
+quick-add-component, .quick-add { display: none !important; }
+.kb-qv-overlay { display: none !important; }
+
+/* ====== PRODUKTKARTEN ====== */
+.product-grid__item { border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); transition: box-shadow 0.2s ease; }
+.product-grid__item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.11); }
+.kb-card-info, .kb-card-extras, .kb-set-badge { display: none !important; }
+.kb-col-sale-badge { position: absolute; top: 8px; right: 8px; background: #C0182A; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; z-index: 10; pointer-events: none; }
+@media (max-width: 749px) { .kb-set-badge { display: none !important; } }
+
+/* ====== FILTERLEISTE: MAX 1440px, OHNE TRANSFORM ====== */
+.facets-block-wrapper,
+.facets-block-wrapper--horizontal {
+  width: min(100vw, 1440px) !important;
+  margin-left: calc(50% - min(50vw, 720px)) !important;
+  background: #f5f5f5 !important;
+  border-top: 2px solid #1C1917 !important;
+  border-bottom: 0.5px solid #e0e0e0 !important;
+  margin-top: 32px !important;
+  margin-bottom: 28px !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+}
+
+.facets__form {
+  max-width: 1440px !important;
+  margin: 0 auto !important;
+  padding: 14px 24px !important;
+  box-sizing: border-box !important;
+}
+
+/* ====== FILTER-BUTTONS ====== */
+.facets__summary {
+  border: 1.5px solid #1C1917 !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  color: #1C1917 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 7px 14px !important;
+  transition: border-color 0.15s, background 0.15s, color 0.15s !important;
+}
+.facets__summary:hover { border-color: #C0182A !important; color: #C0182A !important; }
+
+/* Aktiver Filter -> ROT */
+.facets__summary:has(.facets__status span:not(:empty)) {
+  background: #C0182A !important; color: #fff !important; border-color: #C0182A !important;
+}
+.facets__summary:has(.facets__status span:not(:empty)):hover {
+  background: #a01222 !important; border-color: #a01222 !important; color: #fff !important;
+}
+
+/* Offen OHNE aktive Auswahl -> weiss (kb-open-empty vom JS) */
+details[open] > .facets__summary.kb-open-empty {
+  background: #fff !important;
+  color: #1C1917 !important;
+  border-color: #1C1917 !important;
+}
+details[open] > .facets__summary.kb-open-empty:hover {
+  border-color: #C0182A !important;
+  color: #C0182A !important;
+}
+
+/* Offen MIT Auswahl -> ROT */
+details[open] > .facets__summary:has(.facets__status span:not(:empty)) {
+  background: #C0182A !important;
+  color: #fff !important;
+  border-color: #C0182A !important;
+}
+
+/* Offen Fallback -> Schwarz */
+details[open] > .facets__summary {
+  background: #1C1917 !important;
+  color: #fff !important;
+  border-color: #1C1917 !important;
+}
+
+/* ====== DROPDOWN: 300px ====== */
+.facets__panel-content {
+  min-width: 300px !important;
+  width: 300px !important;
+  max-width: 92vw !important;
+  border-radius: 8px !important;
+  border: 0.5px solid #e0e0e0 !important;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12) !important;
+  overflow: hidden !important;
+}
+
+/* Checkboxen rot */
+.facets__checkbox:checked + .facets__label::before { background: #C0182A !important; border-color: #C0182A !important; }
+
+/* ====== ZURUECKSETZEN: ALLE FILTER GLEICH ====== */
+.facets__panel-content facet-clear-component,
+.facets__inputs facet-clear-component,
+facet-inputs-component facet-clear-component,
+.price-facet facet-clear-component,
+.clear-filter {
+  display: block !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #C0182A !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin: 6px 16px 8px !important;
+  line-height: 1.4 !important;
+  opacity: 1 !important;
+}
+.facets__panel-content facet-clear-component:hover,
+.facets__inputs facet-clear-component:hover,
+facet-inputs-component facet-clear-component:hover,
+.price-facet facet-clear-component:hover,
+.clear-filter:hover {
+  opacity: 0.7 !important;
+  color: #C0182A !important;
+  background: none !important;
+  text-decoration: none !important;
+}
+
+/* Alles zuruecksetzen */
+.facets__clear-all, button[class*="clear-all"] { text-decoration: none !important; transition: background 0.15s, color 0.15s, border-color 0.15s !important; }
+.facets__clear-all:hover, button[class*="clear-all"]:hover { background: #C0182A !important; color: #fff !important; border-color: #C0182A !important; }
+
+/* Aktive Filter-Chips */
+.active-facets__button-inner { background: #1C1917 !important; color: #fff !important; border-radius: 4px !important; font-size: 12px !important; font-weight: 500 !important; transition: background 0.15s !important; }
+.active-facets__button:hover .active-facets__button-inner { background: #C0182A !important; }
+
+/* Sort-Button */
+.facets-horizontal__sort .select__select { border: 1.5px solid #1C1917 !important; border-radius: 4px !important; font-size: 13px !important; color: #1C1917 !important; background: #fff !important; }
+.facets-horizontal__sort .select__select:focus { border-color: #C0182A !important; outline: none !important; }
+
+/* Preis Eingabefelder */
+.price-facet { padding: 14px 16px 4px !important; display: block !important; }
+.price-facet__input { width: 100% !important; padding: 8px 10px !important; border: 0.5px solid #d0d0d0 !important; border-radius: 6px !important; font-size: 13px !important; color: #1C1917 !important; background: #fff !important; box-sizing: border-box !important; }
+.price-facet__input:focus { outline: none !important; border-color: #C0182A !important; }
+
+/* Preis Anwenden Button */
+.kb-price-apply-btn { display: block; width: calc(100% - 32px); margin: 8px 16px 14px; padding: 10px 0; background: #1C1917; color: #fff; border: none; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; text-align: center; }
+.kb-price-apply-btn:hover { background: #C0182A; }
+
+/* ====== MOBILE ====== */
+@media screen and (max-width: 749px) {
+  .facets-block-wrapper, .facets-block-wrapper--horizontal { margin-top: 24px !important; margin-bottom: 20px !important; }
+  .facets__form { padding: 12px 16px !important; }
+  zoom-dialog, .product-media-container__zoom-button, [aria-label*="zoom"], [aria-label*="Zoom"], drag-zoom-wrapper ~ .product-media__zoom-hint, .drag-zoom-wrapper__hint { display: none !important; }
+}
+.kb-sondermodelle__title, .kb-plugin__title { overflow: visible !important; white-space: normal !important; text-overflow: clip !important; }
+@media screen and (max-width: 749px) {
+  .kb-sondermodelle__grid, .kb-plugin__grid { overflow: visible !important; }
+  .kb-sondermodelle__card, .kb-plugin__card { min-width: 0; overflow: hidden; }
+}

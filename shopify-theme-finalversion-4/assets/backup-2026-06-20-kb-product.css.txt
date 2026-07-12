@@ -1,0 +1,29 @@
+/* KB Product Enhancements - Backup 2026-06-20 */
+
+.variant-option--buttons,
+.variant-option--equal-width-buttons {
+  display: none !important;
+}
+
+button[name="add"],
+.shopify-payment-button__button {
+  border-radius: 4px !important;
+}
+
+.product__media-item img,
+.product-media-container img,
+[data-product-media-type-image] img {
+  max-height: 500px !important;
+  object-fit: contain !important;
+  width: auto !important;
+}
+
+@media (max-width: 749px) {
+  zoom-dialog,
+  zoom-dialog dialog,
+  zoom-dialog > * { display: none !important; }
+  drag-zoom-wrapper { pointer-events: none !important; cursor: default !important; }
+  .product-media__drag-zoom-wrapper { pointer-events: none !important; cursor: default !important; }
+  drag-zoom-wrapper button,
+  drag-zoom-wrapper a { pointer-events: none !important; }
+}

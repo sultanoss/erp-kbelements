@@ -1,0 +1,43 @@
+<div class="kb-col-trustbar-wrap">
+  <div class="kb-col-trustbar">
+    <div class="kb-col-trustbar__item">
+      <span class="kb-col-trustbar__num">4,9/5</span>
+      <span class="kb-col-trustbar__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+      <span class="kb-col-trustbar__label">Durchschnitt</span>
+    </div>
+    <div class="kb-col-trustbar__item kb-col-trustbar__item--mid">
+      <span class="kb-col-trustbar__num">2.463</span>
+      <span class="kb-col-trustbar__sub">verifiziert</span>
+      <span class="kb-col-trustbar__label">Bewertungen</span>
+    </div>
+    <div class="kb-col-trustbar__item">
+      <span class="kb-col-trustbar__num">98%</span>
+      <span class="kb-col-trustbar__sub">&nbsp;</span>
+      <span class="kb-col-trustbar__label">Empfehlen uns</span>
+    </div>
+  </div>
+  <div class="kb-col-trustbar__link-wrap">
+    <a href="/pages/kundenbewertungen" class="kb-col-trustbar__link">
+      Alle Bewertungen lesen
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<style>
+.kb-col-trustbar-wrap { box-sizing: border-box; width: 100%; max-width: 900px; margin: 0 auto; padding: 0 24px 56px; }
+.kb-col-trustbar { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+.kb-col-trustbar__item { padding: 18px 12px; text-align: center; background: #fff; }
+.kb-col-trustbar__item:not(:last-child) { border-right: 1px solid #e5e7eb; }
+.kb-col-trustbar__item--mid { background: #fafafa; }
+.kb-col-trustbar__num { font-size: 22px; font-weight: 800; color: #1C1917; line-height: 1; display: block; margin-bottom: 4px; }
+.kb-col-trustbar__stars { color: #C0182A; font-size: 13px; display: block; margin-bottom: 3px; }
+.kb-col-trustbar__sub { font-size: 11px; color: #C0182A; font-weight: 600; display: block; margin-bottom: 2px; }
+.kb-col-trustbar__label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .07em; display: block; }
+.kb-col-trustbar__link-wrap { text-align: center; padding: 8px 0; }
+.kb-col-trustbar__link { display: inline-flex; align-items: center; gap: 8px; padding: 11px 28px; border: 1px solid #1C1917; border-radius: 6px; text-decoration: none; color: #1C1917; font-size: 14px; font-weight: 500; letter-spacing: .02em; transition: border-color .2s, color .2s; }
+.kb-col-trustbar__link:hover { border-color: #C0182A; color: #C0182A; }
+.kb-col-trustbar__link svg { flex-shrink: 0; transition: transform .2s; }
+.kb-col-trustbar__link:hover svg { transform: translateX(3px); }
+@media(max-width:749px) { .kb-col-trustbar-wrap { padding: 0 16px 40px; } }
+</style>

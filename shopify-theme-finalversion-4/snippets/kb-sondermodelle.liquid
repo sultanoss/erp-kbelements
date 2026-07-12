@@ -1,0 +1,64 @@
+<style>
+.kb-special{padding:48px 0;background:#F5F3EF}
+.kb-special__header{text-align:center;margin-bottom:32px;padding:0 24px}
+.kb-special__label{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#888;margin:0 0 8px}
+.kb-special__title{font-size:clamp(22px,3vw,36px);font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#1C1917;margin:0}
+.kb-special__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:1440px;margin:0 auto;padding:0 24px}
+@media(max-width:600px){.kb-special{padding:32px 0 24px}.kb-special__header{margin-bottom:20px}.kb-special__title{font-size:20px}.kb-special__grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:0 16px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.kb-special__grid::-webkit-scrollbar{display:none}}
+.kb-special-card{background:#fff;border:1px solid #EAE8E4;display:flex;flex-direction:column;text-decoration:none;overflow:hidden;transition:box-shadow 0.2s,transform 0.2s}
+.kb-special-card:hover{box-shadow:0 8px 32px rgba(28,25,23,0.12);transform:translateY(-2px)}
+@media(max-width:600px){.kb-special-card{min-width:62vw;max-width:62vw;scroll-snap-align:start;flex-shrink:0}}
+.kb-special-card__img-wrap{aspect-ratio:16/9;overflow:hidden;background:#fff}
+.kb-special-card__img{width:100%;height:100%;object-fit:cover;object-position:center;transition:transform 0.3s}
+.kb-special-card:hover .kb-special-card__img{transform:scale(1.03)}
+.kb-special-card__info{padding:24px;display:flex;flex-direction:column;flex:1}
+@media(max-width:600px){.kb-special-card__info{padding:10px 10px 12px}}
+.kb-special-card__tag{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#C0182A;margin:0 0 6px}
+.kb-special-card__name{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1C1917;margin:0 0 10px}
+@media(max-width:600px){.kb-special-card__name{font-size:11px;letter-spacing:0;margin:0 0 6px}}
+.kb-special-card__desc{font-size:13px;color:#666;line-height:1.6;margin:0 0 20px;flex:1}
+@media(max-width:600px){.kb-special-card__desc{display:none}}
+.kb-special-card__btn{display:inline-block;background:#1C1917;color:#fff;padding:12px 24px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;align-self:flex-start;border-radius:4px;transition:background 0.2s}
+@media(max-width:600px){.kb-special-card__btn{padding:8px 14px;font-size:10px;letter-spacing:1px}}
+.kb-special-card__btn:hover{background:#C0182A}
+.kb-special__dots{display:none;justify-content:center;gap:6px;margin-top:12px}
+@media(max-width:600px){.kb-special__dots{display:flex}}
+.kb-special__dot{width:6px;height:6px;border-radius:50%;background:#ddd}
+.kb-special__dot.active{background:#1C1917}
+</style>
+
+<div class="kb-special">
+  <div class="kb-special__header">
+    <p class="kb-special__label">Ausgew&auml;hlte Modelle</p>
+    <h2 class="kb-special__title">Unsere Sondermodelle</h2>
+  </div>
+  <div class="kb-special__grid" id="kb-special-grid">
+    <a href="/products/kb-elements-herdset-2-teilig-einbaubackofen-45-cm-a-plug-play-domino-induktionskochfeld-30-cm-schuko-schwarz" class="kb-special-card">
+      <div class="kb-special-card__img-wrap">
+        <img class="kb-special-card__img" src="https://cdn.shopify.com/s/files/1/0963/1852/1608/files/kompakteGeraete.png?v=1781424592" alt="Kompakt-Set 45 cm" loading="lazy">
+      </div>
+      <div class="kb-special-card__info">
+        <p class="kb-special-card__tag">Neu</p>
+        <p class="kb-special-card__name">Kompakt-Set 45 cm</p>
+        <p class="kb-special-card__desc">Einbaubackofen 45 cm + Kochfeld 29 cm &ndash; die perfekte L&ouml;sung f&uuml;r kleine K&uuml;chen.</p>
+        <span class="kb-special-card__btn">Jetzt entdecken &rarr;</span>
+      </div>
+    </a>
+    <a href="/collections/antiscratch-kochfelder-sets" class="kb-special-card">
+      <div class="kb-special-card__img-wrap">
+        <img class="kb-special-card__img" src="https://cdn.shopify.com/s/files/1/0963/1852/1608/files/antiscratch.png?v=1781973411" alt="Kratzfestes Induktionskochfeld AntiScratch" loading="lazy">
+      </div>
+      <div class="kb-special-card__info">
+        <p class="kb-special-card__tag">Premium</p>
+        <p class="kb-special-card__name">Kratzfestes Induktionskochfeld</p>
+        <p class="kb-special-card__desc">H&ouml;chste Pr&auml;zision trifft robuste Oberfl&auml;che &ndash; Induktion mit kratzfestem Glas.</p>
+        <span class="kb-special-card__btn">Jetzt entdecken &rarr;</span>
+      </div>
+    </a>
+  </div>
+  <div class="kb-special__dots" id="kb-special-dots">
+    <div class="kb-special__dot active"></div>
+    <div class="kb-special__dot"></div>
+  </div>
+</div>
+<script>(function(){var g=document.getElementById('kb-special-grid');var d=document.querySelectorAll('#kb-special-dots .kb-special__dot');if(!g||!d.length)return;g.addEventListener('scroll',function(){var c=g.querySelectorAll('.kb-special-card');if(!c.length)return;var w=c[0].offsetWidth+12;var i=Math.round(g.scrollLeft/w);d.forEach(function(x,j){x.classList.toggle('active',j===i);});});})();</script>

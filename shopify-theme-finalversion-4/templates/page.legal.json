@@ -1,0 +1,67 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "css": {
+      "type": "custom-liquid",
+      "settings": {
+        "custom_liquid": "{{ 'kb-legal.css' | asset_url | stylesheet_tag }}",
+        "color_scheme": "scheme-1",
+        "section_width": "full-width",
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "main": {
+      "type": "main-page",
+      "blocks": {
+        "heading": {
+          "type": "text",
+          "name": "Title",
+          "settings": {
+            "text": "<h1>{{ closest.page.title }}</h1>",
+            "type_preset": "custom",
+            "font": "var(--font-heading--family)",
+            "font_size": "1.75rem",
+            "color": "",
+            "line_height": "tight",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "width": "100%",
+            "max_width": "normal",
+            "alignment": "left",
+            "background": false,
+            "background_color": "#00000026",
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "page-content": {
+          "type": "page-content",
+          "settings": {},
+          "blocks": {}
+        }
+      },
+      "block_order": ["heading", "page-content"],
+      "settings": {
+        "content_direction": "column",
+        "gap": 24,
+        "color_scheme": "",
+        "padding-block-start": 48,
+        "padding-block-end": 80
+      }
+    }
+  },
+  "order": ["css", "main"]
+}

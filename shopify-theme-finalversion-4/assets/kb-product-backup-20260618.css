@@ -1,0 +1,144 @@
+/* KB Product Enhancements */
+
+/* Variant selector "Title / Standard" ausblenden wenn nur 1 Variante */
+.variant-option--buttons,
+.variant-option--equal-width-buttons {
+  display: none !important;
+}
+
+/* Button border-radius angleichen */
+button[name="add"],
+.shopify-payment-button__button {
+  border-radius: 4px !important;
+}
+
+/* Produktbild Größe begrenzen */
+.product__media-item img,
+.product-media-container img,
+[data-product-media-type-image] img {
+  max-height: 500px !important;
+  object-fit: contain !important;
+  width: auto !important;
+}
+
+/* Zoom / Lightbox auf Mobile komplett deaktivieren */
+@media (max-width: 749px) {
+  zoom-dialog,
+  zoom-dialog dialog,
+  zoom-dialog > * { display: none !important; }
+  drag-zoom-wrapper { pointer-events: none !important; cursor: default !important; }
+  .product-media__drag-zoom-wrapper { pointer-events: none !important; cursor: default !important; }
+  drag-zoom-wrapper button,
+  drag-zoom-wrapper a { pointer-events: none !important; }
+}
+
+.kb-usp-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  padding: 16px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  border-left: 3px solid #C0182A;
+  margin-bottom: 16px;
+}
+.kb-usp-item {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.kb-check {
+  color: #C0182A;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Trust Badges — 6 Stück, 3 pro Zeile */
+.kb-trust-wrap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.kb-trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 6px;
+  text-align: center;
+  font-size: 11px;
+  color: #444;
+  line-height: 1.3;
+  border-right: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+}
+.kb-trust-item:nth-child(3),
+.kb-trust-item:nth-child(6) { border-right: none; }
+.kb-trust-item:nth-child(4),
+.kb-trust-item:nth-child(5),
+.kb-trust-item:nth-child(6) { border-bottom: none; }
+.kb-trust-item strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #111;
+}
+.kb-trust-item span { font-size: 10px; color: #666; }
+
+@media (max-width: 749px) {
+  .kb-usp-wrap { grid-template-columns: 1fr; }
+  .kb-trust-wrap { grid-template-columns: repeat(2, 1fr); }
+  .kb-trust-item:nth-child(3) { border-right: 1px solid #e8e8e8; }
+  .kb-trust-item:nth-child(2),
+  .kb-trust-item:nth-child(4),
+  .kb-trust-item:nth-child(6) { border-right: none; }
+  .kb-trust-item:nth-child(5),
+  .kb-trust-item:nth-child(6) { border-bottom: none; }
+  .kb-trust-item:nth-child(4) { border-bottom: 1px solid #e8e8e8; }
+}
+
+/* Energielabel-Modal */
+.kb-energie-modal {
+  width: auto !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  padding: 16px !important;
+  overflow: auto !important;
+}
+.kb-energie-modal img {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 80vh !important;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── Cart Drawer Fix ── */
+.cart-items__item {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: start !important;
+  gap: 12px !important;
+}
+.cart-items__media-container { grid-column: 1 !important; }
+.cart-items__info { grid-column: 2 !important; min-width: 0 !important; }
+.cart-items__title {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+.cart-items__remove { grid-column: 3 !important; align-self: start !important; flex-shrink: 0 !important; }

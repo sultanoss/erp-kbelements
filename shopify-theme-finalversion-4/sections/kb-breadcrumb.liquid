@@ -1,0 +1,100 @@
+{%- liquid
+  assign bc_collection = collection
+  if bc_collection == blank or bc_collection.handle == 'all'
+    assign bc_collection = product.collections.first
+  endif
+  assign bc_sku = product.selected_or_first_available_variant.sku
+  if bc_sku == blank
+    assign bc_sku = product.title
+  endif
+-%}
+
+<style>
+  /* doppelten SKU-Breadcrumb aus kb-product-enhancements ausblenden */
+  #kb-breadcrumb { display: none !important; }
+
+  .kb-bc {
+    max-width: var(--page-width, 1400px);
+    margin-inline: auto;
+    box-sizing: border-box;
+    padding: 18px var(--page-margin, clamp(1rem, 4vw, 5rem)) 4px;
+  }
+  .kb-bc__list { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: 0; padding: 0; font-size: 14px; line-height: 1; }
+  .kb-bc__item { display: inline-flex; align-items: center; }
+  .kb-bc__home { display: inline-flex; align-items: center; color: #C0182A; }
+  .kb-bc__home svg { width: 18px; height: 18px; display: block; }
+  .kb-bc__link { color: var(--color-foreground); opacity: 0.65; text-decoration: none; transition: opacity .15s ease, color .15s ease; }
+  .kb-bc__link:hover { opacity: 1; color: #C0182A; }
+  .kb-bc__current { color: var(--color-foreground); opacity: 0.95; font-weight: 600; max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kb-bc__sep { opacity: 0.4; font-size: 14px; }
+  @media (max-width: 749px) {
+    .kb-bc { padding-block: 14px 2px; }
+    .kb-bc__list { font-size: 13px; gap: 7px; }
+    .kb-bc__home svg { width: 16px; height: 16px; }
+    .kb-bc__current { max-width: 200px; }
+  }
+</style>
+
+<nav class="kb-bc" aria-label="Breadcrumb">
+  <ol class="kb-bc__list">
+    <li class="kb-bc__item"><a class="kb-bc__home" href="{{ routes.root_url }}" aria-label="Startseite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></a></li>
+    {%- if bc_collection != blank -%}
+      <li class="kb-bc__sep" aria-hidden="true">›</li>
+      <li class="kb-bc__item"><a class="kb-bc__link" href="{{ bc_collection.url }}">{{ bc_collection.title }}</a></li>
+    {%- endif -%}
+    <li class="kb-bc__sep" aria-hidden="true">›</li>
+    <li class="kb-bc__item kb-bc__current" aria-current="page">{{ bc_sku }}</li>
+  </ol>
+</nav>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Startseite","item":{{ shop.url | append: routes.root_url | json }}}{% if bc_collection != blank %},
+    {"@type":"ListItem","position":2,"name":{{ bc_collection.title | json }},"item":{{ shop.url | append: bc_collection.url | json }}},
+    {"@type":"ListItem","position":3,"name":{{ bc_sku | json }},"item":{{ shop.url | append: product.url | json }}}{% else %},
+    {"@type":"ListItem","position":2,"name":{{ bc_sku | json }},"item":{{ shop.url | append: product.url | json }}}{% endif %}
+  ]
+}
+</script>
+
+<script>
+(function(){
+  function px(v){return parseFloat(v)||0;}
+  function firstMenuLink(){
+    var sel='header-component .menu-bar a, header-component [role="menuitem"], header-component nav a';
+    var links=document.querySelectorAll(sel);
+    for(var i=0;i<links.length;i++){
+      var el=links[i], r=el.getBoundingClientRect();
+      if(el.offsetParent!==null && r.width>0 && r.height>0){return el;}
+    }
+    return null;
+  }
+  function align(){
+    var list=document.querySelector('.kb-bc__list');
+    if(!list){return;}
+    list.style.marginLeft='';
+    if(window.innerWidth < 750){return;}
+    var link=firstMenuLink();
+    if(!link){return;}
+    var ls=getComputedStyle(link);
+    var linkTextLeft=link.getBoundingClientRect().left+px(ls.paddingLeft);
+    var listLeft=list.getBoundingClientRect().left;
+    var delta=linkTextLeft-listLeft;
+    if(delta>0.5){list.style.marginLeft=delta+'px';}
+  }
+  if(document.readyState!=='loading'){align();}else{document.addEventListener('DOMContentLoaded',align);}
+  window.addEventListener('load',align);
+  window.addEventListener('resize',align);
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Breadcrumb",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

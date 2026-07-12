@@ -1,0 +1,28 @@
+/* KB Reviews Trust Bar */
+.kb-reviews-trust-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.kb-reviews-trust-bar__item{padding:18px 12px;text-align:center;background:#fff}
+.kb-reviews-trust-bar__item:not(:last-child){border-right:1px solid #e5e7eb}
+.kb-reviews-trust-bar__item:nth-child(2){background:#fafafa}
+.kb-reviews-trust-bar__num{font-size:22px;font-weight:800;color:#1C1917;line-height:1;display:block;margin-bottom:4px}
+.kb-reviews-trust-bar__stars{color:#C0182A;font-size:13px;display:block;margin-bottom:3px}
+.kb-reviews-trust-bar__label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.07em;display:block}
+.kb-reviews-trust-bar__sub{font-size:11px;color:#C0182A;font-weight:600;display:block;margin-bottom:2px}
+
+/* Judge.me Custom Styling */
+.jdgm-widget.jdgm-review-widget .jdgm-rev__rating .jdgm-star{color:#C0182A !important}
+.jdgm-widget .jdgm-star{color:#C0182A !important}
+.jdgm-star.jdgm--on,.jdgm-star.jdgm--half{color:#C0182A !important}
+.jdgm-star.jdgm--off{color:#ddd !important}
+.jdgm-preview-badge .jdgm-star{color:#C0182A !important}
+.jdgm-prev-badge .jdgm-star{color:#C0182A !important}
+.jdgm-all-reviews-rating .jdgm-star{color:#C0182A !important}
+.jdgm-write-rev-link,.jdgm-write-rev{background:#1C1917 !important;color:#fff !important;border-color:#1C1917 !important;border-radius:6px !important}
+.jdgm-write-rev-link:hover,.jdgm-write-rev:hover{background:#C0182A !important;border-color:#C0182A !important}
+.jdgm-rev__title,.jdgm-histogram__title,.jdgm-all-reviews-text{color:#1C1917 !important}
+.jdgm-paginate__page.jdgm--active,.jdgm-paginate__page:hover{color:#C0182A !important;border-color:#C0182A !important}
+.jdgm-sort-select:focus{border-color:#C0182A !important;outline-color:#C0182A !important}
+.jdgm-rev__verif-badge{background:#C0182A !important}
+.jdgm-widget.jdgm-review-widget h1,.jdgm-widget.jdgm-review-widget h2{color:#1C1917 !important}
+.jdgm-rev__author-name{color:#1C1917 !important;font-weight:700}
+.jdgm-rev__timestamp,.jdgm-rev__body{color:#444 !important}
+.kb-reviews-section-title{font-size:22px;font-weight:700;color:#1C1917;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #C0182A;display:inline-block}

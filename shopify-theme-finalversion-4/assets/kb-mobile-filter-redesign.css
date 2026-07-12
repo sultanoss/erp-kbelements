@@ -1,0 +1,131 @@
+/* ===================================================================
+   KB Mobile Filter Redesign
+   Ziel: modernere Optik (Apple/Shopify/Nike-Stil) für den mobilen
+   Filter-Drawer, ohne das Liquid-Markup zu verändern und ohne das
+   Desktop-Layout zu beeinflussen. Nur >989px ausgenommen, da der
+   Filter-Drawer auf Desktop ohnehin nicht im Mobile-Modus läuft.
+   =================================================================== */
+
+@media screen and (max-width: 989px) {
+
+  /* --- Drawer-Grundgerüst ----------------------------------------- */
+  dialog.facets--drawer {
+    --kb-filter-radius: 12px;
+    --kb-filter-border: rgb(0 0 0 / 8%);
+  }
+
+  /* --- Accordion-Header (.facets__summary) ------------------------- */
+  dialog.facets--drawer .facets__summary {
+    padding: 16px 4px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid var(--kb-filter-border) !important;
+    list-style: none;
+    outline: none !important;
+  }
+
+  dialog.facets--drawer .facets__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Browser-Default Fokus-Ring (kräftiges Blau/Rot je nach Theme-Farbe)
+     durch dezenten eigenen Indikator ersetzen — Zugänglichkeit bleibt
+     erhalten, aber visuell ruhiger */
+  dialog.facets--drawer .facets__summary:focus-visible {
+    outline: 2px solid #C0182A !important;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  dialog.facets--drawer details {
+    outline: none !important;
+  }
+
+  /* --- Accordion-Inhalt (.facets__panel) ---------------------------- */
+  dialog.facets--drawer .facets__panel {
+    padding: 4px 4px 20px !important;
+    border: none !important;
+  }
+
+  /* --- Checkboxen: moderner, ruhiger, konsistente Abstände --------- */
+  dialog.facets--drawer .facets__inputs-list-item {
+    margin-bottom: 0 !important;
+  }
+
+  dialog.facets--drawer .facets__inputs-list-item label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 4px !important;
+    min-height: 40px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.15s ease;
+  }
+
+  dialog.facets--drawer .facets__inputs-list-item label:active {
+    background-color: rgb(0 0 0 / 4%);
+  }
+
+  dialog.facets--drawer .checkbox__input {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    border-radius: 6px !important;
+    border: 1.5px solid rgb(0 0 0 / 22%) !important;
+    margin: 0 !important;
+    accent-color: #C0182A;
+    outline: none !important;
+  }
+
+  dialog.facets--drawer .checkbox__input:checked {
+    border-color: #C0182A !important;
+  }
+
+  dialog.facets--drawer .checkbox__input:focus-visible {
+    outline: 2px solid #C0182A !important;
+    outline-offset: 2px;
+  }
+
+  /* --- Preisfilter: sauber ausgerichtetes Eingabepaar --------------- */
+  dialog.facets--drawer .price-facet__field {
+    border-radius: var(--kb-filter-radius) !important;
+    border: 1.5px solid rgb(0 0 0 / 14%) !important;
+    overflow: hidden;
+  }
+
+  dialog.facets--drawer .price-facet__field:focus-within {
+    border-color: #C0182A !important;
+  }
+
+  dialog.facets--drawer .price-facet__input {
+    font-size: 14px !important;
+    padding: 10px 12px !important;
+    outline: none !important;
+  }
+
+  /* --- Sticky "Artikel anzeigen"-Button: nicht hart überdeckend ----- */
+  dialog.facets--drawer .facets__actions {
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+    background: rgb(255 255 255 / 92%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid var(--kb-filter-border);
+    box-shadow: 0 -4px 16px rgb(0 0 0 / 6%);
+  }
+
+  dialog.facets--drawer .facets__see-results {
+    border-radius: var(--kb-filter-radius) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    min-height: 48px;
+  }
+
+  /* Platz unten im scrollbaren Bereich lassen, damit der letzte Filter
+     nicht vom Sticky-Button verdeckt wird */
+  dialog.facets--drawer .facets__inner,
+  dialog.facets--drawer form {
+    padding-bottom: 8px;
+  }
+}

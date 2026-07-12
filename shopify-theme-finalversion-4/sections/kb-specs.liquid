@@ -1,0 +1,42 @@
+{%- assign specs = product.metafields.kb_specs -%}
+{%- assign has_specs = false -%}
+{%- if specs.absaugleistung != blank or specs.betriebsgeraeusch != blank or specs.motorleistung != blank -%}
+  {%- assign has_specs = true -%}
+{%- endif -%}
+
+{%- if has_specs -%}
+<div class="kb-specs-section page-width" style="padding: 40px 0;">
+  <style>
+    .kb-specs-section { max-width: 900px; margin: 0 auto; }
+    .kb-specs__title { font-size: 18px; font-weight: 700; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid currentColor; text-transform: none !important; letter-spacing: 0 !important; }
+    .kb-specs__table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .kb-specs__table tr { border-bottom: 1px solid rgba(0,0,0,0.1); }
+    .kb-specs__table tr:last-child { border-bottom: none; }
+    .kb-specs__table td { padding: 12px 8px; vertical-align: top; }
+    .kb-specs__table td:first-child { color: var(--color-foreground); opacity: 0.6; width: 45%; font-weight: 500; }
+    .kb-specs__table td:last-child { color: var(--color-foreground); font-weight: 400; }
+    @media (max-width: 749px) { .kb-specs__table td { font-size: 13px; } .kb-specs__table td:first-child { width: 50%; } }
+  </style>
+  <h2 class="kb-specs__title">Technische Daten</h2>
+  <table class="kb-specs__table">
+    {%- if specs.absaugleistung != blank -%}<tr><td>Absaugleistung</td><td>{{ specs.absaugleistung.value }}</td></tr>{%- endif -%}
+    {%- if specs.motorleistung != blank -%}<tr><td>Motorleistung</td><td>{{ specs.motorleistung.value }}</td></tr>{%- endif -%}
+    {%- if specs.leistungsstufen != blank -%}<tr><td>Leistungsstufen</td><td>{{ specs.leistungsstufen.value }}</td></tr>{%- endif -%}
+    {%- if specs.betriebsart != blank -%}<tr><td>Betriebsart</td><td>{{ specs.betriebsart.value }}</td></tr>{%- endif -%}
+    {%- if specs.steuerung != blank -%}<tr><td>Steuerung</td><td>{{ specs.steuerung.value }}</td></tr>{%- endif -%}
+    {%- if specs.beleuchtung != blank -%}<tr><td>Beleuchtung</td><td>{{ specs.beleuchtung.value }}</td></tr>{%- endif -%}
+    {%- if specs.betriebsgeraeusch != blank -%}<tr><td>Betriebsgeräusch</td><td>{{ specs.betriebsgeraeusch.value }}</td></tr>{%- endif -%}
+    {%- if specs.masse != blank -%}<tr><td>Maße (B × T × H)</td><td>{{ specs.masse.value }}</td></tr>{%- endif -%}
+    {%- if specs.rohrdurchmesser != blank -%}<tr><td>Luftrohrdurchmesser</td><td>{{ specs.rohrdurchmesser.value }}</td></tr>{%- endif -%}
+    {%- if specs.spannung != blank -%}<tr><td>Spannung</td><td>{{ specs.spannung.value }}</td></tr>{%- endif -%}
+  </table>
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Technische Daten",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

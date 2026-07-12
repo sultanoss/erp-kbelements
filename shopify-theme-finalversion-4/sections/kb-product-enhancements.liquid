@@ -1,0 +1,569 @@
+{%- liquid
+  assign rating_value = product.metafields.reviews.rating.value
+  assign rating_count = product.metafields.reviews.rating_count.value | plus: 0
+-%}
+{%- if rating_value != blank and rating_count > 0 -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": {{ product.title | json }},
+  "url": {{ shop.url | append: product.url | json }},
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ rating_value }}",
+    "reviewCount": "{{ rating_count }}",
+    "bestRating": "5",
+    "worstRating": "1"
+  }
+}
+</script>
+{%- endif -%}
+
+{{ 'kb-product.css' | asset_url | stylesheet_tag }}
+
+<style>
+  .jdgm-prev-badge { display: block !important; visibility: visible !important; }
+  .variant-option--buttons,
+  .variant-option--equal-width-buttons { display: none !important; }
+  .product-media-container, .product__media-item, .product__media { max-height: 520px !important; }
+  .product-media-container img, .product__media img { max-height: 520px !important; object-fit: contain !important; }
+  .kb-breadcrumb { display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:12px; color:#888; margin:0 0 12px; padding:0; list-style:none; }
+  .kb-breadcrumb a { color:#888; text-decoration:none; }
+  .kb-breadcrumb a:hover { color:#C0182A; text-decoration:underline; }
+  .kb-breadcrumb__sep { color:#bbb; font-size:11px; }
+  .kb-price-wrap { display:flex; align-items:center; gap:10px; margin:6px 0 10px; flex-wrap:wrap; }
+  .kb-shipping-note { display:flex; align-items:center; gap:7px; font-size:13px; color:#555; font-weight:700; margin:0 0 10px; }
+  .kb-price-vat { font-size:11px; color:#888; font-weight:400; }
+  .kb-price-sale { font-size:1.6rem; font-weight:700; color:#C0182A; }
+  .kb-price-regular { font-size:1.6rem; font-weight:700; color:#111; }
+  .kb-price-original { font-size:1.1rem; color:#999; text-decoration:line-through; }
+  .kb-price-badge { background:#C0182A; color:#fff; font-size:11px; font-weight:700; padding:2px 7px; border-radius:4px; }
+  .kb-info-row { display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin:10px 0; }
+  .kb-urgency { display:flex; align-items:center; gap:7px; font-size:13px; color:#2a7a2a; font-weight:500; margin:0; }
+  .kb-energie-badge-wrap { display:inline-flex; align-items:center; gap:10px; margin:0; cursor:pointer; }
+  .kb-energie-badge-arrow { display:flex; align-items:center; justify-content:center; color:#fff; font-size:20px; font-weight:800; min-width:46px; width:auto; height:36px; padding:0 16px 0 9px; box-sizing:border-box; clip-path:polygon(0 0,82% 0,100% 50%,82% 100%,0 100%); letter-spacing:-1px; text-shadow:0 1px 2px rgba(0,0,0,0.4); white-space:nowrap; }
+  .kb-energie-badge-text { font-size:12px; color:#444; line-height:1.3; }
+  .kb-energie-badge-text strong { display:block; font-size:13px; color:#111; }
+  .kb-energie-badge-wrap:hover .kb-energie-badge-arrow { outline:2px solid #333; }
+  .kb-energie-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:flex-start; padding:40px 16px; box-sizing:border-box; overflow-y:auto; }
+  .kb-energie-modal-overlay.open { display:flex; }
+  .kb-energie-modal { background:#fff; border-radius:10px; padding:48px 24px 24px; max-width:480px; width:100%; position:relative; text-align:center; max-height:calc(100vh - 80px); overflow-y:auto; flex-shrink:0; margin:auto; }
+  .kb-energie-modal img { max-width:100%; height:auto; display:block; margin:0 auto; }
+  .kb-energie-modal-close { position:absolute; top:10px; right:14px; background:none; border:none; font-size:28px; cursor:pointer; color:#333; line-height:1; z-index:1; }
+  .kb-usp-wrap { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin:10px 0; padding:12px 14px; background:#fafafa; border:1px solid #eee; border-radius:8px; }
+  .kb-usp-item { display:flex; align-items:flex-start; gap:7px; font-size:14px; color:#333; line-height:1.4; }
+  .kb-usp-item .kb-check { color:#C0182A; font-size:14px; font-weight:700; flex-shrink:0; margin-top:1px; }
+  .kb-pay-logos { display:flex; flex-direction:column; align-items:center; gap:8px; margin:12px 0 0; padding:12px 0 0; border-top:1px solid #eee; }
+  .kb-pay-logos__label { font-size:11px; color:#999; text-transform:uppercase; letter-spacing:0.06em; }
+  .kb-pay-logos__row { display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; }
+  .kb-pay-logo { height:28px; border-radius:4px; border:0.5px solid #e0ddd9; background:#fff; display:inline-flex; align-items:center; justify-content:center; padding:0 7px; box-sizing:border-box; }
+  .kb-pay-logo svg { height:16px; width:auto; display:block; }
+  .kb-sped-hint { display:flex; align-items:flex-start; gap:8px; background:#fff8f0; border:0.5px solid #fed7aa; border-radius:6px; padding:10px 12px; margin:10px 0 0; font-size:12px; color:#7c4a1a; line-height:1.5; }
+  .kb-sped-hint svg { flex-shrink:0; margin-top:1px; color:#ea8c2d; }
+  .kb-trust-wrap { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#e0e0e0; border:1px solid #e0e0e0; border-radius:8px; overflow:hidden; margin-top:12px; }
+  .kb-trust-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:10px 6px; background:#fff; text-align:center; font-size:12px; line-height:1.3; color:#444; }
+  .kb-trust-item strong { display:block; font-size:12px; color:#111; }
+  .kb-trust-item span { font-size:11px; color:#777; }
+  .kb-docs-box { display:flex; flex-direction:column; gap:0; border:1px solid #e0e0e0; border-radius:8px; overflow:hidden; margin-top:14px; }
+  .kb-docs-link { display:flex; align-items:center; gap:12px; padding:11px 14px; text-decoration:none; color:#111; font-size:13px; font-weight:500; background:#fff; transition:background 0.15s; border-bottom:1px solid #e0e0e0; }
+  .kb-docs-link:last-child { border-bottom:none; }
+  .kb-docs-link:hover { background:#f5f5f5; }
+  .kb-docs-icon { width:32px; height:38px; background:#C0182A; border-radius:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .kb-docs-icon svg { display:block; }
+  .kb-docs-link-text { flex:1; }
+  .kb-energie-mini { display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:800; height:22px; padding:0 10px 0 6px; box-sizing:border-box; clip-path:polygon(0 0,80% 0,100% 50%,80% 100%,0 100%); letter-spacing:-0.5px; text-shadow:0 1px 1px rgba(0,0,0,0.3); white-space:nowrap; margin-left:auto; flex-shrink:0; cursor:pointer; }
+  .kb-reviews-section { padding: 48px 0; border-top: 1px solid #eee; }
+  .kb-stars-row { display:flex; align-items:center; gap:6px; margin:4px 0 6px; }
+  .kb-stars-row .kb-stars-text { font-size:13px; color:#444; }
+  .kb-stars-row a { color:#444; text-decoration:none; }
+  .kb-stars-row a:hover { text-decoration:underline; color:#C0182A; }
+</style>
+
+{%- liquid
+  assign sku = product.variants.first.sku
+  assign bc_cat_title = ''
+  assign bc_cat_url   = ''
+  assign shipping_text = 'Kostenloser Versand &middot; Lieferzeit 2&ndash;3 Werktage'
+  assign is_spedition = false
+  assign is_backofen = false
+  assign anleitung_label_1 = 'Bedienungsanleitung (DE / EN)'
+  if product.type == 'Herdset'
+    assign bc_cat_title = 'Sets & Kombinationen'
+    assign bc_cat_url   = '/collections/sets-kombinationen'
+    assign shipping_text = 'Speditionslieferung &middot; Lieferzeit 4&ndash;5 Werktage'
+    assign is_spedition = true
+    assign anleitung_label_1 = 'Bedienungsanleitung Backofen (DE / EN)'
+  elsif product.type == 'Einbaubackofen' or sku contains 'ELK75' or sku contains 'ELK76'
+    assign bc_cat_title = 'Einbaubacköfen'
+    assign bc_cat_url   = '/collections/einbaubackofen'
+    assign shipping_text = 'Speditionslieferung &middot; Lieferzeit 4&ndash;5 Werktage'
+    assign is_spedition = true
+    assign is_backofen = true
+    assign anleitung_label_1 = 'Bedienungsanleitung Backofen (DE / EN)'
+  elsif product.type == 'Kochfeld'
+    assign bc_cat_title = 'Kochfelder'
+    assign bc_cat_url   = '/collections/kochfelder'
+    assign anleitung_label_1 = 'Bedienungsanleitung Kochfeld (DE / EN)'
+  elsif product.type == 'Mikrowelle'
+    assign bc_cat_title = 'Mikrowellen'
+    assign bc_cat_url   = '/collections/mikrowellen'
+    assign anleitung_label_1 = 'Bedienungsanleitung Mikrowelle (DE / EN)'
+  elsif sku contains 'ELK'
+    assign bc_cat_title = 'Abzugshauben'
+    assign bc_cat_url   = '/collections/dunstabzugshauben'
+    assign anleitung_label_1 = 'Bedienungsanleitung Dunstabzugshaube (DE / EN)'
+  endif
+  assign trust_versand_label = 'Kostenloser Versand'
+  if is_spedition
+    assign trust_versand_label = 'Speditionslieferung'
+  endif
+-%}
+
+{%- if bc_cat_title != '' -%}
+<nav class="kb-breadcrumb" id="kb-breadcrumb" aria-label="Breadcrumb">
+  <a href="/" aria-label="Home"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></a>
+  <span class="kb-breadcrumb__sep">›</span>
+  <a href="{{ bc_cat_url }}">{{ bc_cat_title }}</a>
+  <span class="kb-breadcrumb__sep">›</span>
+  <span>{{ sku }}</span>
+</nav>
+{%- endif -%}
+
+{%- liquid
+  assign produkt          = product
+  assign e_klasse         = produkt.metafields.energie.klasse.value
+  assign e_label_url      = produkt.metafields.energie.label_bild.value
+  assign e_daten_url      = produkt.metafields.energie.datenblatt_url.value
+  assign e_daten_url_2    = produkt.metafields.energie.datenblatt_url_2.value
+  assign e_anleit_url     = produkt.metafields.energie.anleitung_url.value
+  assign e_anleit_url_2   = produkt.metafields.energie.anleitung_url_2.value
+  assign e_anleit_url_3   = produkt.metafields.energie.anleitung_url_3.value
+  assign e_anleit_url_4   = produkt.metafields.energie.anleitung_url_4.value
+  assign e_klasse_haube   = produkt.metafields.energie.klasse_haube.value
+  assign e_label_haube    = produkt.metafields.energie.label_bild_haube.value
+  assign uvp              = produkt.metafields.kbe.originalpreis.value | plus: 0
+  assign aktuell_eur      = produkt.price | divided_by: 100.0
+  assign e_farbe = '#F5E000'
+  if e_klasse == 'A+++'
+    assign e_farbe = '#009A44'
+  elsif e_klasse == 'A++'
+    assign e_farbe = '#52AE32'
+  elsif e_klasse == 'A+'
+    assign e_farbe = '#8DC63F'
+  elsif e_klasse == 'A'
+    assign e_farbe = '#F5E000'
+  elsif e_klasse == 'B'
+    assign e_farbe = '#F0C000'
+  elsif e_klasse == 'C'
+    assign e_farbe = '#F0A500'
+  elsif e_klasse == 'D'
+    assign e_farbe = '#E2231A'
+  endif
+  assign e_farbe_haube = '#F5E000'
+  if e_klasse_haube == 'A+++'
+    assign e_farbe_haube = '#009A44'
+  elsif e_klasse_haube == 'A++'
+    assign e_farbe_haube = '#52AE32'
+  elsif e_klasse_haube == 'A+'
+    assign e_farbe_haube = '#8DC63F'
+  elsif e_klasse_haube == 'A'
+    assign e_farbe_haube = '#F5E000'
+  elsif e_klasse_haube == 'B'
+    assign e_farbe_haube = '#F0C000'
+  elsif e_klasse_haube == 'C'
+    assign e_farbe_haube = '#F0A500'
+  elsif e_klasse_haube == 'D'
+    assign e_farbe_haube = '#E2231A'
+  endif
+-%}
+
+{%- if rating_value != blank and rating_count > 0 -%}
+  {%- assign rating_num = rating_value | times: 1.0 -%}
+  {%- assign full_stars = rating_num | floor -%}
+  {%- assign half_star = 0 -%}
+  {%- assign remainder = rating_num | minus: full_stars -%}
+  {%- assign next_star = full_stars | plus: 1 -%}
+  {%- if remainder >= 0.75 -%}
+    {%- assign full_stars = next_star -%}
+    {%- assign next_star = full_stars | plus: 1 -%}
+    {%- assign half_star = 0 -%}
+  {%- elsif remainder >= 0.25 -%}
+    {%- assign half_star = 1 -%}
+  {%- endif -%}
+<div class="kb-stars-row" id="kb-stars-row">
+  <span aria-label="{{ rating_value }} von 5 Sternen">
+    {%- for i in (1..5) -%}
+      {%- if i <= full_stars -%}
+        <span style="color:#F5A623;font-size:17px;line-height:1;">&#9733;</span>
+      {%- elsif i == next_star and half_star == 1 -%}
+        <span style="color:#F5A623;font-size:17px;line-height:1;opacity:0.45;">&#9733;</span>
+      {%- else -%}
+        <span style="color:#ccc;font-size:17px;line-height:1;">&#9733;</span>
+      {%- endif -%}
+    {%- endfor -%}
+  </span>
+  <span class="kb-stars-text"><a href="#kb-reviews-anchor">{{ rating_value }} &middot; {{ rating_count }} Bewertungen</a></span>
+</div>
+{%- endif -%}
+
+{%- if uvp > aktuell_eur -%}
+  {%- assign ersparnis = uvp | minus: aktuell_eur | divided_by: uvp | times: 100 | round -%}
+<div class="kb-price-wrap" id="kb-price-wrap">
+  <span class="kb-price-sale">&euro;{{ aktuell_eur | round }}</span>
+  <span class="kb-price-original">&euro;{{ uvp | round }}</span>
+  <span class="kb-price-badge">-{{ ersparnis }}%</span>
+  <span class="kb-price-vat">inkl. MwSt.</span>
+</div>
+{%- else -%}
+<div class="kb-price-wrap" id="kb-price-wrap">
+  <span class="kb-price-regular">&euro;{{ aktuell_eur | round }}</span>
+  <span class="kb-price-vat">inkl. MwSt.</span>
+</div>
+{%- endif -%}
+
+<div class="kb-shipping-note" id="kb-shipping-note">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+  {{ shipping_text }}
+</div>
+
+<div class="kb-urgency" id="kb-urgency">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+  Heute bestellt &mdash; morgen verschickt
+</div>
+
+{%- if e_klasse -%}
+<div class="kb-energie-badge-wrap" id="kb-energie-badge" role="button" aria-label="Energielabel anzeigen" tabindex="0">
+  <div class="kb-energie-badge-arrow" style="background:{{ e_farbe }}">{{ e_klasse }}</div>
+  <div class="kb-energie-badge-text">
+    <strong>Energieklasse {{ e_klasse }}</strong>
+    Skala: A+++ bis D
+  </div>
+</div>
+<div class="kb-energie-modal-overlay" id="kb-energie-modal-overlay" role="dialog" aria-modal="true">
+  <div class="kb-energie-modal">
+    <button class="kb-energie-modal-close" id="kb-energie-modal-close" aria-label="Schlie&szlig;en">&times;</button>
+    {%- if e_label_url and e_label_url != blank -%}
+      <img src="{{ e_label_url }}" alt="EU Energielabel Klasse {{ e_klasse }}">
+    {%- endif -%}
+  </div>
+</div>
+{%- endif -%}
+
+{%- if e_klasse_haube and e_klasse_haube != blank -%}
+<div class="kb-energie-modal-overlay" id="kb-energie-modal-haube" role="dialog" aria-modal="true">
+  <div class="kb-energie-modal">
+    <button class="kb-energie-modal-close" id="kb-energie-modal-haube-close" aria-label="Schlie&szlig;en">&times;</button>
+    {%- if e_label_haube and e_label_haube != blank -%}
+      <img src="{{ e_label_haube }}" alt="EU Energielabel Dunstabzugshaube Klasse {{ e_klasse_haube }}">
+    {%- endif -%}
+  </div>
+</div>
+{%- endif -%}
+
+{%- if is_backofen -%}
+<div id="kb-faq-backofen" style="display:none">
+  <div class="kb-faq-item"><button class="kb-faq-q">Welche Anschlussart ben&ouml;tigt der Backofen?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="kb-faq-a">Unsere Einbub&auml;ckofen verf&uuml;gen &uuml;ber einen vormontierten Schuko-Stecker und k&ouml;nnen an einer geeigneten 220&ndash;240 V Haushaltssteckdose betrieben werden.</div></div>
+  <div class="kb-faq-item"><button class="kb-faq-q">Ben&ouml;tige ich einen Elektriker f&uuml;r den Anschluss?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="kb-faq-a">Bei Modellen mit Schuko-Stecker ist in der Regel kein Elektroanschluss durch einen Elektriker erforderlich.</div></div>
+  <div class="kb-faq-item"><button class="kb-faq-q">Wie erfolgt die Lieferung des Backofens?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="kb-faq-a">Die Lieferung erfolgt innerhalb von 4 bis 5 Werktagen per Spedition. Die Spedition kontaktiert Sie vor der Zustellung f&uuml;r einen Liefertermin.</div></div>
+  <div class="kb-faq-item"><button class="kb-faq-q">Was ist die Circle Fan Heater Funktion?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="kb-faq-a">Die Circle Fan Heater Technologie verf&uuml;gt &uuml;ber ein zus&auml;tzliches Ringheizelement rund um den Ventilator f&uuml;r gleichm&auml;&szlig;ige W&auml;rmeverteilung.</div></div>
+  <div class="kb-faq-item"><button class="kb-faq-q">Was ist die Air Fry Funktion?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="kb-faq-a">Mit der Air Fry Funktion k&ouml;nnen Speisen knusprig und fettarm zubereitet werden. Der Air Fry Korb ist im Lieferumfang enthalten.</div></div>
+</div>
+{%- endif -%}
+
+{%- assign usp_raw = product.metafields.kbe.usps.value -%}
+{%- if usp_raw != blank -%}
+  {%- assign usp_lines = usp_raw | split: '
+' -%}
+  <script id="kb-usp-data" type="application/json">[
+    {%- for line in usp_lines -%}
+      {%- assign t = line | strip -%}
+      {%- if t != blank -%}
+        {%- assign parts = t | split: '|' -%}
+        {%- if parts.size > 1 -%}
+          {"bold": {{ parts[0] | strip | remove: '**' | json }}, "desc": {{ parts[1] | strip | json }}}{%- unless forloop.last -%},{%- endunless -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  ]</script>
+{%- endif -%}
+
+<script id="kb-energie-data" type="application/json">{
+  "backofen": { "klasse": {{ e_klasse | default: '' | json }}, "farbe": {{ e_farbe | json }}, "labelUrl": {{ e_label_url | default: '' | json }} },
+  "haube":    { "klasse": {{ e_klasse_haube | default: '' | json }}, "farbe": {{ e_farbe_haube | json }}, "labelUrl": {{ e_label_haube | default: '' | json }} }
+}</script>
+
+<script id="kb-product-meta" type="application/json">{
+  "isSpedition": {{ is_spedition | json }},
+  "trustVersandLabel": {{ trust_versand_label | json }},
+  "anleitungLabel1": {{ anleitung_label_1 | json }}
+}</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  var badge    = document.getElementById('kb-energie-badge');
+  var overlay  = document.getElementById('kb-energie-modal-overlay');
+  var closeBtn = document.getElementById('kb-energie-modal-close');
+  var labelUrl = '{{ e_label_url }}';
+  var labelIsPdf = labelUrl && labelUrl.toLowerCase().indexOf('.pdf') !== -1;
+  if (badge) {
+    if (labelIsPdf) {
+      badge.style.cursor = 'pointer';
+      badge.addEventListener('click', function() { window.open(labelUrl, '_blank', 'noopener'); });
+      badge.addEventListener('keydown', function(e) { if (e.key === 'Enter') window.open(labelUrl, '_blank', 'noopener'); });
+    } else if (overlay) {
+      badge.addEventListener('click', function() { overlay.classList.add('open'); });
+      badge.addEventListener('keydown', function(e) { if (e.key === 'Enter') overlay.classList.add('open'); });
+      closeBtn.addEventListener('click', function() { overlay.classList.remove('open'); });
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('open'); });
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') overlay.classList.remove('open'); });
+    }
+  }
+
+  var overlayHaube = document.getElementById('kb-energie-modal-haube');
+  var closeBtnHaube = document.getElementById('kb-energie-modal-haube-close');
+  if (overlayHaube && closeBtnHaube) {
+    closeBtnHaube.addEventListener('click', function() { overlayHaube.classList.remove('open'); });
+    overlayHaube.addEventListener('click', function(e) { if (e.target === overlayHaube) overlayHaube.classList.remove('open'); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') overlayHaube.classList.remove('open'); });
+  }
+
+  setTimeout(function() {
+    if (document.querySelector('.kb-reviews-section')) return;
+    var productSection = document.querySelector('.product-information');
+    if (!productSection) return;
+    var reviewBlock = productSection.querySelector('.shopify-app-block.jdgm-horizon-widget');
+    if (!reviewBlock) return;
+    var main = document.getElementById('MainContent');
+    if (!main) return;
+    var wrapper = document.createElement('div');
+    wrapper.className = 'kb-reviews-section page-width';
+    wrapper.id = 'kb-reviews-anchor';
+    wrapper.appendChild(reviewBlock);
+    main.appendChild(wrapper);
+  }, 800);
+
+  function init() {
+    var buyBlock = document.querySelector('[class*="buy-buttons-block"]');
+    if (!buyBlock) return;
+
+    var metaEl = document.getElementById('kb-product-meta');
+    var isSpedition = false;
+    var trustVersandLabel = 'Kostenloser Versand';
+    var anleitungLabel1 = 'Bedienungsanleitung (DE / EN)';
+    if (metaEl) {
+      try {
+        var meta = JSON.parse(metaEl.textContent);
+        isSpedition = meta.isSpedition || false;
+        trustVersandLabel = meta.trustVersandLabel || 'Kostenloser Versand';
+        anleitungLabel1 = meta.anleitungLabel1 || 'Bedienungsanleitung (DE / EN)';
+      } catch(e) {}
+    }
+
+    var bc = document.getElementById('kb-breadcrumb');
+    if (bc && !bc.dataset.moved) {
+      var mediaCol = document.querySelector('.product-information__media');
+      if (mediaCol) { mediaCol.insertBefore(bc, mediaCol.firstChild); }
+      else { var ps = document.querySelector('.product-information'); if (ps && ps.parentNode) ps.parentNode.insertBefore(bc, ps); }
+      bc.dataset.moved = '1'; bc.style.paddingLeft = '0';
+    }
+
+    var starsRow = document.getElementById('kb-stars-row');
+    var pw = document.getElementById('kb-price-wrap');
+    var shipNote = document.getElementById('kb-shipping-note');
+    var h1 = document.querySelector('h1');
+
+    if (starsRow && !starsRow.dataset.moved && h1) {
+      var h1Parent = h1.parentElement && h1.parentElement.parentElement ? h1.parentElement.parentElement : null;
+      if (h1Parent) { h1Parent.insertBefore(starsRow, h1.parentElement.nextSibling); }
+      starsRow.dataset.moved = '1';
+    }
+
+    if (pw && !pw.dataset.moved) {
+      if (starsRow && starsRow.parentNode) { starsRow.parentNode.insertBefore(pw, starsRow.nextSibling); }
+      else if (h1 && h1.parentElement && h1.parentElement.parentElement) { h1.parentElement.parentElement.insertBefore(pw, h1.parentElement.nextSibling); }
+      else { buyBlock.parentNode.insertBefore(pw, buyBlock.parentNode.firstChild); }
+      pw.dataset.moved = '1';
+    }
+    if (shipNote && !shipNote.dataset.moved) {
+      if (pw && pw.parentNode) { pw.parentNode.insertBefore(shipNote, pw.nextSibling); }
+      shipNote.dataset.moved = '1';
+    }
+
+    if (!document.getElementById('kb-info-row')) {
+      var urgency = document.getElementById('kb-urgency');
+      var energieBadge = document.querySelector('.kb-energie-badge-wrap');
+      if (urgency && !urgency.dataset.moved) {
+        var wrap = document.createElement('div'); wrap.id = 'kb-info-row'; wrap.className = 'kb-info-row';
+        buyBlock.parentNode.insertBefore(wrap, buyBlock);
+        if (energieBadge) { wrap.appendChild(energieBadge); energieBadge.dataset.moved = '1'; }
+        wrap.appendChild(urgency); urgency.dataset.moved = '1';
+      }
+    }
+
+    var atcBtn = document.querySelector('button[name="add"]');
+    if (atcBtn && !atcBtn.dataset.kbRenamed) {
+      atcBtn.querySelectorAll('span,div').forEach(function(el) { if (el.textContent.trim() === 'In den Warenkorb legen') el.textContent = 'In den Warenkorb'; });
+      atcBtn.dataset.kbRenamed = '1';
+    }
+
+    if (!document.querySelector('.kb-usp-wrap')) {
+      var usp = document.createElement('div'); usp.className = 'kb-usp-wrap';
+      var uspDataEl = document.getElementById('kb-usp-data');
+      var uspHtml = '';
+      if (uspDataEl) {
+        try {
+          var usps = JSON.parse(uspDataEl.textContent);
+          usps.forEach(function(u) {
+            var boldText = u.bold.replace(/& Play/g, '<span style="color:#C0182A">&amp; Play</span>');
+            uspHtml += '<div class="kb-usp-item"><span class="kb-check">&#10003;</span><span><strong>' + boldText + '</strong> &mdash; ' + u.desc + '</span></div>';
+          });
+        } catch(e) {}
+      }
+      if (!uspHtml) {
+        uspHtml = [
+          '<div class="kb-usp-item"><span class="kb-check">&#10003;</span><span>Bis zu <strong>650\u00a0m\u00b3/h</strong> &mdash; effektiv auch bei starkem Kochgeruch</span></div>',
+          '<div class="kb-usp-item"><span class="kb-check">&#10003;</span><span><strong>Bedienen ohne Ber\u00fchrung</strong> &mdash; Touch- &amp; Gestensteuerung</span></div>',
+          '<div class="kb-usp-item"><span class="kb-check">&#10003;</span><span><strong>Flexibel einbaubar</strong> &mdash; Abluft- &amp; Umluftbetrieb</span></div>',
+          '<div class="kb-usp-item"><span class="kb-check">&#10003;</span><span><strong>Energieklasse A</strong> &mdash; spart Strom im Alltag</span></div>',
+          '<div class="kb-usp-item"><span class="kb-check">&#10003;</span><span><strong>Luft bleibt sauber</strong> &mdash; Nachlauf-Funktion nach dem Kochen</span></div>',
+          '<div class="kb-usp-item"><span class="kb-check">&#10003;</span><span><strong>Langlebige Filter</strong> &mdash; Baffe- &amp; Aktivkohlefilter</span></div>'
+        ].join('');
+      }
+      usp.innerHTML = uspHtml;
+      buyBlock.parentNode.insertBefore(usp, buyBlock);
+    }
+
+    setTimeout(function() {
+      if (document.querySelector('.kb-trust-wrap')) return;
+
+      var payLogos = document.createElement('div');
+      payLogos.className = 'kb-pay-logos';
+      payLogos.innerHTML =
+        '<span class="kb-pay-logos__label">Sicher bezahlen mit</span>' +
+        '<div class="kb-pay-logos__row">' +
+          '<span class="kb-pay-logo" title="PayPal"><svg viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 2C8.8 1.2 7.5.8 5.8.8H1.3c-.3 0-.6.2-.6.5L0 14.8c0 .2.1.4.3.4h2.7l.7-4.2c.1-.3.3-.5.6-.5h1.2c2.3 0 4.1-1 4.7-3.7v-.2c-.1-1.3-.7-2.2-1.7-2.6z" fill="#003087"/><path d="M9.7 4.6v.2c-.5 2.7-2.4 3.7-4.7 3.7H3.8c-.3 0-.5.2-.6.5L2.3 14.6l-.2 1.5c0 .2.1.3.3.3h2.3c.3 0 .5-.2.5-.5l.5-2.8c.1-.3.2-.5.5-.5h.3c2.1 0 3.7-.8 4.1-3.3.2-1.1.1-1.9-.5-2.5-.2-.2-.3-.3-.5-.2z" fill="#009cde"/></svg></span>' +
+          '<span class="kb-pay-logo" title="Klarna"><svg viewBox="0 0 52 14" xmlns="http://www.w3.org/2000/svg"><rect width="52" height="14" rx="2" fill="#FFB3C7"/><text x="26" y="10.5" text-anchor="middle" font-size="7.5" font-weight="800" font-family="sans-serif" fill="#0D0D0D">klarna</text></svg></span>' +
+          '<span class="kb-pay-logo" title="Visa"><svg viewBox="0 0 46 16" xmlns="http://www.w3.org/2000/svg"><text x="2" y="13" font-size="13" font-weight="800" font-family="serif" fill="#1A1F71">VISA</text></svg></span>' +
+          '<span class="kb-pay-logo" title="Mastercard"><svg viewBox="0 0 38 24" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="12" r="12" fill="#EB001B"/><circle cx="24" cy="12" r="12" fill="#F79E1B" opacity="0.9"/><path d="M19 4.8a12 12 0 0 1 0 14.4A12 12 0 0 1 19 4.8z" fill="#FF5F00"/></svg></span>' +
+          '<span class="kb-pay-logo" title="Apple Pay"><svg viewBox="0 0 50 18" xmlns="http://www.w3.org/2000/svg"><text x="2" y="13" font-size="11" font-family="-apple-system,sans-serif" font-weight="500" fill="#1C1917">&#63743; Pay</text></svg></span>' +
+          '<span class="kb-pay-logo" title="Google Pay"><svg viewBox="0 0 56 18" xmlns="http://www.w3.org/2000/svg"><text x="2" y="13" font-size="11" font-family="sans-serif" font-weight="500" fill="#5F6368">G</text><text x="12" y="13" font-size="11" font-family="sans-serif" font-weight="500" fill="#3C4043">Pay</text></svg></span>' +
+          '<span class="kb-pay-logo" title="Shop Pay"><svg viewBox="0 0 62 18" xmlns="http://www.w3.org/2000/svg"><rect width="62" height="18" rx="3" fill="#5A31F4"/><text x="31" y="13" text-anchor="middle" font-size="8" font-weight="700" font-family="sans-serif" fill="#fff">Shop Pay</text></svg></span>' +
+        '</div>';
+      buyBlock.parentNode.insertBefore(payLogos, buyBlock.nextSibling);
+
+      if (isSpedition) {
+        var spedHint = document.createElement('div');
+        spedHint.className = 'kb-sped-hint';
+        spedHint.innerHTML =
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+          'F\u00fcr Speditionslieferungen ben\u00f6tigen wir Ihre Telefonnummer zur Terminvereinbarung. Bitte geben Sie diese im Checkout an.';
+        payLogos.parentNode.insertBefore(spedHint, payLogos.nextSibling);
+      }
+
+      var versandSvg = '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>';
+
+      var trust = document.createElement('div'); trust.className = 'kb-trust-wrap';
+      trust.innerHTML = [
+        '<div class="kb-trust-item"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><strong>Ersatzteilservice</strong><span>auch nach Garantiezeit</span></div>',
+        '<div class="kb-trust-item"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20A14.5 14.5 0 0 0 12 2"/><line x1="2" y1="12" x2="22" y2="12"/></svg><strong>Versand aus</strong><span>Deutschland</span></div>',
+        '<div class="kb-trust-item"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><strong>2 Jahre Garantie</strong><span>inklusive</span></div>',
+        '<div class="kb-trust-item"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg><strong>14 Tage R\u00fcckgabe</strong><span>ohne Fragen</span></div>',
+        '<div class="kb-trust-item">' + versandSvg + '<strong>' + trustVersandLabel + '</strong><span>' + (isSpedition ? 'bis zur Haust\u00fcr' : 'ab Lager') + '</span></div>',
+        '<div class="kb-trust-item"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.03 1.22 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg><strong>Deutscher Kundenservice</strong><span>bei Fragen</span></div>'
+      ].join('');
+
+      var spedHintEl = document.querySelector('.kb-sped-hint');
+      var insertAfter = spedHintEl || payLogos;
+      insertAfter.parentNode.insertBefore(trust, insertAfter.nextSibling);
+
+      {%- if e_daten_url and e_daten_url != blank -%}
+      var datUrl = '{{ e_daten_url }}';
+      {%- else -%}
+      var datUrl = '';
+      {%- endif -%}
+      {%- if e_daten_url_2 and e_daten_url_2 != blank -%}
+      var datUrl2 = '{{ e_daten_url_2 }}';
+      {%- else -%}
+      var datUrl2 = '';
+      {%- endif -%}
+      {%- if e_anleit_url and e_anleit_url != blank -%}
+      var anlUrl = '{{ e_anleit_url }}';
+      {%- else -%}
+      var anlUrl = '';
+      {%- endif -%}
+      {%- if e_anleit_url_2 and e_anleit_url_2 != blank -%}
+      var anlUrl2 = '{{ e_anleit_url_2 }}';
+      {%- else -%}
+      var anlUrl2 = '';
+      {%- endif -%}
+      {%- if e_anleit_url_3 and e_anleit_url_3 != blank -%}
+      var anlUrl3 = '{{ e_anleit_url_3 }}';
+      {%- else -%}
+      var anlUrl3 = '';
+      {%- endif -%}
+      {%- if e_anleit_url_4 and e_anleit_url_4 != blank -%}
+      var anlUrl4 = '{{ e_anleit_url_4 }}';
+      {%- else -%}
+      var anlUrl4 = '';
+      {%- endif -%}
+
+      var energieDataEl = document.getElementById('kb-energie-data');
+      var backofenKlasse = '', backofenFarbe = '#8DC63F', backofenLabelUrl = '';
+      var haubeKlasse = '', haubeFarbe = '#F5E000', haubeLabelUrl = '';
+      if (energieDataEl) {
+        try {
+          var energieData = JSON.parse(energieDataEl.textContent);
+          backofenKlasse   = energieData.backofen.klasse   || '';
+          backofenFarbe    = energieData.backofen.farbe    || '#8DC63F';
+          backofenLabelUrl = energieData.backofen.labelUrl || '';
+          haubeKlasse      = energieData.haube.klasse      || '';
+          haubeFarbe       = energieData.haube.farbe       || '#F5E000';
+          haubeLabelUrl    = energieData.haube.labelUrl    || '';
+        } catch(e) {}
+      }
+
+      if (!document.querySelector('.kb-docs-box') && (datUrl || datUrl2 || anlUrl || anlUrl2 || anlUrl3 || anlUrl4)) {
+        var docs = document.createElement('div'); docs.className = 'kb-docs-box';
+        var html = '';
+        var pdfIcon = '<svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M9 0H2C0.9 0 0 0.9 0 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V7L9 0zm4 18H2V2h6v6h5v10z" fill="white"/></svg>';
+        if (datUrl) {
+          var bBadge = backofenKlasse ? '<span class="kb-energie-mini" style="background:'+backofenFarbe+'" id="kb-backofen-badge-mini">'+backofenKlasse+'</span>' : '';
+          html += '<a href="'+datUrl+'" target="_blank" rel="noopener" class="kb-docs-link"><div class="kb-docs-icon">'+pdfIcon+'</div><span class="kb-docs-link-text">Produktdatenblatt Backofen</span>'+bBadge+'</a>';
+        }
+        if (datUrl2) {
+          var hBadge = haubeKlasse ? '<span class="kb-energie-mini" style="background:'+haubeFarbe+'" id="kb-haube-badge-mini">'+haubeKlasse+'</span>' : '';
+          html += '<a href="'+datUrl2+'" target="_blank" rel="noopener" class="kb-docs-link"><div class="kb-docs-icon">'+pdfIcon+'</div><span class="kb-docs-link-text">Produktdatenblatt Dunstabzugshaube</span>'+hBadge+'</a>';
+        }
+        if (anlUrl) html += '<a href="'+anlUrl+'" target="_blank" rel="noopener" class="kb-docs-link"><div class="kb-docs-icon">'+pdfIcon+'</div><span class="kb-docs-link-text">'+anleitungLabel1+'</span></a>';
+        if (anlUrl2) html += '<a href="'+anlUrl2+'" target="_blank" rel="noopener" class="kb-docs-link"><div class="kb-docs-icon">'+pdfIcon+'</div><span class="kb-docs-link-text">Bedienungsanleitung Kochfeld (DE / EN)</span></a>';
+        if (anlUrl3) html += '<a href="'+anlUrl3+'" target="_blank" rel="noopener" class="kb-docs-link"><div class="kb-docs-icon">'+pdfIcon+'</div><span class="kb-docs-link-text">Bedienungsanleitung Dunstabzugshaube (DE / EN)</span></a>';
+        if (anlUrl4) html += '<a href="'+anlUrl4+'" target="_blank" rel="noopener" class="kb-docs-link"><div class="kb-docs-icon">'+pdfIcon+'</div><span class="kb-docs-link-text">Bedienungsanleitung Mikrowelle (DE / EN)</span></a>';
+        docs.innerHTML = html;
+        trust.parentNode.insertBefore(docs, trust.nextSibling);
+        if (backofenKlasse && backofenLabelUrl) {
+          var bMini = document.getElementById('kb-backofen-badge-mini');
+          var overlayB = document.getElementById('kb-energie-modal-overlay');
+          if (bMini && overlayB) { bMini.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); overlayB.classList.add('open'); }); }
+        }
+        if (haubeKlasse && haubeLabelUrl) {
+          var hMini = document.getElementById('kb-haube-badge-mini');
+          var overlayH = document.getElementById('kb-energie-modal-haube');
+          if (hMini && overlayH) { hMini.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); overlayH.classList.add('open'); }); }
+        }
+      }
+    }, 600);
+  }
+
+  init();
+});
+</script>
+
+{% schema %}
+{
+  "name": "KB Produkt Enhancements",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

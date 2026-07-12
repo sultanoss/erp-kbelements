@@ -1,0 +1,54 @@
+{% assign p = product %}
+{% assign v = product.selected_or_first_available_variant %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": {{ p.title | json }},
+  "description": {{ p.description | strip_html | truncate: 500 | json }},
+  "sku": {{ v.sku | json }},
+  {% if v.barcode != blank %}"gtin13": {{ v.barcode | json }},{% endif %}
+  "brand": {
+    "@type": "Brand",
+    "name": {{ p.vendor | json }}
+  },
+  "image": [
+    {% for img in p.images %}
+      {{ img.src | json }}{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ],
+  "offers": {
+    "@type": "Offer",
+    "url": {{ shop.url | append: p.url | json }},
+    "priceCurrency": {{ cart.currency.iso_code | json }},
+    "price": {{ v.price | divided_by: 100.0 | json }},
+    "priceValidUntil": "{{ 'now' | date: '%Y' | plus: 1 }}-12-31",
+    "availability": {% if v.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
+    "itemCondition": "https://schema.org/NewCondition",
+    "seller": {
+      "@type": "Organization",
+      "name": {{ shop.name | json }}
+    }
+  },
+  "additionalProperty": [
+    {% assign specs = p.metafields.kb_specs %}
+    {% if specs.absaugleistung != blank %}{"@type":"PropertyValue","name":"Absaugleistung","value":{{ specs.absaugleistung.value | json }}},{% endif %}
+    {% if specs.motorleistung != blank %}{"@type":"PropertyValue","name":"Motorleistung","value":{{ specs.motorleistung.value | json }}},{% endif %}
+    {% if specs.leistungsstufen != blank %}{"@type":"PropertyValue","name":"Leistungsstufen","value":{{ specs.leistungsstufen.value | json }}},{% endif %}
+    {% if specs.betriebsart != blank %}{"@type":"PropertyValue","name":"Betriebsart","value":{{ specs.betriebsart.value | json }}},{% endif %}
+    {% if specs.steuerung != blank %}{"@type":"PropertyValue","name":"Steuerung","value":{{ specs.steuerung.value | json }}},{% endif %}
+    {% if specs.beleuchtung != blank %}{"@type":"PropertyValue","name":"Beleuchtung","value":{{ specs.beleuchtung.value | json }}},{% endif %}
+    {% if specs.betriebsgeraeusch != blank %}{"@type":"PropertyValue","name":"Betriebsgeräusch","value":{{ specs.betriebsgeraeusch.value | json }}},{% endif %}
+    {% if specs.masse != blank %}{"@type":"PropertyValue","name":"Maße","value":{{ specs.masse.value | json }}},{% endif %}
+    {% if specs.spannung != blank %}{"@type":"PropertyValue","name":"Spannung","value":{{ specs.spannung.value | json }}}{% endif %}
+  ]
+}
+</script>
+
+{% schema %}
+{
+  "name": "KB JSON-LD Schema",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

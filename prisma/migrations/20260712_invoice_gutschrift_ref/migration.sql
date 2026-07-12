@@ -1,0 +1,2 @@
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "originalInvoiceId" TEXT;
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "originalInvoiceNum" TEXT;

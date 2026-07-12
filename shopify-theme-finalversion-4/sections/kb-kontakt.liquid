@@ -1,0 +1,252 @@
+<style>
+/* ===== LAYOUT ===== */
+.kb-kontakt-page{padding:0;font-family:inherit;overflow-x:hidden;}
+.kb-kontakt-inner{max-width:1200px;margin:0 auto;padding:0 24px;}
+@media(max-width:749px){.kb-kontakt-inner{padding:0 16px;}}
+.kb-kontakt-sep{width:100vw;margin-left:50%;transform:translateX(-50%);background:#F5F3EF;height:8px;}
+.kb-kontakt-section-title{font-size:22px;font-weight:700;color:#1C1917;margin:0 0 24px;padding-bottom:12px;border-bottom:2px solid #C0182A;display:inline-block;}
+@media(max-width:749px){.kb-kontakt-section-title{font-size:18px;}}
+
+/* ===== PAGE HEADER ===== */
+.kb-kontakt-header{padding:56px 0 48px;border-bottom:1px solid #EAE8E4;}
+@media(max-width:749px){.kb-kontakt-header{padding:36px 0 28px;}}
+.kb-kontakt-header__badge{
+  display:inline-block;
+  background:#C0182A;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:4px;
+  margin-bottom:16px;
+}
+.kb-kontakt-header__title{
+  font-size:clamp(28px,4vw,44px);
+  font-weight:800;
+  color:#1C1917;
+  line-height:1.15;
+  margin:0 0 14px;
+}
+.kb-kontakt-header__sub{font-size:17px;color:#555;line-height:1.65;margin:0;max-width:600px;}
+@media(max-width:749px){.kb-kontakt-header__sub{font-size:15px;}}
+
+/* ===== KONTAKT KARTEN ===== */
+.kb-kontakt-cards-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-kontakt-cards-wrap{padding:32px 0;}
+}
+.kb-kontakt-cards{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:700px){.kb-kontakt-cards{grid-template-columns:1fr;gap:16px;}}
+.kb-kontakt-card{
+  background:#F5F3EF;
+  border-radius:10px;
+  padding:28px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+@media(max-width:749px){.kb-kontakt-card{padding:20px 16px;}}
+.kb-kontakt-card--primary{background:#1C1917;}
+.kb-kontakt-card__icon{font-size:28px;line-height:1;color:#C0182A;}
+.kb-kontakt-card__title{font-size:16px;font-weight:700;color:#1C1917;margin:0;}
+.kb-kontakt-card--primary .kb-kontakt-card__title{color:#fff;}
+.kb-kontakt-card__text{font-size:14px;color:#555;line-height:1.65;margin:0;flex:1;}
+.kb-kontakt-card--primary .kb-kontakt-card__text{color:#aaa;}
+.kb-kontakt-card__cta{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#C0182A;
+  color:#fff !important;
+  padding:11px 22px;
+  border-radius:6px;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:600;
+  margin-top:6px;
+  align-self:flex-start;
+  transition:background .2s;
+}
+.kb-kontakt-card__cta:hover{background:#a01020;}
+@media(max-width:500px){.kb-kontakt-card__cta{width:100%;justify-content:center;}}
+
+/* ===== THEMEN ===== */
+.kb-kontakt-topics-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-kontakt-topics-wrap{padding:36px 0;}}
+.kb-kontakt-topics{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:600px){.kb-kontakt-topics{grid-template-columns:1fr;}}
+.kb-kontakt-topic{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:18px 20px;
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:10px;
+  text-decoration:none;
+  transition:border-color .2s,box-shadow .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+@media(max-width:749px){.kb-kontakt-topic{padding:14px 16px;}}
+.kb-kontakt-topic:hover{border-color:#C0182A;box-shadow:0 2px 12px rgba(192,24,42,.08);}
+.kb-kontakt-topic__icon{font-size:22px;flex-shrink:0;line-height:1;margin-top:2px;color:#C0182A;}
+.kb-kontakt-topic__title{font-size:14px;font-weight:700;color:#1C1917;margin:0 0 4px;}
+.kb-kontakt-topic__text{font-size:13px;color:#666;line-height:1.5;margin:0;}
+.kb-kontakt-topic:hover .kb-kontakt-topic__title{color:#C0182A;}
+
+/* ===== TIPPS ===== */
+.kb-kontakt-tips-wrap{padding:56px 0;}
+@media(max-width:749px){.kb-kontakt-tips-wrap{padding:36px 0;}}
+.kb-kontakt-tips{
+  background:#1C1917;
+  border-radius:12px;
+  padding:40px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px 40px;
+}
+@media(max-width:700px){.kb-kontakt-tips{grid-template-columns:1fr;padding:24px 20px;gap:12px;}}
+.kb-kontakt-tip{display:flex;align-items:flex-start;gap:12px;}
+.kb-kontakt-tip__num{
+  width:28px;height:28px;flex-shrink:0;
+  background:#C0182A;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:13px;font-weight:800;margin-top:1px;
+}
+.kb-kontakt-tip__text{font-size:14px;color:#bbb;line-height:1.6;margin:0;}
+.kb-kontakt-tip__text strong{color:#fff;font-weight:700;}
+
+/* ===== WEITERE SEITEN ===== */
+.kb-kontakt-links-wrap{padding:48px 0 56px;}
+@media(max-width:749px){.kb-kontakt-links-wrap{padding:32px 0 40px;}}
+.kb-kontakt-links{display:flex;flex-wrap:wrap;gap:10px;}
+.kb-kontakt-links a{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#333 !important;padding:9px 16px;border-radius:6px;
+  text-decoration:none;font-weight:500;font-size:13.5px;
+  border:1px solid #ddd;background:#F5F3EF;transition:all .2s;white-space:nowrap;
+}
+.kb-kontakt-links a:hover{border-color:#C0182A;color:#C0182A !important;background:#fff;}
+</style>
+
+<div class="kb-kontakt-page">
+
+  <!-- PAGE HEADER -->
+  <div class="kb-kontakt-header">
+    <div class="kb-kontakt-inner">
+      <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Kontakt &amp; Beratung – KB ELEMENTS Kundenservice</h1>
+      <span class="kb-kontakt-header__badge">Kundenservice</span>
+      <p class="kb-kontakt-header__title">Wie k&ouml;nnen wir<br>Ihnen helfen?</p>
+      <p class="kb-kontakt-header__sub">Sie haben Fragen zu Ihrer Bestellung, einem Produkt oder ben&ouml;tigen Unterst&uuml;tzung? Unser Team antwortet in der Regel innerhalb von 24 Stunden &mdash; Mo&ndash;Fr, 9:00&ndash;17:00 Uhr.</p>
+    </div>
+  </div>
+
+  <!-- KONTAKT KARTEN -->
+  <div class="kb-kontakt-cards-wrap">
+    <div class="kb-kontakt-inner">
+      <div class="kb-kontakt-cards">
+        <div class="kb-kontakt-card kb-kontakt-card--primary">
+          <div class="kb-kontakt-card__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C0182A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <p class="kb-kontakt-card__title">E-Mail Kundenservice</p>
+          <p class="kb-kontakt-card__text">F&uuml;r Bestellungen, Garantief&auml;lle, Reklamationen und alle weiteren Anliegen &mdash; bitte Bestellnummer angeben.<br><br><strong style="color:#fff;">Erreichbarkeit:</strong> Mo&ndash;Fr, 9:00&ndash;17:00 Uhr<br><span style="color:#888;">Antwortzeit: in der Regel innerhalb von 24 Stunden</span></p>
+          <a class="kb-kontakt-card__cta" href="mailto:sales2@kbelements.de?subject=Kundenanliegen%20%E2%80%93%20Bestellnummer%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Ameine%20Bestellnummer%3A%20%0AMein%20Anliegen%3A%20%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            sales2@kbelements.de
+          </a>
+        </div>
+        <div class="kb-kontakt-card">
+          <div class="kb-kontakt-card__icon">&#128203;</div>
+          <p class="kb-kontakt-card__title">Anschrift</p>
+          <p class="kb-kontakt-card__text">
+            <strong>KB-ELEMENTS GmbH</strong><br>
+            Im Weidchen 21<br>
+            52353 D&uuml;ren<br>
+            Deutschland<br><br>
+            <strong>Handelsregister:</strong> HRB 8363<br>
+            <strong>Registergericht:</strong> Amtsgericht D&uuml;ren<br>
+            <strong>USt-IdNr.:</strong> DE323000595
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kb-kontakt-sep"></div>
+
+  <!-- THEMEN -->
+  <div class="kb-kontakt-topics-wrap">
+    <div class="kb-kontakt-inner">
+      <h2 class="kb-kontakt-section-title">Ihr Anliegen &mdash; direkt zum richtigen Thema</h2>
+      <div class="kb-kontakt-topics">
+        <a class="kb-kontakt-topic" href="mailto:sales2@kbelements.de?subject=Bestellung%20%2F%20Lieferung%20%E2%80%93%20Bestellnummer%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Ameine%20Bestellnummer%3A%20%0AMein%20Anliegen%3A%20%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">
+          <div class="kb-kontakt-topic__icon">&#128230;</div>
+          <div><p class="kb-kontakt-topic__title">Bestellungen &amp; Lieferung</p><p class="kb-kontakt-topic__text">Fragen zu Ihrer Bestellung, Lieferstatus oder Versand</p></div>
+        </a>
+        <a class="kb-kontakt-topic" href="mailto:sales2@kbelements.de?subject=Reklamation%20%2F%20Garantie%20%E2%80%93%20Bestellnummer%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Ameine%20Bestellnummer%3A%20%0AProdukt%3A%20%0ABeschreibung%20des%20Problems%3A%20%0A%0AFotos%20h%C3%A4nge%20ich%20bei.%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">
+          <div class="kb-kontakt-topic__icon">&#128295;</div>
+          <div><p class="kb-kontakt-topic__title">Reklamation &amp; Garantie</p><p class="kb-kontakt-topic__text">Defekte Ger&auml;te, Garantief&auml;lle oder technische Probleme</p></div>
+        </a>
+        <a class="kb-kontakt-topic" href="mailto:sales2@kbelements.de?subject=Ersatzteilanfrage%20%E2%80%93%20Modell%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Aich%20ben%C3%B6tige%20ein%20Ersatzteil%20f%C3%BCr%20folgendes%20Ger%C3%A4t%3A%0AModell%2FArtikel-Nr.%3A%20%0AGew%C3%BCnschtes%20Ersatzteil%3A%20%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">
+          <div class="kb-kontakt-topic__icon">&#128295;</div>
+          <div><p class="kb-kontakt-topic__title">Ersatzteile</p><p class="kb-kontakt-topic__text">Filter, Bleche, Brenner und weitere Ersatzteile</p></div>
+        </a>
+        <a class="kb-kontakt-topic" href="mailto:sales2@kbelements.de?subject=Transportschaden%20%E2%80%93%20Bestellnummer%20%5Bbitte%20erg%C3%A4nzen%5D&body=Sehr%20geehrtes%20KB%20ELEMENTS%20Team%2C%0A%0Ameine%20Bestellnummer%3A%20%0AProdukt%3A%20%0ABeschreibung%20des%20Schadens%3A%20%0A%0AFotos%20h%C3%A4nge%20ich%20dieser%20E-Mail%20bei.%0A%0AMit%20freundlichen%20Gr%C3%BC%C3%9Fen">
+          <div class="kb-kontakt-topic__icon">&#128230;</div>
+          <div><p class="kb-kontakt-topic__title">Ware besch&auml;digt angekommen?</p><p class="kb-kontakt-topic__text">Transportsch&auml;den bitte innerhalb von 3 Tagen melden</p></div>
+        </a>
+        <a class="kb-kontakt-topic" href="/pages/altgeraete-ruecknahme">
+          <div class="kb-kontakt-topic__icon">&#9851;</div>
+          <div><p class="kb-kontakt-topic__title">Altger&auml;te-R&uuml;cknahme</p><p class="kb-kontakt-topic__text">Abholung oder R&uuml;cksendung Ihres alten Ger&auml;ts</p></div>
+        </a>
+        <a class="kb-kontakt-topic" href="/pages/sendungsverfolgung">
+          <div class="kb-kontakt-topic__icon">&#128666;</div>
+          <div><p class="kb-kontakt-topic__title">Sendungsverfolgung</p><p class="kb-kontakt-topic__text">Tracking-Informationen zu Ihrer Lieferung</p></div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="kb-kontakt-sep"></div>
+
+  <!-- TIPPS -->
+  <div class="kb-kontakt-tips-wrap">
+    <div class="kb-kontakt-inner">
+      <h2 class="kb-kontakt-section-title">Schnelle Bearbeitung &mdash; unsere Tipps</h2>
+      <div class="kb-kontakt-tips">
+        <div class="kb-kontakt-tip"><div class="kb-kontakt-tip__num">1</div><p class="kb-kontakt-tip__text"><strong>Bestellnummer angeben</strong> &mdash; Sie finden sie in Ihrer Bestellbest&auml;tigung per E-Mail.</p></div>
+        <div class="kb-kontakt-tip"><div class="kb-kontakt-tip__num">2</div><p class="kb-kontakt-tip__text"><strong>Problem genau beschreiben</strong> &mdash; Was passiert genau? Seit wann? Unter welchen Umst&auml;nden?</p></div>
+        <div class="kb-kontakt-tip"><div class="kb-kontakt-tip__num">3</div><p class="kb-kontakt-tip__text"><strong>Fotos oder Video mitsenden</strong> &mdash; Gerade bei technischen Defekten helfen Bilder enorm weiter.</p></div>
+        <div class="kb-kontakt-tip"><div class="kb-kontakt-tip__num">4</div><p class="kb-kontakt-tip__text"><strong>Transportschaden: sofort melden</strong> &mdash; Bitte innerhalb von 3 Tagen nach Erhalt der Ware kontaktieren.</p></div>
+        <div class="kb-kontakt-tip"><div class="kb-kontakt-tip__num">5</div><p class="kb-kontakt-tip__text"><strong>Kaufbeleg bereithalten</strong> &mdash; F&uuml;r Garantief&auml;lle ben&ouml;tigen wir den Nachweis des Kaufdatums.</p></div>
+        <div class="kb-kontakt-tip"><div class="kb-kontakt-tip__num">6</div><p class="kb-kontakt-tip__text"><strong>Richtiges E-Mail-Thema w&auml;hlen</strong> &mdash; Nutzen Sie die direkten Links oben f&uuml;r vorausgef&uuml;llte E-Mails.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kb-kontakt-sep"></div>
+
+  <!-- WEITERE SEITEN -->
+  <div class="kb-kontakt-links-wrap">
+    <div class="kb-kontakt-inner">
+      <h2 class="kb-kontakt-section-title">Weitere hilfreiche Seiten</h2>
+      <div class="kb-kontakt-links">
+        <a href="/pages/service-garantie">Service &amp; Garantie &#8594;</a>
+        <a href="/pages/altgeraete-ruecknahme">Altger&auml;te-R&uuml;cknahme &#8594;</a>
+        <a href="/pages/sendungsverfolgung">Sendungsverfolgung &#8594;</a>
+        <a href="/pages/versandinformationen">Versandinformationen &#8594;</a>
+        <a href="/pages/kundenbewertungen">Kundenbewertungen &#8594;</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% schema %}
+{
+  "name": "KB Kontakt",
+  "settings": []
+}
+{% endschema %}
