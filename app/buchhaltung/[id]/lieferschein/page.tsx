@@ -18,19 +18,20 @@ function fmtDate(d: Date) {
 const CSS = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif !important; font-size: 10pt; color: #000; background: #fff; }
-  .page { width: 210mm; min-height: 297mm; padding: 20mm 20mm 35mm 25mm; margin: 0 auto; position: relative; }
+  .page { width: 210mm; min-height: 297mm; padding: 20mm 20mm 35mm 25mm; margin: 0 auto; position: relative; border-top: 2px solid #000; }
   .header-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14mm; }
   .sender-small { font-size: 7.5pt; color: #444; border-bottom: 1px solid #aaa; padding-bottom: 2px; margin-bottom: 5mm; }
   .customer-block { font-size: 10pt; line-height: 1.55; }
-  .company-block { text-align: right; font-size: 9.5pt; line-height: 1.6; }
-  .company-block .name { font-weight: bold; font-size: 14pt; letter-spacing: -0.5px; }
-  .doc-title { font-size: 22pt; font-weight: bold; margin-bottom: 5mm; }
+  .company-block { text-align: right; font-size: 9pt; line-height: 1.55; }
+  .company-block .name { font-weight: 900; font-size: 16pt; letter-spacing: -0.5px; line-height: 1.2; }
+  .company-block .contact { font-size: 8pt; color: #555; margin-top: 4px; }
+  .doc-title { font-size: 26pt; font-weight: 900; letter-spacing: -0.5px; color: #000; margin-bottom: 5mm; }
   .meta-block { float: right; font-size: 9pt; line-height: 1.7; margin-bottom: 8mm; }
   .meta-block table td:first-child { padding-right: 14px; color: #444; }
   .meta-block table td:last-child { font-weight: bold; }
   .clearfix::after { content: ''; display: table; clear: both; }
   table.items { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 9pt; }
-  table.items th { background: #f5f5f5; border-bottom: 1.5px solid #bbb; padding: 5px 6px; text-align: left; font-weight: bold; font-size: 8.5pt; }
+  table.items th { background: #f0f0f0; color: #000; border-bottom: 1.5px solid #000; padding: 6px 7px; text-align: left; font-weight: bold; font-size: 8.5pt; }
   table.items th.r, table.items td.r { text-align: right; }
   table.items td { padding: 5px 6px; border-bottom: 0.5px solid #e0e0e0; vertical-align: top; }
   .notes-block { margin-top: 5mm; font-size: 9pt; color: #333; font-style: italic; }
@@ -74,11 +75,8 @@ export default async function LieferscheinPage({ params }: { params: Promise<{ i
           </div>
           <div className="company-block">
             <div className="name">KB ELEMENTS</div>
-            <div>Im Weidchen 21</div>
-            <div>52353 Düren</div>
-            <br />
-            <div>verkauf@kbelements.de</div>
-            <div>E-Mail: info@kbelements.de</div>
+            <div style={{ marginTop: "4px" }}>Im Weidchen 21 · 52353 Düren</div>
+            <div className="contact">verkauf@kbelements.de</div>
           </div>
         </div>
 

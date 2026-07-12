@@ -21,19 +21,20 @@ function fmtDate(d: Date) {
 const CSS = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif !important; font-size: 10pt; color: #000; background: #fff; }
-  .page { width: 210mm; min-height: 297mm; padding: 20mm 20mm 35mm 25mm; margin: 0 auto; position: relative; }
+  .page { width: 210mm; min-height: 297mm; padding: 20mm 20mm 35mm 25mm; margin: 0 auto; position: relative; border-top: 2px solid #000; }
   .header-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14mm; }
   .sender-small { font-size: 7.5pt; color: #444; border-bottom: 1px solid #aaa; padding-bottom: 2px; margin-bottom: 5mm; }
   .customer-block { font-size: 10pt; line-height: 1.55; }
-  .company-block { text-align: right; font-size: 9.5pt; line-height: 1.6; }
-  .company-block .name { font-weight: bold; font-size: 14pt; letter-spacing: -0.5px; }
-  .rechnung-title { font-size: 22pt; font-weight: bold; margin-bottom: 5mm; }
+  .company-block { text-align: right; font-size: 9pt; line-height: 1.55; }
+  .company-block .name { font-weight: 900; font-size: 16pt; letter-spacing: -0.5px; line-height: 1.2; }
+  .company-block .contact { font-size: 8pt; color: #555; margin-top: 4px; }
+  .rechnung-title { font-size: 26pt; font-weight: 900; letter-spacing: -0.5px; color: #000; margin-bottom: 5mm; }
   .meta-block { float: right; font-size: 9pt; line-height: 1.7; margin-bottom: 8mm; }
   .meta-block table td:first-child { padding-right: 14px; color: #444; }
   .meta-block table td:last-child { font-weight: bold; }
   .clearfix::after { content: ''; display: table; clear: both; }
   table.items { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 9pt; }
-  table.items th { background: #f5f5f5; border-bottom: 1.5px solid #bbb; padding: 5px 6px; text-align: left; font-weight: bold; font-size: 8.5pt; }
+  table.items th { background: #f0f0f0; color: #000; border-bottom: 1.5px solid #000; padding: 6px 7px; text-align: left; font-weight: bold; font-size: 8.5pt; }
   table.items th.r, table.items td.r { text-align: right; }
   table.items td { padding: 5px 6px; border-bottom: 0.5px solid #e0e0e0; vertical-align: top; }
   table.items tr.shipping-row td { background: #fafafa; font-style: italic; }
@@ -41,10 +42,10 @@ const CSS = `
   .storno-watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 72pt; font-weight: bold; color: rgba(192,24,42,0.12); pointer-events: none; white-space: nowrap; z-index: 0; }
   .notes-block { margin-top: 5mm; font-size: 9pt; color: #333; font-style: italic; }
   .totals-wrap { margin-top: 6mm; display: flex; justify-content: flex-end; }
-  .totals { width: 260px; font-size: 9.5pt; border-collapse: collapse; }
-  .totals td { padding: 2.5px 0; }
-  .totals td:last-child { text-align: right; padding-left: 12px; }
-  .totals .sep { border-top: 1px solid #aaa; }
+  .totals { width: 270px; font-size: 9.5pt; border-collapse: collapse; border: 1px solid #ddd; }
+  .totals td { padding: 3px 10px; }
+  .totals td:last-child { text-align: right; }
+  .totals .grand-total td { font-size: 10.5pt; font-weight: 900; border-top: 2px solid #000; padding-top: 6px; }
   .totals .bold td { font-weight: bold; }
   .payment-row { margin-top: 4mm; font-size: 8.5pt; color: #444; text-align: right; }
   .footer { position: fixed; bottom: 12mm; left: 25mm; right: 20mm; border-top: 0.5px solid #ccc; padding-top: 3mm; display: flex; justify-content: space-between; font-size: 7.5pt; color: #555; }
@@ -114,11 +115,8 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="company-block">
             <div className="name">KB ELEMENTS</div>
-            <div>Im Weidchen 21</div>
-            <div>52353 Düren</div>
-            <br />
-            <div>verkauf@kbelements.de</div>
-            <div>E-Mail: info@kbelements.de</div>
+            <div style={{ marginTop: "4px" }}>Im Weidchen 21 · 52353 Düren</div>
+            <div className="contact">verkauf@kbelements.de</div>
           </div>
         </div>
 
@@ -205,7 +203,7 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
                   {shippingMwst > 0 && <tr><td>zzgl. MwSt ({shippingMwst},00 %)</td><td>{fmt(shippingMwstAmt)} €</td></tr>}
                 </>
               )}
-              <tr className="bold sep"><td><strong>Rechnungsbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
+              <tr className="bold grand-total"><td><strong>Rechnungsbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
               <tr className="bold"><td><strong>Zahlbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
             </tbody>
           </table>
