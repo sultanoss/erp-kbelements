@@ -18,36 +18,37 @@ export async function GET(request: Request) {
   const to = searchParams.get("to");
   const type = searchParams.get("type") ?? "all";
 
-  // Build where clause
-  const docTypeFilter =
-    type === "rechnung" ? { docType: "rechnung" as const, status: "aktiv" as const } :
-    type === "storniert" ? { docType: "rechnung" as const, status: "storniert" as const } :
-    type === "gutschrift" ? { docType: "gutschrift" as const } :
-    // "all" — Rechnungen (aktiv+storniert) + Gutschriften, kein Angebot
-    { docType: { in: ["rechnung", "gutschrift"] as const } };
+  const dateFilter = from || to
+    ? {
+        date: {
+          ...(from ? { gte: new Date(`${from}T00:00:00`) } : {}),
+          ...(to ? { lte: new Date(`${to}T23:59:59.999`) } : {}),
+        },
+      }
+    : {};
 
   const invoices = await prisma.invoice.findMany({
     where: {
-      ...docTypeFilter,
-      ...((from || to) && {
-        date: {
-          ...(from && { gte: new Date(`${from}T00:00:00`) }),
-          ...(to && { lte: new Date(`${to}T23:59:59.999`) }),
-        },
-      }),
+      ...(type === "rechnung" ? { docType: "rechnung", status: "aktiv" } : {}),
+      ...(type === "storniert" ? { docType: "rechnung", status: "storniert" } : {}),
+      ...(type === "gutschrift" ? { docType: "gutschrift" } : {}),
+      ...(type === "all" ? { docType: { in: ["rechnung", "gutschrift"] as string[] } } : {}),
+      ...dateFilter,
     },
     include: { items: true },
     orderBy: { date: "asc" },
   });
 
-  // Build CSV rows
   const BOM = "﻿";
-  const header = ["Belegart", "Belegnummer", "Datum", "Kundennummer", "Kundenname", "Bruttobetrag", "MwSt-Satz (%)", "Nettobetrag", "MwSt-Betrag", "Status"];
+  const header = [
+    "Belegart", "Belegnummer", "Datum", "Kundennummer", "Kundenname",
+    "Bruttobetrag", "MwSt-Satz (%)", "Nettobetrag", "MwSt-Betrag", "Status",
+  ];
 
   const rows = invoices.map((inv) => {
-    const bruttoPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+    const bruttoPos = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
     const shipping = inv.shippingCost ?? 0;
-    const brutto = bruttoPositionen + shipping;
+    const brutto = bruttoPos + shipping;
     const netto = inv.mwstRate > 0 ? brutto / (1 + inv.mwstRate / 100) : brutto;
     const mwstBetrag = brutto - netto;
 
