@@ -1,15 +1,10 @@
-import Link from "next/link";
 import { AppShell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
-export default function ExportPage({
-  searchParams,
-}: {
-  searchParams?: Record<string, string>;
-}) {
+export default function ExportPage() {
   const currentYear = new Date().getFullYear();
   const defaultFrom = `${currentYear}-01-01`;
   const defaultTo = `${currentYear}-12-31`;
