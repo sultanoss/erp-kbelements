@@ -153,14 +153,6 @@ export default async function LieferscheinPage({ params }: { params: Promise<{ i
           <div>Steuer-Nr. 207/572/01773</div>
           <div>Geschäftsführer: Hassan Karime</div>
         </div>
-        <div className="col">
-          <div>Bank 1: Sparkasse Düren</div>
-          <div>IBAN: DE25 3955 0110 1201 3854 97</div>
-          <div>SWIFT: SDUEDE33XXX</div>
-          <div>Bank 2: Sparkasse Heidelberg</div>
-          <div>IBAN: DE82 6725 0020 0009 2936 55</div>
-          <div>SWIFT: SOLADES1HDB</div>
-        </div>
       </div>
       <div className="page-num">Seite: 1</div>
     </>

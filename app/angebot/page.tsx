@@ -10,14 +10,15 @@ export const dynamic = "force-dynamic";
 export default async function AngebotListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string }>;
 }) {
-  const { q, from, to } = await searchParams;
+  const { q, num, from, to } = await searchParams;
 
   const offers = await prisma.invoice.findMany({
     where: {
       docType: "angebot",
       ...(q && { customerName: { contains: q, mode: "insensitive" } }),
+      ...(num && { number: { contains: num, mode: "insensitive" } }),
       ...((from || to) && {
         date: {
           ...(from && { gte: new Date(from + "T00:00:00") }),
@@ -29,7 +30,7 @@ export default async function AngebotListPage({
     include: { items: true },
   });
 
-  const hasFilter = !!(q || from || to);
+  const hasFilter = !!(q || num || from || to);
 
   return (
     <AppShell>
@@ -45,6 +46,16 @@ export default async function AngebotListPage({
               defaultValue={q ?? ""}
               placeholder="Name suchen…"
               className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-48"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Angebots-Nr.</label>
+            <input
+              type="text"
+              name="num"
+              defaultValue={num ?? ""}
+              placeholder="AN-202607-…"
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-40"
             />
           </div>
           <div className="flex flex-col gap-1">

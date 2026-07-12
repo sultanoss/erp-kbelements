@@ -10,15 +10,16 @@ export const dynamic = "force-dynamic";
 export default async function BuchhaltungPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string }>;
 }) {
-  const { q, from, to } = await searchParams;
+  const { q, num, from, to } = await searchParams;
 
   const invoices = await prisma.invoice.findMany({
     where: {
       status: "aktiv",
       docType: "rechnung",
       ...(q && { customerName: { contains: q, mode: "insensitive" } }),
+      ...(num && { number: { contains: num, mode: "insensitive" } }),
       ...((from || to) && {
         date: {
           ...(from && { gte: new Date(from + "T00:00:00") }),
@@ -30,7 +31,7 @@ export default async function BuchhaltungPage({
     include: { items: true },
   });
 
-  const hasFilter = !!(q || from || to);
+  const hasFilter = !!(q || num || from || to);
 
   return (
     <AppShell>
@@ -47,6 +48,16 @@ export default async function BuchhaltungPage({
               defaultValue={q ?? ""}
               placeholder="Name suchen…"
               className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-48"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Rechnungs-Nr.</label>
+            <input
+              type="text"
+              name="num"
+              defaultValue={num ?? ""}
+              placeholder="RE-202607-…"
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-40"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -81,6 +92,7 @@ export default async function BuchhaltungPage({
               × Filter löschen
             </Link>
           )}
+
         </form>
 
         <Link
