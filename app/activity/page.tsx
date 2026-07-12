@@ -86,6 +86,16 @@ export default async function ActivityPage({
             Zurücksetzen
           </a>
         )}
+        <a
+          href={`/activity/export?${new URLSearchParams({
+            ...(von ? { von } : {}),
+            ...(bis ? { bis } : {}),
+            ...(typeFilter ? { type: typeFilter } : {}),
+          }).toString()}`}
+          className="h-10 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark transition-colors hover:border-brand-red hover:text-brand-red"
+        >
+          ↓ Excel
+        </a>
         <span className="ml-2 self-end pb-2 font-mono text-xs text-grey-mid">
           {logs.length} Einträge
         </span>
