@@ -3,6 +3,7 @@ import { AppShell } from "@/components/shell";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
+import { ActivityType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export default async function ActivityPage({
     orderBy: { createdAt: "desc" },
     include: { user: true },
     where: {
-      ...(typeFilter ? { type: typeFilter } : {}),
+      ...(typeFilter ? { type: typeFilter as ActivityType } : {}),
       ...(von || bis
         ? {
             createdAt: {
