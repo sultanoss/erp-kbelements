@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
-import { stornoInvoice } from "@/app/actions";
+import { StornoButton } from "@/components/storno-button";
 
 export const dynamic = "force-dynamic";
 
@@ -51,13 +51,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
               Bearbeiten
             </Link>
-            <form action={stornoInvoice.bind(null, id)}>
-              <button type="submit"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-red/40 bg-white px-3 py-1.5 font-mono text-xs font-semibold text-brand-red hover:bg-brand-red hover:text-white transition-colors"
-                onClick={(e) => { if (!confirm("Rechnung wirklich stornieren? Lagerbestand wird rückgebucht.")) e.preventDefault(); }}>
-                Stornieren
-              </button>
-            </form>
+            <StornoButton invoiceId={id} />
           </>
         )}
       </div>
