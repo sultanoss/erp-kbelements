@@ -169,7 +169,7 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
                 <td className="r">{fmt(it.quantity * it.unitPrice)} €</td>
               </tr>
             ))}
-            {shipping > 0 && (
+            {inv.shippingCost !== null && (
               <tr className="shipping-row">
                 <td>—</td>
                 <td>1,00</td>

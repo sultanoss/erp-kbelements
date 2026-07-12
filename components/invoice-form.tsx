@@ -121,7 +121,7 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus:
     setError("");
     const payload = {
       date, customerName, customerAddress, customerNum, mwstRate,
-      shippingCost: shippingVal > 0 ? shippingVal : null,
+      shippingCost: shippingCost !== "" ? shippingVal : null,
       shippingMwst,
       paymentMethod: docType === "angebot" ? "konto" : paymentMethod,
       notes,

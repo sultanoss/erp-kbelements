@@ -121,7 +121,7 @@ export default async function LieferscheinPage({ params }: { params: Promise<{ i
                 </td>
               </tr>
             ))}
-            {shipping > 0 && (
+            {inv.shippingCost !== null && (
               <tr>
                 <td>—</td>
                 <td>1,00</td>
