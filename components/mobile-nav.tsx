@@ -2,14 +2,56 @@
 
 import { useState, useEffect } from "react";
 import { Menu, X, LogOut } from "lucide-react";
+import Link from "next/link";
 import { NavLink, type IconName } from "./nav-link";
+import { type NavItem } from "./shell";
 import { logoutAction } from "@/app/actions";
 import { usePathname } from "next/navigation";
+import { clsx } from "clsx";
+import { BarChart2, Boxes, ClipboardList, Home, PackagePlus, Receipt, Shield, SlidersHorizontal, Users } from "lucide-react";
 
-type Link = { href: string; label: string; icon: IconName };
+const ICONS = { Home, Boxes, ClipboardList, PackagePlus, Shield, SlidersHorizontal, Users, BarChart2, Receipt } as const;
+
+function NavGroup({ icon, label, children }: { icon: IconName; label: string; children: { href: string; label: string }[] }) {
+  const pathname = usePathname();
+  const Icon = ICONS[icon];
+  const isAnyActive = children.some((c) =>
+    pathname === c.href || pathname.startsWith(c.href + "/")
+  );
+  return (
+    <div>
+      <div className={clsx(
+        "flex items-center gap-3 px-3 py-2 text-sm font-semibold",
+        isAnyActive ? "text-white" : "text-white/50"
+      )}>
+        <Icon className="h-4 w-4 flex-shrink-0" />
+        <span>{label}</span>
+      </div>
+      <div className="ml-4 space-y-0.5 border-l border-white/10 pl-2">
+        {children.map((c) => {
+          const isActive = c.href === "/buchhaltung/neu"
+            ? pathname.startsWith("/buchhaltung/neu")
+            : pathname.startsWith("/buchhaltung") && !pathname.startsWith("/buchhaltung/neu");
+          return (
+            <Link
+              key={c.href}
+              href={c.href}
+              className={clsx(
+                "block rounded-md px-3 py-2 text-sm font-semibold transition-all duration-150",
+                isActive ? "bg-brand-red text-white" : "text-white/50 hover:bg-white/10 hover:text-white"
+              )}
+            >
+              {c.label}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 interface MobileNavProps {
-  links: Link[];
+  links: NavItem[];
   initials: string;
   userName: string;
   userRole: string;
@@ -57,9 +99,13 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
           Navigation
         </div>
         <div className="space-y-0.5">
-          {links.map((link) => (
-            <NavLink key={link.href} href={link.href} icon={link.icon} label={link.label} />
-          ))}
+          {links.map((link) =>
+            link.children ? (
+              <NavGroup key={link.label} icon={link.icon} label={link.label} children={link.children} />
+            ) : (
+              <NavLink key={link.href} href={link.href} icon={link.icon} label={link.label} />
+            )
+          )}
         </div>
       </nav>
 

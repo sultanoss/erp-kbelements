@@ -7,20 +7,83 @@ import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function BuchhaltungPage() {
+export default async function BuchhaltungPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; from?: string; to?: string }>;
+}) {
+  const { q, from, to } = await searchParams;
+
   const invoices = await prisma.invoice.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { items: true, user: true },
+    where: {
+      ...(q && { customerName: { contains: q, mode: "insensitive" } }),
+      ...((from || to) && {
+        date: {
+          ...(from && { gte: new Date(from + "T00:00:00") }),
+          ...(to && { lte: new Date(to + "T23:59:59.999") }),
+        },
+      }),
+    },
+    orderBy: { date: "desc" },
+    include: { items: true },
   });
+
+  const hasFilter = !!(q || from || to);
 
   return (
     <AppShell>
-      <PageHeader title="Buchhaltung" eyebrow="Rechnungen" />
+      <PageHeader title="Rechnungen" eyebrow="Buchhaltung" />
 
-      <div className="mb-6 flex justify-end">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        {/* Suchformular */}
+        <form method="GET" action="/buchhaltung" className="flex flex-wrap gap-2 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kundenname</label>
+            <input
+              type="text"
+              name="q"
+              defaultValue={q ?? ""}
+              placeholder="Name suchen…"
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-48"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Von</label>
+            <input
+              type="date"
+              name="from"
+              defaultValue={from ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bis</label>
+            <input
+              type="date"
+              name="to"
+              defaultValue={to ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+            />
+          </div>
+          <button
+            type="submit"
+            className="h-9 rounded-lg bg-brand-red px-4 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors"
+          >
+            Suchen
+          </button>
+          {hasFilter && (
+            <Link
+              href="/buchhaltung"
+              className="h-9 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
+            >
+              × Filter löschen
+            </Link>
+          )}
+        </form>
+
         <Link
           href="/buchhaltung/neu"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors whitespace-nowrap"
         >
           + Neue Rechnung
         </Link>
@@ -40,8 +103,9 @@ export default async function BuchhaltungPage() {
           </thead>
           <tbody className="divide-y divide-grey-border">
             {invoices.map((inv) => {
-              const netto = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-              const brutto = netto * (1 + inv.mwstRate / 100);
+              const brutto =
+                inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0) +
+                (inv.shippingCost ?? 0);
               return (
                 <tr key={inv.id} className="transition-colors hover:bg-grey-light/60">
                   <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{inv.number}</td>
@@ -67,7 +131,9 @@ export default async function BuchhaltungPage() {
           </tbody>
         </table>
         {invoices.length === 0 && (
-          <div className="p-8 text-center font-mono text-xs text-grey-mid">Noch keine Rechnungen erstellt.</div>
+          <div className="p-8 text-center font-mono text-xs text-grey-mid">
+            {hasFilter ? "Keine Rechnungen gefunden." : "Noch keine Rechnungen erstellt."}
+          </div>
         )}
       </Panel>
     </AppShell>

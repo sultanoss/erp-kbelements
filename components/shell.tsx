@@ -4,7 +4,11 @@ import { auth } from "@/auth";
 import { MobileNav } from "./mobile-nav";
 import { type IconName } from "./nav-link";
 
-const baseLinks: { href: string; label: string; icon: IconName }[] = [
+export type NavItem =
+  | { href: string; label: string; icon: IconName; children?: never }
+  | { href?: never; label: string; icon: IconName; children: { href: string; label: string }[] };
+
+const baseLinks: NavItem[] = [
   { href: "/", label: "Dashboard", icon: "Home" },
   { href: "/inventory", label: "Lager", icon: "Boxes" },
   { href: "/sales", label: "Verkäufe", icon: "ClipboardList" },
@@ -12,14 +16,17 @@ const baseLinks: { href: string; label: string; icon: IconName }[] = [
   { href: "/receipts", label: "Wareneingang", icon: "PackagePlus" },
   { href: "/corrections", label: "Korrekturen", icon: "SlidersHorizontal" },
   { href: "/activity", label: "Protokoll", icon: "Shield" },
-  { href: "/buchhaltung", label: "Buchhaltung", icon: "Receipt" },
+  { label: "Buchhaltung", icon: "Receipt", children: [
+    { href: "/buchhaltung", label: "Rechnungen" },
+    { href: "/buchhaltung/neu", label: "Neue Rechnung" },
+  ]},
 ];
 
 export async function AppShell({ children }: { children: ReactNode }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const links =
+  const links: NavItem[] =
     session.user.role === "ADMIN"
       ? [...baseLinks, { href: "/admin/users", label: "Benutzer", icon: "Users" as IconName }]
       : baseLinks;
