@@ -17,6 +17,7 @@ export default async function BuchhaltungPage({
   const invoices = await prisma.invoice.findMany({
     where: {
       status: "aktiv",
+      docType: "rechnung",
       ...(q && { customerName: { contains: q, mode: "insensitive" } }),
       ...((from || to) && {
         date: {

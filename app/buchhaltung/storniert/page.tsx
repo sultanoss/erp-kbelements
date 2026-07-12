@@ -17,6 +17,7 @@ export default async function StorniertPage({
   const invoices = await prisma.invoice.findMany({
     where: {
       status: "storniert",
+      docType: "rechnung",
       ...(q && { customerName: { contains: q, mode: "insensitive" } }),
       ...((from || to) && {
         date: {
