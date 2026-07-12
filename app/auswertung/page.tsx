@@ -129,7 +129,7 @@ export default async function AuswertungPage({
             href={`/auswertung?von=${fromStr}&bis=${toStr}`}
             className="h-10 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
           >
-            × SKU löschen
+            Zurücksetzen
           </a>
         )}
         {(totalSales > 0 || totalHerdsets > 0) && (

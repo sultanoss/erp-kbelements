@@ -19,30 +19,37 @@ function NavGroup({ icon, label, children }: { icon: IconName; label: string; ch
   const sorted = [...children].sort((a, b) => b.href.length - a.href.length);
   const activeChild = sorted.find((c) => pathname === c.href || pathname.startsWith(c.href + "/"));
   const isAnyActive = !!activeChild;
+  const [open, setOpen] = useState(true);
 
   return (
     <div>
-      <div className={clsx(
-        "flex items-center gap-3 px-3 py-2 text-sm font-semibold",
-        isAnyActive ? "text-white" : "text-white/50"
-      )}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={clsx(
+          "flex w-full items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors",
+          isAnyActive ? "text-white" : "text-white/50 hover:text-white/80"
+        )}
+      >
         <Icon className="h-4 w-4 flex-shrink-0" />
-        <span>{label}</span>
-      </div>
-      <div className="ml-4 space-y-0.5 border-l border-white/10 pl-2">
-        {children.map((c) => (
-          <Link
-            key={c.href}
-            href={c.href}
-            className={clsx(
-              "block rounded-md px-3 py-2 text-sm font-semibold transition-all duration-150",
-              activeChild === c ? "bg-brand-red text-white" : "text-white/50 hover:bg-white/10 hover:text-white"
-            )}
-          >
-            {c.label}
-          </Link>
-        ))}
-      </div>
+        <span className="flex-1 text-left">{label}</span>
+        <span className="font-mono text-[10px] text-white/30">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div className="ml-4 space-y-0.5 border-l border-white/10 pl-2">
+          {children.map((c) => (
+            <Link
+              key={c.href}
+              href={c.href}
+              className={clsx(
+                "block rounded-md px-3 py-2 text-sm font-semibold transition-all duration-150",
+                activeChild === c ? "bg-brand-red text-white" : "text-white/50 hover:bg-white/10 hover:text-white"
+              )}
+            >
+              {c.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -98,7 +105,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
         <div className="space-y-0.5">
           {links.map((link) => (
             <div key={link.label}>
-              {link.separator && <div className="mx-3 my-2 border-t border-white/10" />}
+              {link.separator && <div className="mx-3 my-2 border-t border-white/25" />}
               {link.children ? (
                 <NavGroup icon={link.icon} label={link.label} children={link.children} />
               ) : (
