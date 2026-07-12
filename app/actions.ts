@@ -276,6 +276,130 @@ export async function createInvoice(data: {
   redirect(`/buchhaltung/${invoice.id}`);
 }
 
+export async function stornoInvoice(id: string) {
+  await requireUser();
+  const inv = await prisma.invoice.findUnique({
+    where: { id },
+    include: { items: { include: { skus: true } } },
+  });
+  if (!inv || inv.status !== "aktiv") return;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.invoice.update({
+      where: { id },
+      data: { status: "storniert", storniertAt: new Date() },
+    });
+    for (const it of inv.items) {
+      const qty = Math.round(it.quantity);
+      for (const s of it.skus) {
+        if (!s.sku) continue;
+        const item = await tx.item.findUnique({ where: { sku: s.sku } });
+        if (!item) continue;
+        if (s.lager === "ns") {
+          await tx.item.update({ where: { sku: s.sku }, data: { stockNS: item.stockNS + qty } });
+        } else {
+          await tx.item.update({ where: { sku: s.sku }, data: { stock: item.stock + qty } });
+        }
+      }
+    }
+  });
+
+  revalidatePath("/buchhaltung");
+  revalidatePath("/inventory");
+  revalidatePath("/");
+  redirect("/buchhaltung");
+}
+
+export async function updateInvoice(
+  invoiceId: string,
+  data: {
+    date: string;
+    customerName: string;
+    customerAddress: string;
+    customerNum: string;
+    mwstRate: number;
+    notes: string;
+    paymentInfo: string | null;
+    shippingCost: number | null;
+    paymentMethod: string;
+    items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
+  }
+) {
+  await requireUser();
+
+  await prisma.$transaction(async (tx) => {
+    // Alten Lagerbestand rückbuchen
+    const old = await tx.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { items: { include: { skus: true } } },
+    });
+    if (old) {
+      for (const it of old.items) {
+        const qty = Math.round(it.quantity);
+        for (const s of it.skus) {
+          if (!s.sku) continue;
+          const item = await tx.item.findUnique({ where: { sku: s.sku } });
+          if (!item) continue;
+          if (s.lager === "ns") {
+            await tx.item.update({ where: { sku: s.sku }, data: { stockNS: item.stockNS + qty } });
+          } else {
+            await tx.item.update({ where: { sku: s.sku }, data: { stock: item.stock + qty } });
+          }
+        }
+      }
+    }
+
+    // Alte Items löschen (Cascade löscht InvoiceItemSku)
+    await tx.invoiceItem.deleteMany({ where: { invoiceId } });
+
+    // Invoice-Header + neue Items aktualisieren
+    await tx.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        date: new Date(`${data.date}T00:00:00`),
+        customerName: data.customerName,
+        customerAddress: data.customerAddress,
+        customerNum: data.customerNum || null,
+        mwstRate: data.mwstRate,
+        shippingCost: data.shippingCost,
+        paymentMethod: data.paymentMethod,
+        notes: data.notes || null,
+        paymentInfo: data.paymentInfo || null,
+        items: {
+          create: data.items.map((it) => ({
+            pos: it.pos,
+            quantity: it.quantity,
+            description: it.description,
+            unitPrice: it.unitPrice,
+            skus: { create: it.skus.map((s) => ({ sku: s.sku, lager: s.lager })) },
+          })),
+        },
+      },
+    });
+
+    // Neuen Lagerbestand abbuchen
+    for (const it of data.items) {
+      const qty = Math.round(it.quantity);
+      for (const s of it.skus) {
+        if (!s.sku) continue;
+        const item = await tx.item.findUnique({ where: { sku: s.sku } });
+        if (!item) continue;
+        if (s.lager === "ns") {
+          await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+        } else {
+          await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+        }
+      }
+    }
+  });
+
+  revalidatePath("/buchhaltung");
+  revalidatePath(`/buchhaltung/${invoiceId}`);
+  revalidatePath("/inventory");
+  revalidatePath("/");
+  redirect(`/buchhaltung/${invoiceId}`);
+}
+
 export async function upsertUser(formData: FormData) {
   const actor = await requireAdmin();
   const id = text(formData, "id");

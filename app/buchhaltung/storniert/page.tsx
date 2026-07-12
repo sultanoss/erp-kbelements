@@ -7,7 +7,7 @@ import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function BuchhaltungPage({
+export default async function StorniertPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; from?: string; to?: string }>;
@@ -16,7 +16,7 @@ export default async function BuchhaltungPage({
 
   const invoices = await prisma.invoice.findMany({
     where: {
-      status: "aktiv",
+      status: "storniert",
       ...(q && { customerName: { contains: q, mode: "insensitive" } }),
       ...((from || to) && {
         date: {
@@ -25,7 +25,7 @@ export default async function BuchhaltungPage({
         },
       }),
     },
-    orderBy: { date: "desc" },
+    orderBy: { storniertAt: "desc" },
     include: { items: true },
   });
 
@@ -33,11 +33,10 @@ export default async function BuchhaltungPage({
 
   return (
     <AppShell>
-      <PageHeader title="Rechnungen" eyebrow="Buchhaltung" />
+      <PageHeader title="Stornierte Rechnungen" eyebrow="Buchhaltung" />
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        {/* Suchformular */}
-        <form method="GET" action="/buchhaltung" className="flex flex-wrap gap-2 items-end">
+        <form method="GET" action="/buchhaltung/storniert" className="flex flex-wrap gap-2 items-end">
           <div className="flex flex-col gap-1">
             <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kundenname</label>
             <input
@@ -74,31 +73,24 @@ export default async function BuchhaltungPage({
           </button>
           {hasFilter && (
             <Link
-              href="/buchhaltung"
+              href="/buchhaltung/storniert"
               className="h-9 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
             >
               × Filter löschen
             </Link>
           )}
         </form>
-
-        <Link
-          href="/buchhaltung/neu"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors whitespace-nowrap"
-        >
-          + Neue Rechnung
-        </Link>
       </div>
 
       <Panel className="overflow-x-auto">
-        <table className="w-full min-w-[600px] text-left text-sm">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
             <tr className="border-b border-grey-border bg-grey-light">
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Rechnungs-Nr.</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunde</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">MwSt.</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Betrag</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Storniert am</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>
             </tr>
           </thead>
@@ -109,22 +101,16 @@ export default async function BuchhaltungPage({
                 (inv.shippingCost ?? 0);
               return (
                 <tr key={inv.id} className="transition-colors hover:bg-grey-light/60">
-                  <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{inv.number}</td>
+                  <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red line-through opacity-60">{inv.number}</td>
                   <td className="px-4 py-3 font-mono text-xs text-grey-mid">{formatDate(inv.date)}</td>
                   <td className="px-4 py-3 text-sm text-grey-dark">{inv.customerName}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-grey-mid">{inv.mwstRate} %</td>
-                  <td className="px-4 py-3 font-mono tabular-nums text-sm font-bold text-grey-dark text-right">{brutto.toFixed(2)} €</td>
+                  <td className="px-4 py-3 font-mono tabular-nums text-sm text-grey-mid text-right line-through">{brutto.toFixed(2)} €</td>
+                  <td className="px-4 py-3 font-mono text-xs text-brand-red">{inv.storniertAt ? formatDate(inv.storniertAt) : "—"}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <Link href={`/buchhaltung/${inv.id}`}
-                        className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
-                        Ansehen
-                      </Link>
-                      <Link href={`/buchhaltung/${inv.id}/drucken`} target="_blank"
-                        className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
-                        Drucken
-                      </Link>
-                    </div>
+                    <Link href={`/buchhaltung/${inv.id}`}
+                      className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+                      Ansehen
+                    </Link>
                   </td>
                 </tr>
               );
@@ -133,7 +119,7 @@ export default async function BuchhaltungPage({
         </table>
         {invoices.length === 0 && (
           <div className="p-8 text-center font-mono text-xs text-grey-mid">
-            {hasFilter ? "Keine Rechnungen gefunden." : "Noch keine Rechnungen erstellt."}
+            {hasFilter ? "Keine stornierten Rechnungen gefunden." : "Keine stornierten Rechnungen vorhanden."}
           </div>
         )}
       </Panel>

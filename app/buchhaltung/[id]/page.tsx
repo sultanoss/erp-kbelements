@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import { stornoInvoice } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,16 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     <AppShell>
       <PageHeader title={inv.number} eyebrow="Rechnung" />
 
-      <div className="mb-4 flex gap-2">
+      {inv.status === "storniert" && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3">
+          <span className="rounded bg-brand-red px-2 py-0.5 font-mono text-xs font-bold text-white">STORNIERT</span>
+          <span className="font-mono text-sm text-grey-mid">
+            {inv.storniertAt ? formatDate(inv.storniertAt) : ""}
+          </span>
+        </div>
+      )}
+
+      <div className="mb-4 flex flex-wrap gap-2">
         <Link href="/buchhaltung"
           className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors">
           ← Alle Rechnungen
@@ -35,6 +45,21 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           className="inline-flex items-center gap-1.5 rounded-lg bg-brand-red px-3 py-1.5 font-mono text-xs font-semibold text-white hover:bg-brand-red-dark transition-colors">
           Drucken / PDF
         </Link>
+        {inv.status === "aktiv" && (
+          <>
+            <Link href={`/buchhaltung/${id}/bearbeiten`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+              Bearbeiten
+            </Link>
+            <form action={stornoInvoice.bind(null, id)}>
+              <button type="submit"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-red/40 bg-white px-3 py-1.5 font-mono text-xs font-semibold text-brand-red hover:bg-brand-red hover:text-white transition-colors"
+                onClick={(e) => { if (!confirm("Rechnung wirklich stornieren? Lagerbestand wird rückgebucht.")) e.preventDefault(); }}>
+                Stornieren
+              </button>
+            </form>
+          </>
+        )}
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">

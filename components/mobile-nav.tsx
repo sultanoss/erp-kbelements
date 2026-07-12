@@ -29,9 +29,17 @@ function NavGroup({ icon, label, children }: { icon: IconName; label: string; ch
       </div>
       <div className="ml-4 space-y-0.5 border-l border-white/10 pl-2">
         {children.map((c) => {
-          const isActive = c.href === "/buchhaltung/neu"
-            ? pathname.startsWith("/buchhaltung/neu")
-            : pathname.startsWith("/buchhaltung") && !pathname.startsWith("/buchhaltung/neu");
+          let isActive: boolean;
+          if (c.href === "/buchhaltung/neu") {
+            isActive = pathname.startsWith("/buchhaltung/neu") || pathname.endsWith("/bearbeiten");
+          } else if (c.href === "/buchhaltung/storniert") {
+            isActive = pathname.startsWith("/buchhaltung/storniert");
+          } else {
+            isActive = pathname.startsWith("/buchhaltung")
+              && !pathname.startsWith("/buchhaltung/neu")
+              && !pathname.startsWith("/buchhaltung/storniert")
+              && !pathname.endsWith("/bearbeiten");
+          }
           return (
             <Link
               key={c.href}

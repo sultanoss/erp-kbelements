@@ -132,6 +132,8 @@ model Invoice {
   paymentMethod   String        @default("konto")
   notes           String?
   paymentInfo     String?
+  status          String        @default("aktiv")
+  storniertAt     DateTime?
   createdAt       DateTime      @default(now())
   userId          String
   user            User          @relation(fields: [userId], references: [id])
@@ -139,6 +141,7 @@ model Invoice {
 
   @@index([date])
   @@index([number])
+  @@index([status])
 }
 
 model InvoiceItem {

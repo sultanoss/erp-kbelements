@@ -17,8 +17,9 @@ const baseLinks: NavItem[] = [
   { href: "/corrections", label: "Korrekturen", icon: "SlidersHorizontal" },
   { href: "/activity", label: "Protokoll", icon: "Shield" },
   { label: "Buchhaltung", icon: "Receipt", children: [
-    { href: "/buchhaltung", label: "Rechnungen" },
-    { href: "/buchhaltung/neu", label: "Neue Rechnung" },
+    { href: "/buchhaltung",           label: "Rechnungen"    },
+    { href: "/buchhaltung/storniert", label: "Storniert"     },
+    { href: "/buchhaltung/neu",       label: "Neue Rechnung" },
   ]},
 ];
 

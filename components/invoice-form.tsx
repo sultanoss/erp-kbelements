@@ -1,11 +1,25 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
-import { createInvoice } from "@/app/actions";
+import { createInvoice, updateInvoice } from "@/app/actions";
 
 type SkuEntry = { id: number; sku: string; lager: string };
 type LineItem = { id: number; pos: number; quantity: number; description: string; unitPrice: number; skus: SkuEntry[] };
 type SkuData = { sku: string; name: string; stock: number; stockNS: number };
+
+export type InvoiceInitialData = {
+  invoiceId: string;
+  date: string;
+  customerName: string;
+  customerAddress: string;
+  customerNum: string;
+  mwstRate: number;
+  shippingCost: string;
+  paymentMethod: "konto" | "bar";
+  paymentInfo: string;
+  notes: string;
+  items: LineItem[];
+};
 
 const today = new Date().toISOString().slice(0, 10);
 let nextId = 1;
@@ -15,11 +29,11 @@ function newLine(pos: number): LineItem {
   return { id: nextId++, pos, quantity: 1, description: "", unitPrice: 0, skus: [{ id: nextSkuId++, sku: "", lager: "neuware" }] };
 }
 
-export function InvoiceForm({ skus }: { skus: SkuData[] }) {
-  const [items, setItems] = useState<LineItem[]>([newLine(1)]);
-  const [mwstRate, setMwstRate] = useState(19);
-  const [shippingCost, setShippingCost] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">("konto");
+export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialData?: InvoiceInitialData }) {
+  const [items, setItems] = useState<LineItem[]>(initialData?.items ?? [newLine(1)]);
+  const [mwstRate, setMwstRate] = useState(initialData?.mwstRate ?? 19);
+  const [shippingCost, setShippingCost] = useState<string>(initialData?.shippingCost ?? "");
+  const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">(initialData?.paymentMethod ?? "konto");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -96,21 +110,26 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
     if (items.some((it) => !it.description)) { setError("Alle Positionen brauchen eine Bezeichnung"); return; }
 
     setError("");
+    const payload = {
+      date, customerName, customerAddress, customerNum, mwstRate,
+      shippingCost: shippingVal > 0 ? shippingVal : null,
+      paymentMethod,
+      notes,
+      paymentInfo: paymentInfo || null,
+      items: items.map((it) => ({
+        pos: it.pos,
+        quantity: it.quantity,
+        description: it.description,
+        unitPrice: it.unitPrice,
+        skus: it.skus.filter((s) => s.sku).map((s) => ({ sku: s.sku, lager: s.lager })),
+      })),
+    };
     startTransition(() => {
-      createInvoice({
-        date, customerName, customerAddress, customerNum, mwstRate,
-        shippingCost: shippingVal > 0 ? shippingVal : null,
-        paymentMethod,
-        notes,
-        paymentInfo: paymentInfo || null,
-        items: items.map((it) => ({
-          pos: it.pos,
-          quantity: it.quantity,
-          description: it.description,
-          unitPrice: it.unitPrice,
-          skus: it.skus.filter((s) => s.sku).map((s) => ({ sku: s.sku, lager: s.lager })),
-        })),
-      });
+      if (initialData) {
+        updateInvoice(initialData.invoiceId, payload);
+      } else {
+        createInvoice(payload);
+      }
     });
   }
 
@@ -120,12 +139,12 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
       <div className="grid gap-4 md:grid-cols-3">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</label>
-          <input name="date" type="date" defaultValue={today}
+          <input name="date" type="date" defaultValue={initialData?.date ?? today}
             className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
         </div>
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunden-Nr. (optional)</label>
-          <input name="customerNum" type="text" placeholder="z.B. 18043"
+          <input name="customerNum" type="text" defaultValue={initialData?.customerNum ?? ""} placeholder="z.B. 18043"
             className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
         </div>
         <div className="flex items-end gap-4">
@@ -144,12 +163,12 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kundenname *</label>
-          <input name="customerName" type="text" placeholder="Max Mustermann" required
+          <input name="customerName" type="text" defaultValue={initialData?.customerName ?? ""} placeholder="Max Mustermann" required
             className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
         </div>
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Adresse</label>
-          <textarea name="customerAddress" rows={2} placeholder={"Musterstraße 1\n12345 Musterstadt"}
+          <textarea name="customerAddress" rows={2} defaultValue={initialData?.customerAddress ?? ""} placeholder={"Musterstraße 1\n12345 Musterstadt"}
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
         </div>
       </div>
@@ -312,7 +331,7 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Notiz (erscheint auf Rechnung)</label>
-          <textarea name="notes" rows={2} placeholder="z.B. Angebots-Nr., Lieferbedingungen ..."
+          <textarea name="notes" rows={2} defaultValue={initialData?.notes ?? ""} placeholder="z.B. Angebots-Nr., Lieferbedingungen ..."
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
         </div>
         <div className="grid gap-3">
@@ -332,7 +351,7 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
           {paymentMethod === "konto" && (
             <div className="grid gap-1.5">
               <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation</label>
-              <textarea name="paymentInfo" rows={2}
+              <textarea name="paymentInfo" rows={2} defaultValue={initialData?.paymentInfo ?? ""}
                 placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
                 className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
             </div>
@@ -345,13 +364,15 @@ export function InvoiceForm({ skus }: { skus: SkuData[] }) {
       )}
 
       <div className="flex justify-between items-center">
-        <button type="button" onClick={handleReset}
-          className="rounded-lg border border-grey-border bg-white px-5 py-2.5 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
-          Zurücksetzen
-        </button>
+        {!initialData ? (
+          <button type="button" onClick={handleReset}
+            className="rounded-lg border border-grey-border bg-white px-5 py-2.5 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+            Zurücksetzen
+          </button>
+        ) : <div />}
         <button type="submit" disabled={isPending}
           className="rounded-lg bg-brand-red px-6 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50 transition-colors">
-          {isPending ? "Wird erstellt…" : "Rechnung erstellen"}
+          {isPending ? "Wird gespeichert…" : initialData ? "Korrektur speichern" : "Rechnung erstellen"}
         </button>
       </div>
     </form>

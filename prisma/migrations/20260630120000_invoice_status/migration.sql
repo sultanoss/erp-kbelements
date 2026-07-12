@@ -1,0 +1,3 @@
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "status" TEXT NOT NULL DEFAULT 'aktiv';
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "storniertAt" TIMESTAMP WITH TIME ZONE;
+CREATE INDEX IF NOT EXISTS "Invoice_status_idx" ON "Invoice"("status");
