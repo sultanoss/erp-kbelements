@@ -292,6 +292,61 @@ export async function createInvoice(data: {
   redirect(`/buchhaltung/${invoice.id}`);
 }
 
+export async function createGutschrift(originalInvoiceId: string, formData: FormData) {
+  const user = await requireUser();
+
+  const inv = await prisma.invoice.findUnique({
+    where: { id: originalInvoiceId },
+    select: { number: true, customerName: true, customerAddress: true, customerNum: true, mwstRate: true },
+  });
+  if (!inv) return;
+
+  const betragRaw = String(formData.get("betrag") ?? "").replace(",", ".");
+  const betrag = parseFloat(betragRaw);
+  if (!betrag || betrag <= 0) return;
+
+  const datumRaw = String(formData.get("datum") ?? "");
+  const notiz = String(formData.get("notiz") ?? "").trim();
+
+  const now = new Date();
+  const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const prefix = `GS-${ym}-`;
+
+  const last = await prisma.invoice.findFirst({
+    where: { number: { startsWith: prefix }, docType: "gutschrift" },
+    orderBy: { number: "desc" },
+  });
+  const seq = last ? parseInt(last.number.split("-")[2] ?? "0", 10) + 1 : 10001;
+  const number = `${prefix}${seq}`;
+
+  const invoice = await prisma.invoice.create({
+    data: {
+      number,
+      date: datumRaw ? new Date(`${datumRaw}T00:00:00`) : now,
+      customerName: inv.customerName,
+      customerAddress: inv.customerAddress ?? "",
+      customerNum: inv.customerNum ?? null,
+      mwstRate: inv.mwstRate,
+      shippingCost: null,
+      shippingMwst: 19,
+      paymentMethod: "konto",
+      notes: notiz || null,
+      paymentInfo: null,
+      docType: "gutschrift",
+      originalInvoiceId,
+      originalInvoiceNum: inv.number,
+      userId: user.id,
+      items: {
+        create: [{ pos: 1, quantity: 1, description: `Gutschrift zu ${inv.number}`, unitPrice: betrag, skus: { create: [] } }],
+      },
+    },
+  });
+
+  revalidatePath("/gutschrift");
+  revalidatePath("/buchhaltung");
+  redirect(`/gutschrift/${invoice.id}`);
+}
+
 export async function stornoInvoice(id: string) {
   await requireUser();
   const inv = await prisma.invoice.findUnique({
