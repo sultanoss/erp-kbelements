@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const today = new Date().toISOString().slice(0, 10);
   const XLSX = await import("xlsx");
 
-  const headers = ["Artikel", "Otto", "Kaufland", "Media Markt", "Amazon", "Ebay"];
+  const headers = ["Artikel", "Otto", "Kaufland", "Media Markt", "Amazon", "Ebay", "Shopify"];
 
   let rows: string[][];
   let sheetName: string;
@@ -50,11 +50,11 @@ export async function GET(req: NextRequest) {
     ws["!cols"] = [{ wch: 22 }, { wch: 10 }];
   } else {
     const items = await prisma.item.findMany({ orderBy: { createdAt: "asc" }, select: { sku: true } });
-    const rows = items.map((i) => [i.sku, "", "", "", "", ""]);
+    const rows = items.map((i) => [i.sku, "", "", "", "", "", ""]);
     sheetName = "Verkäufe";
     filename = `verkaufe-${today}.xlsx`;
     ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    ws["!cols"] = [{ wch: 20 }, { wch: 8 }, { wch: 10 }, { wch: 12 }, { wch: 8 }, { wch: 8 }];
+    ws["!cols"] = [{ wch: 20 }, { wch: 8 }, { wch: 10 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 10 }];
   }
 
   const wb = XLSX.utils.book_new();
