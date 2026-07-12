@@ -55,7 +55,6 @@ export default async function GutschriftDetailPage({ params }: { params: Promise
             <div className="flex justify-between"><dt className="text-grey-mid">GS-Nr.</dt><dd className="font-semibold text-brand-red">{gs.number}</dd></div>
             <div className="flex justify-between"><dt className="text-grey-mid">Datum</dt><dd>{formatDate(gs.date)}</dd></div>
             <div className="flex justify-between"><dt className="text-grey-mid">MwSt.</dt><dd>{gs.mwstRate} %</dd></div>
-            <div className="flex justify-between"><dt className="text-grey-mid">Erstellt von</dt><dd>{gs.user.name}</dd></div>
           </dl>
         </Panel>
         <Panel className="p-5">
