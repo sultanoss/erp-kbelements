@@ -93,7 +93,6 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
 
   const totalNetto = productNetto + shippingNetto;
   const totalMwstAmt = productMwstAmt + shippingMwstAmt;
-  const offenerBetrag = (inv.paymentMethod === "bar" || inv.paymentInfo) ? 0 : bruttoGesamt;
   const isStorniert = inv.status === "storniert";
 
   return (
@@ -107,14 +106,14 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
         {/* Header */}
         <div className="header-bar">
           <div style={{ maxWidth: "55%" }}>
-            <div className="sender-small">KB ELEMENTS · Im Weidchen 21 · 52353 Düren</div>
+            <div className="sender-small">KB ELEMENTS GmbH · Im Weidchen 21 · 52353 Düren</div>
             <div className="customer-block">
               <div style={{ fontWeight: "bold" }}>{inv.customerName}</div>
               <div style={{ whiteSpace: "pre-line" }}>{inv.customerAddress}</div>
             </div>
           </div>
           <div className="company-block">
-            <div className="name">KB ELEMENTS</div>
+            <div className="name">KB ELEMENTS GmbH</div>
             <div style={{ marginTop: "4px" }}>Im Weidchen 21 · 52353 Düren</div>
             <div className="contact">verkauf@kbelements.de</div>
           </div>
@@ -215,7 +214,6 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
             ? <div>Bezahlt: Bar</div>
             : inv.paymentInfo && <div>{inv.paymentInfo} {fmt(bruttoGesamt)} €</div>
           }
-          <div style={{ fontWeight: "bold", marginTop: "2px" }}>Offener Betrag {fmt(offenerBetrag)} €</div>
         </div>
       </div>
 
