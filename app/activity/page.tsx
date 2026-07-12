@@ -20,16 +20,76 @@ const typeBadge: Record<string, string> = {
   USER_CHANGE: "text-grey-mid border-grey-border bg-grey-light",
 };
 
-export default async function ActivityPage() {
+export default async function ActivityPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ von?: string; bis?: string; type?: string }>;
+}) {
+  const { von, bis, type: typeFilter } = await searchParams;
+
   const logs = await prisma.activityLog.findMany({
-    take: 80,
+    take: 200,
     orderBy: { createdAt: "desc" },
     include: { user: true },
+    where: {
+      ...(typeFilter ? { type: typeFilter } : {}),
+      ...(von || bis
+        ? {
+            createdAt: {
+              ...(von ? { gte: new Date(`${von}T00:00:00`) } : {}),
+              ...(bis ? { lte: new Date(`${bis}T23:59:59`) } : {}),
+            },
+          }
+        : {}),
+    },
   });
+
+  const inputClass = "h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
+  const labelClass = "font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid";
+  const hasFilter = !!(typeFilter || von || bis);
 
   return (
     <AppShell>
       <PageHeader title="Aktivitätsprotokoll" eyebrow="Jede wichtige Änderung" />
+
+      <form method="GET" className="mb-6 flex flex-wrap items-end gap-3">
+        <label className="grid gap-1.5">
+          <span className={labelClass}>Von</span>
+          <input name="von" type="date" defaultValue={von ?? ""} className={inputClass} />
+        </label>
+        <label className="grid gap-1.5">
+          <span className={labelClass}>Bis</span>
+          <input name="bis" type="date" defaultValue={bis ?? ""} className={inputClass} />
+        </label>
+        <label className="grid gap-1.5">
+          <span className={labelClass}>Typ</span>
+          <select name="type" defaultValue={typeFilter ?? ""} className={inputClass}>
+            <option value="">Alle</option>
+            <option value="SALE">Verkauf</option>
+            <option value="RECEIPT">Wareneingang</option>
+            <option value="CORRECTION">Korrektur</option>
+            <option value="USER_CHANGE">Benutzeränderung</option>
+          </select>
+        </label>
+        <button
+          type="submit"
+          className="h-10 rounded-lg bg-brand-red px-4 text-sm font-semibold text-white hover:bg-brand-red-dark"
+        >
+          Anzeigen
+        </button>
+        {hasFilter && (
+          <a
+            href="/activity"
+            className="h-10 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark transition-colors hover:border-brand-red hover:text-brand-red"
+          >
+            Zurücksetzen
+          </a>
+        )}
+        <span className="ml-2 self-end pb-2 font-mono text-xs text-grey-mid">
+          {logs.length} Einträge
+        </span>
+      </form>
+
       <Panel className="overflow-x-auto">
         <table className="w-full min-w-[800px] text-left text-sm">
           <thead>
@@ -61,7 +121,7 @@ export default async function ActivityPage() {
             ))}
           </tbody>
         </table>
-        {logs.length === 0 && <div className="p-8 text-center font-mono text-xs text-grey-mid">Noch keine Aktivitäten.</div>}
+        {logs.length === 0 && <div className="p-8 text-center font-mono text-xs text-grey-mid">Keine Einträge gefunden.</div>}
       </Panel>
     </AppShell>
   );

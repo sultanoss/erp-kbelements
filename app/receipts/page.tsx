@@ -8,11 +8,34 @@ import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReceiptsPage() {
+export default async function ReceiptsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ von?: string; bis?: string }>;
+}) {
+  const { von, bis } = await searchParams;
+
   const [items, receipts] = await Promise.all([
     prisma.item.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.receipt.findMany({ take: 30, orderBy: { createdAt: "desc" }, include: { user: true } }),
+    prisma.receipt.findMany({
+      take: von || bis ? 500 : 30,
+      orderBy: { date: "desc" },
+      include: { user: true },
+      where: {
+        ...(von || bis
+          ? {
+              date: {
+                ...(von ? { gte: new Date(`${von}T00:00:00`) } : {}),
+                ...(bis ? { lte: new Date(`${bis}T23:59:59`) } : {}),
+              },
+            }
+          : {}),
+      },
+    }),
   ]);
+
+  const inputClass = "h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
+  const hasFilter = !!(von || bis);
 
   return (
     <AppShell>
@@ -58,8 +81,28 @@ export default async function ReceiptsPage() {
 
       {/* Tabelle */}
       <Panel className="overflow-x-auto">
-        <div className="flex items-center gap-3 border-b border-grey-border px-5 py-4">
-          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Letzte Wareneingänge</div>
+        <div className="flex flex-wrap items-center gap-3 border-b border-grey-border px-5 py-4">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
+            Letzte Wareneingänge
+          </div>
+          <form method="GET" className="ml-auto flex flex-wrap items-center gap-2">
+            <input name="von" type="date" defaultValue={von ?? ""} className={inputClass} />
+            <input name="bis" type="date" defaultValue={bis ?? ""} className={inputClass} />
+            <button
+              type="submit"
+              className="h-9 rounded-lg bg-brand-red px-3 text-sm font-semibold text-white hover:bg-brand-red-dark"
+            >
+              Anzeigen
+            </button>
+            {hasFilter && (
+              <a
+                href="/receipts"
+                className="h-9 inline-flex items-center rounded-lg border border-grey-border bg-white px-3 font-mono text-sm font-semibold text-grey-dark transition-colors hover:border-brand-red hover:text-brand-red"
+              >
+                Zurücksetzen
+              </a>
+            )}
+          </form>
         </div>
         <table className="w-full min-w-[500px] text-left text-sm">
           <thead><tr className="border-b border-grey-border bg-grey-light">
@@ -79,7 +122,7 @@ export default async function ReceiptsPage() {
             ))}
           </tbody>
         </table>
-        {receipts.length === 0 && <div className="p-8 text-center font-mono text-xs text-grey-mid">Noch keine Wareneingänge.</div>}
+        {receipts.length === 0 && <div className="p-8 text-center font-mono text-xs text-grey-mid">Keine Wareneingänge gefunden.</div>}
       </Panel>
     </AppShell>
   );
