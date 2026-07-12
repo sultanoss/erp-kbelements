@@ -32,6 +32,7 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
     customerNum: inv.customerNum ?? "",
     mwstRate: inv.mwstRate,
     shippingCost: inv.shippingCost != null ? String(inv.shippingCost) : "",
+    shippingMwst: inv.shippingMwst ?? 19,
     paymentMethod: inv.paymentMethod === "bar" ? "bar" : "konto",
     paymentInfo: inv.paymentInfo ?? "",
     notes: inv.notes ?? "",

@@ -8,16 +8,18 @@ import { type NavItem } from "./shell";
 import { logoutAction } from "@/app/actions";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { BarChart2, Boxes, ClipboardList, Home, PackagePlus, Receipt, Shield, SlidersHorizontal, Users } from "lucide-react";
+import { BarChart2, Boxes, ClipboardList, FileText, Home, PackagePlus, Receipt, Shield, SlidersHorizontal, Users } from "lucide-react";
 
-const ICONS = { Home, Boxes, ClipboardList, PackagePlus, Shield, SlidersHorizontal, Users, BarChart2, Receipt } as const;
+const ICONS = { Home, Boxes, ClipboardList, PackagePlus, Shield, SlidersHorizontal, Users, BarChart2, Receipt, FileText } as const;
 
 function NavGroup({ icon, label, children }: { icon: IconName; label: string; children: { href: string; label: string }[] }) {
   const pathname = usePathname();
   const Icon = ICONS[icon];
-  const isAnyActive = children.some((c) =>
-    pathname === c.href || pathname.startsWith(c.href + "/")
-  );
+  // Generic longest-prefix-wins logic: the most specific matching child is active
+  const sorted = [...children].sort((a, b) => b.href.length - a.href.length);
+  const activeChild = sorted.find((c) => pathname === c.href || pathname.startsWith(c.href + "/"));
+  const isAnyActive = !!activeChild;
+
   return (
     <div>
       <div className={clsx(
@@ -28,31 +30,18 @@ function NavGroup({ icon, label, children }: { icon: IconName; label: string; ch
         <span>{label}</span>
       </div>
       <div className="ml-4 space-y-0.5 border-l border-white/10 pl-2">
-        {children.map((c) => {
-          let isActive: boolean;
-          if (c.href === "/buchhaltung/neu") {
-            isActive = pathname.startsWith("/buchhaltung/neu") || pathname.endsWith("/bearbeiten");
-          } else if (c.href === "/buchhaltung/storniert") {
-            isActive = pathname.startsWith("/buchhaltung/storniert");
-          } else {
-            isActive = pathname.startsWith("/buchhaltung")
-              && !pathname.startsWith("/buchhaltung/neu")
-              && !pathname.startsWith("/buchhaltung/storniert")
-              && !pathname.endsWith("/bearbeiten");
-          }
-          return (
-            <Link
-              key={c.href}
-              href={c.href}
-              className={clsx(
-                "block rounded-md px-3 py-2 text-sm font-semibold transition-all duration-150",
-                isActive ? "bg-brand-red text-white" : "text-white/50 hover:bg-white/10 hover:text-white"
-              )}
-            >
-              {c.label}
-            </Link>
-          );
-        })}
+        {children.map((c) => (
+          <Link
+            key={c.href}
+            href={c.href}
+            className={clsx(
+              "block rounded-md px-3 py-2 text-sm font-semibold transition-all duration-150",
+              activeChild === c ? "bg-brand-red text-white" : "text-white/50 hover:bg-white/10 hover:text-white"
+            )}
+          >
+            {c.label}
+          </Link>
+        ))}
       </div>
     </div>
   );

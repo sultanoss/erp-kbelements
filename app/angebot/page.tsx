@@ -7,16 +7,16 @@ import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function StorniertPage({
+export default async function AngebotListPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; from?: string; to?: string }>;
 }) {
   const { q, from, to } = await searchParams;
 
-  const invoices = await prisma.invoice.findMany({
+  const offers = await prisma.invoice.findMany({
     where: {
-      status: "storniert",
+      docType: "angebot",
       ...(q && { customerName: { contains: q, mode: "insensitive" } }),
       ...((from || to) && {
         date: {
@@ -25,7 +25,7 @@ export default async function StorniertPage({
         },
       }),
     },
-    orderBy: { storniertAt: "desc" },
+    orderBy: { date: "desc" },
     include: { items: true },
   });
 
@@ -33,10 +33,10 @@ export default async function StorniertPage({
 
   return (
     <AppShell>
-      <PageHeader title="Stornierte Rechnungen" eyebrow="Buchhaltung" />
+      <PageHeader title="Angebote" eyebrow="Buchhaltung" />
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <form method="GET" action="/buchhaltung/storniert" className="flex flex-wrap gap-2 items-end">
+        <form method="GET" action="/angebot" className="flex flex-wrap gap-2 items-end">
           <div className="flex flex-col gap-1">
             <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kundenname</label>
             <input
@@ -49,70 +49,60 @@ export default async function StorniertPage({
           </div>
           <div className="flex flex-col gap-1">
             <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Von</label>
-            <input
-              type="date"
-              name="from"
-              defaultValue={from ?? ""}
-              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
-            />
+            <input type="date" name="from" defaultValue={from ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bis</label>
-            <input
-              type="date"
-              name="to"
-              defaultValue={to ?? ""}
-              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
-            />
+            <input type="date" name="to" defaultValue={to ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
           </div>
-          <button
-            type="submit"
-            className="h-9 rounded-lg bg-brand-red px-4 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors"
-          >
+          <button type="submit"
+            className="h-9 rounded-lg bg-brand-red px-4 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors">
             Suchen
           </button>
           {hasFilter && (
-            <Link
-              href="/buchhaltung/storniert"
-              className="h-9 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
-            >
+            <Link href="/angebot"
+              className="h-9 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
               × Filter löschen
             </Link>
           )}
         </form>
+        <Link href="/angebot/neu"
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-red px-4 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors">
+          + Neues Angebot
+        </Link>
       </div>
 
       <Panel className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
             <tr className="border-b border-grey-border bg-grey-light">
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Rechnungs-Nr.</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Angebots-Nr.</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunde</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Betrag</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Storniert am</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktionen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-grey-border">
-            {invoices.map((inv) => {
+            {offers.map((offer) => {
               const brutto =
-                inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0) +
-                (inv.shippingCost ?? 0);
+                offer.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0) +
+                (offer.shippingCost ?? 0);
               return (
-                <tr key={inv.id} className="transition-colors hover:bg-grey-light/60">
-                  <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red line-through opacity-60">{inv.number}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-grey-mid">{formatDate(inv.date)}</td>
-                  <td className="px-4 py-3 text-sm text-grey-dark">{inv.customerName}</td>
-                  <td className="px-4 py-3 font-mono tabular-nums text-sm text-grey-mid text-right line-through">{brutto.toFixed(2)} €</td>
-                  <td className="px-4 py-3 font-mono text-xs text-brand-red">{inv.storniertAt ? formatDate(inv.storniertAt) : "—"}</td>
+                <tr key={offer.id} className="transition-colors hover:bg-grey-light/60">
+                  <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{offer.number}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-grey-mid">{formatDate(offer.date)}</td>
+                  <td className="px-4 py-3 text-sm text-grey-dark">{offer.customerName}</td>
+                  <td className="px-4 py-3 font-mono tabular-nums text-sm text-grey-dark text-right">{brutto.toFixed(2)} €</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
-                      <Link href={`/buchhaltung/${inv.id}`}
+                      <Link href={`/angebot/${offer.id}`}
                         className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
                         Ansehen
                       </Link>
-                      <Link href={`/buchhaltung/${inv.id}/drucken`} target="_blank"
+                      <Link href={`/angebot/${offer.id}/drucken`} target="_blank"
                         className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
                         Drucken
                       </Link>
@@ -123,9 +113,9 @@ export default async function StorniertPage({
             })}
           </tbody>
         </table>
-        {invoices.length === 0 && (
+        {offers.length === 0 && (
           <div className="p-8 text-center font-mono text-xs text-grey-mid">
-            {hasFilter ? "Keine stornierten Rechnungen gefunden." : "Keine stornierten Rechnungen vorhanden."}
+            {hasFilter ? "Keine Angebote gefunden." : "Noch keine Angebote erstellt."}
           </div>
         )}
       </Panel>

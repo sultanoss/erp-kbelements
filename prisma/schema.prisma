@@ -129,11 +129,13 @@ model Invoice {
   customerNum     String?
   mwstRate        Int           @default(19)
   shippingCost    Float?
+  shippingMwst    Int           @default(19)
   paymentMethod   String        @default("konto")
   notes           String?
   paymentInfo     String?
   status          String        @default("aktiv")
   storniertAt     DateTime?
+  docType         String        @default("rechnung")
   createdAt       DateTime      @default(now())
   userId          String
   user            User          @relation(fields: [userId], references: [id])
@@ -142,6 +144,7 @@ model Invoice {
   @@index([date])
   @@index([number])
   @@index([status])
+  @@index([docType])
 }
 
 model InvoiceItem {

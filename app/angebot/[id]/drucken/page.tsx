@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const inv = await prisma.invoice.findUnique({ where: { id }, select: { number: true } });
-  return { title: inv?.number ?? "Rechnung drucken" };
+  return { title: `Angebot ${inv?.number ?? ""}` };
 }
 
 function fmt(n: number) {
@@ -27,7 +27,7 @@ const CSS = `
   .customer-block { font-size: 10pt; line-height: 1.55; }
   .company-block { text-align: right; font-size: 9.5pt; line-height: 1.6; }
   .company-block .name { font-weight: bold; font-size: 14pt; letter-spacing: -0.5px; }
-  .rechnung-title { font-size: 22pt; font-weight: bold; margin-bottom: 5mm; }
+  .doc-title { font-size: 22pt; font-weight: bold; margin-bottom: 5mm; }
   .meta-block { float: right; font-size: 9pt; line-height: 1.7; margin-bottom: 8mm; }
   .meta-block table td:first-child { padding-right: 14px; color: #444; }
   .meta-block table td:last-child { font-weight: bold; }
@@ -37,8 +37,6 @@ const CSS = `
   table.items th.r, table.items td.r { text-align: right; }
   table.items td { padding: 5px 6px; border-bottom: 0.5px solid #e0e0e0; vertical-align: top; }
   table.items tr.shipping-row td { background: #fafafa; font-style: italic; }
-  .storno-badge { display: inline-block; background: #C0182A; color: #fff; font-weight: bold; font-size: 11pt; letter-spacing: 2px; padding: 4px 12px; border-radius: 3px; margin-bottom: 4mm; }
-  .storno-watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 72pt; font-weight: bold; color: rgba(192,24,42,0.12); pointer-events: none; white-space: nowrap; z-index: 0; }
   .notes-block { margin-top: 5mm; font-size: 9pt; color: #333; font-style: italic; }
   .totals-wrap { margin-top: 6mm; display: flex; justify-content: flex-end; }
   .totals { width: 260px; font-size: 9.5pt; border-collapse: collapse; }
@@ -46,7 +44,6 @@ const CSS = `
   .totals td:last-child { text-align: right; padding-left: 12px; }
   .totals .sep { border-top: 1px solid #aaa; }
   .totals .bold td { font-weight: bold; }
-  .payment-row { margin-top: 4mm; font-size: 8.5pt; color: #444; text-align: right; }
   .footer { position: fixed; bottom: 12mm; left: 25mm; right: 20mm; border-top: 0.5px solid #ccc; padding-top: 3mm; display: flex; justify-content: space-between; font-size: 7.5pt; color: #555; }
   .footer .col { line-height: 1.5; }
   .page-num { position: fixed; bottom: 5mm; right: 20mm; font-size: 7pt; color: #999; }
@@ -57,53 +54,33 @@ const CSS = `
   }
 `;
 
-export default async function DruckenPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AngebotDruckenPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const inv = await prisma.invoice.findUnique({
     where: { id },
     include: { items: { orderBy: { pos: "asc" }, include: { skus: true } } },
   });
-  if (!inv) notFound();
+  if (!inv || inv.docType !== "angebot") notFound();
 
   const shipping = inv.shippingCost ?? 0;
   const shippingMwst = inv.shippingMwst ?? 19;
   const bruttoPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
   const bruttoGesamt = bruttoPositionen + shipping;
 
-  // Calculate netto/MwSt with potentially different shipping VAT
   const sameMwst = shippingMwst === inv.mwstRate;
-  let productNetto: number, productMwstAmt: number, shippingNetto: number, shippingMwstAmt: number;
-
-  if (inv.mwstRate > 0) {
-    productNetto = bruttoPositionen / (1 + inv.mwstRate / 100);
-    productMwstAmt = bruttoPositionen - productNetto;
-  } else {
-    productNetto = bruttoPositionen;
-    productMwstAmt = 0;
-  }
-
-  if (shipping > 0) {
-    shippingNetto = shippingMwst > 0 ? shipping / (1 + shippingMwst / 100) : shipping;
-    shippingMwstAmt = shipping - shippingNetto;
-  } else {
-    shippingNetto = 0;
-    shippingMwstAmt = 0;
-  }
-
+  const productNetto = inv.mwstRate > 0 ? bruttoPositionen / (1 + inv.mwstRate / 100) : bruttoPositionen;
+  const productMwstAmt = bruttoPositionen - productNetto;
+  const shippingNetto = shipping > 0 && shippingMwst > 0 ? shipping / (1 + shippingMwst / 100) : shipping;
+  const shippingMwstAmt = shipping - shippingNetto;
   const totalNetto = productNetto + shippingNetto;
   const totalMwstAmt = productMwstAmt + shippingMwstAmt;
-  const offenerBetrag = (inv.paymentMethod === "bar" || inv.paymentInfo) ? 0 : bruttoGesamt;
-  const isStorniert = inv.status === "storniert";
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <PrintButton />
 
-      {isStorniert && <div className="storno-watermark">STORNIERT</div>}
-
       <div className="page">
-        {/* Header */}
         <div className="header-bar">
           <div style={{ maxWidth: "55%" }}>
             <div className="sender-small">KB ELEMENTS · Im Weidchen 21 · 52353 Düren</div>
@@ -122,29 +99,19 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Storniert Badge */}
-        {isStorniert && (
-          <div style={{ marginBottom: "4mm" }}>
-            <span className="storno-badge">STORNIERT</span>
-          </div>
-        )}
-
-        {/* Titel + Meta */}
         <div className="clearfix">
-          <div className="rechnung-title">Rechnung</div>
+          <div className="doc-title">Angebot</div>
           <div className="meta-block">
             <table>
               <tbody>
-                <tr><td>Rechnungs-Nr:</td><td>{inv.number}</td></tr>
+                <tr><td>Angebots-Nr:</td><td>{inv.number}</td></tr>
                 <tr><td>Datum:</td><td>{fmtDate(inv.date)}</td></tr>
-                <tr><td>Lieferdatum:</td><td>{fmtDate(inv.date)}</td></tr>
                 {inv.customerNum && <tr><td>Kunden-Nr:</td><td>{inv.customerNum}</td></tr>}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Positionen */}
         <table className="items">
           <thead>
             <tr>
@@ -183,21 +150,17 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
           </tbody>
         </table>
 
-        {/* Notiz */}
         {inv.notes && <div className="notes-block">{inv.notes}</div>}
 
-        {/* Summen */}
         <div className="totals-wrap">
           <table className="totals">
             <tbody>
               {sameMwst || shipping === 0 ? (
-                // Simple: one VAT rate
                 <>
                   <tr><td>Gesamt Netto ({inv.mwstRate},00 %)</td><td>{fmt(totalNetto)} €</td></tr>
                   {inv.mwstRate > 0 && <tr><td>zzgl. MwSt ({inv.mwstRate},00 %)</td><td>{fmt(totalMwstAmt)} €</td></tr>}
                 </>
               ) : (
-                // Mixed: two VAT rates
                 <>
                   <tr><td>Netto Produkte ({inv.mwstRate},00 %)</td><td>{fmt(productNetto)} €</td></tr>
                   {inv.mwstRate > 0 && <tr><td>zzgl. MwSt ({inv.mwstRate},00 %)</td><td>{fmt(productMwstAmt)} €</td></tr>}
@@ -205,23 +168,12 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
                   {shippingMwst > 0 && <tr><td>zzgl. MwSt ({shippingMwst},00 %)</td><td>{fmt(shippingMwstAmt)} €</td></tr>}
                 </>
               )}
-              <tr className="bold sep"><td><strong>Rechnungsbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
-              <tr className="bold"><td><strong>Zahlbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
+              <tr className="bold sep"><td><strong>Angebotsbetrag</strong></td><td><strong>{fmt(bruttoGesamt)} €</strong></td></tr>
             </tbody>
           </table>
         </div>
-
-        {/* Zahlungsinfo */}
-        <div className="payment-row">
-          {inv.paymentMethod === "bar"
-            ? <div>Bezahlt: Bar</div>
-            : inv.paymentInfo && <div>{inv.paymentInfo} {fmt(bruttoGesamt)} €</div>
-          }
-          <div style={{ fontWeight: "bold", marginTop: "2px" }}>Offener Betrag {fmt(offenerBetrag)} €</div>
-        </div>
       </div>
 
-      {/* Footer */}
       <div className="footer">
         <div className="col">
           <div style={{ fontWeight: "bold" }}>KB ELEMENTS GmbH</div>

@@ -211,16 +211,21 @@ export async function createInvoice(data: {
   notes: string;
   paymentInfo: string | null;
   shippingCost: number | null;
+  shippingMwst: number;
   paymentMethod: string;
+  docType: "rechnung" | "angebot";
   items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
 }) {
   const user = await requireUser();
 
-  // Auto-generate invoice number: RE-YYYYMM-NNNNN
   const now = new Date();
-  const prefix = `RE-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-`;
+  const isAngebot = data.docType === "angebot";
+  const prefix = isAngebot
+    ? `AN-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-`
+    : `RE-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-`;
+
   const last = await prisma.invoice.findFirst({
-    where: { number: { startsWith: prefix } },
+    where: { number: { startsWith: prefix }, docType: data.docType },
     orderBy: { number: "desc" },
   });
   const seq = last ? parseInt(last.number.split("-")[2] ?? "0", 10) + 1 : 10001;
@@ -236,9 +241,11 @@ export async function createInvoice(data: {
         customerNum: data.customerNum || null,
         mwstRate: data.mwstRate,
         shippingCost: data.shippingCost,
+        shippingMwst: data.shippingMwst,
         paymentMethod: data.paymentMethod,
         notes: data.notes || null,
         paymentInfo: data.paymentInfo || null,
+        docType: data.docType,
         userId: user.id,
         items: {
           create: data.items.map((it) => ({
@@ -252,17 +259,19 @@ export async function createInvoice(data: {
       },
     });
 
-    // Reduce stock for all SKUs in each position
-    for (const it of data.items) {
-      const qty = Math.round(it.quantity);
-      for (const s of it.skus) {
-        if (!s.sku) continue;
-        const item = await tx.item.findUnique({ where: { sku: s.sku } });
-        if (!item) continue;
-        if (s.lager === "ns") {
-          await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
-        } else {
-          await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+    // Reduce stock only for Rechnungen (not Angebote)
+    if (!isAngebot) {
+      for (const it of data.items) {
+        const qty = Math.round(it.quantity);
+        for (const s of it.skus) {
+          if (!s.sku) continue;
+          const item = await tx.item.findUnique({ where: { sku: s.sku } });
+          if (!item) continue;
+          if (s.lager === "ns") {
+            await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+          } else {
+            await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+          }
         }
       }
     }
@@ -271,9 +280,10 @@ export async function createInvoice(data: {
   });
 
   revalidatePath("/buchhaltung");
+  revalidatePath("/angebot");
   revalidatePath("/inventory");
   revalidatePath("/");
-  redirect(`/buchhaltung/${invoice.id}`);
+  redirect(isAngebot ? `/angebot/${invoice.id}` : `/buchhaltung/${invoice.id}`);
 }
 
 export async function stornoInvoice(id: string) {
@@ -321,6 +331,7 @@ export async function updateInvoice(
     notes: string;
     paymentInfo: string | null;
     shippingCost: number | null;
+    shippingMwst: number;
     paymentMethod: string;
     items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
   }
@@ -328,12 +339,13 @@ export async function updateInvoice(
   await requireUser();
 
   await prisma.$transaction(async (tx) => {
-    // Alten Lagerbestand rückbuchen
     const old = await tx.invoice.findUnique({
       where: { id: invoiceId },
       include: { items: { include: { skus: true } } },
     });
-    if (old) {
+
+    // Alten Lagerbestand rückbuchen (nur für Rechnungen)
+    if (old && old.docType !== "angebot") {
       for (const it of old.items) {
         const qty = Math.round(it.quantity);
         for (const s of it.skus) {
@@ -349,10 +361,8 @@ export async function updateInvoice(
       }
     }
 
-    // Alte Items löschen (Cascade löscht InvoiceItemSku)
     await tx.invoiceItem.deleteMany({ where: { invoiceId } });
 
-    // Invoice-Header + neue Items aktualisieren
     await tx.invoice.update({
       where: { id: invoiceId },
       data: {
@@ -362,6 +372,7 @@ export async function updateInvoice(
         customerNum: data.customerNum || null,
         mwstRate: data.mwstRate,
         shippingCost: data.shippingCost,
+        shippingMwst: data.shippingMwst,
         paymentMethod: data.paymentMethod,
         notes: data.notes || null,
         paymentInfo: data.paymentInfo || null,
@@ -377,27 +388,34 @@ export async function updateInvoice(
       },
     });
 
-    // Neuen Lagerbestand abbuchen
-    for (const it of data.items) {
-      const qty = Math.round(it.quantity);
-      for (const s of it.skus) {
-        if (!s.sku) continue;
-        const item = await tx.item.findUnique({ where: { sku: s.sku } });
-        if (!item) continue;
-        if (s.lager === "ns") {
-          await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
-        } else {
-          await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+    // Neuen Lagerbestand abbuchen (nur für Rechnungen)
+    if (!old || old.docType !== "angebot") {
+      for (const it of data.items) {
+        const qty = Math.round(it.quantity);
+        for (const s of it.skus) {
+          if (!s.sku) continue;
+          const item = await tx.item.findUnique({ where: { sku: s.sku } });
+          if (!item) continue;
+          if (s.lager === "ns") {
+            await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+          } else {
+            await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+          }
         }
       }
     }
   });
 
+  const inv = await prisma.invoice.findUnique({ where: { id: invoiceId }, select: { docType: true } });
+  const isAngebot = inv?.docType === "angebot";
+
   revalidatePath("/buchhaltung");
+  revalidatePath("/angebot");
   revalidatePath(`/buchhaltung/${invoiceId}`);
+  revalidatePath(`/angebot/${invoiceId}`);
   revalidatePath("/inventory");
   revalidatePath("/");
-  redirect(`/buchhaltung/${invoiceId}`);
+  redirect(isAngebot ? `/angebot/${invoiceId}` : `/buchhaltung/${invoiceId}`);
 }
 
 export async function upsertUser(formData: FormData) {

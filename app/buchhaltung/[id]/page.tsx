@@ -45,6 +45,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           className="inline-flex items-center gap-1.5 rounded-lg bg-brand-red px-3 py-1.5 font-mono text-xs font-semibold text-white hover:bg-brand-red-dark transition-colors">
           Drucken / PDF
         </Link>
+        <Link href={`/buchhaltung/${id}/lieferschein`} target="_blank"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+          Lieferschein
+        </Link>
         {inv.status === "aktiv" && (
           <>
             <Link href={`/buchhaltung/${id}/bearbeiten`}

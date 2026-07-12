@@ -3,6 +3,8 @@
 import { useState, useTransition, useRef } from "react";
 import { createInvoice, updateInvoice } from "@/app/actions";
 
+type DocType = "rechnung" | "angebot";
+
 type SkuEntry = { id: number; sku: string; lager: string };
 type LineItem = { id: number; pos: number; quantity: number; description: string; unitPrice: number; skus: SkuEntry[] };
 type SkuData = { sku: string; name: string; stock: number; stockNS: number };
@@ -15,6 +17,7 @@ export type InvoiceInitialData = {
   customerNum: string;
   mwstRate: number;
   shippingCost: string;
+  shippingMwst: number;
   paymentMethod: "konto" | "bar";
   paymentInfo: string;
   notes: string;
@@ -29,10 +32,11 @@ function newLine(pos: number): LineItem {
   return { id: nextId++, pos, quantity: 1, description: "", unitPrice: 0, skus: [{ id: nextSkuId++, sku: "", lager: "neuware" }] };
 }
 
-export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialData?: InvoiceInitialData }) {
+export function InvoiceForm({ skus, initialData, docType = "rechnung" }: { skus: SkuData[]; initialData?: InvoiceInitialData; docType?: DocType }) {
   const [items, setItems] = useState<LineItem[]>(initialData?.items ?? [newLine(1)]);
   const [mwstRate, setMwstRate] = useState(initialData?.mwstRate ?? 19);
   const [shippingCost, setShippingCost] = useState<string>(initialData?.shippingCost ?? "");
+  const [shippingMwst, setShippingMwst] = useState<number>(initialData?.shippingMwst ?? 19);
   const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">(initialData?.paymentMethod ?? "konto");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
@@ -42,6 +46,7 @@ export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialDat
     setItems([newLine(1)]);
     setMwstRate(19);
     setShippingCost("");
+    setShippingMwst(19);
     setPaymentMethod("konto");
     setError("");
     formRef.current?.reset();
@@ -93,8 +98,12 @@ export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialDat
   const bruttoPositionen = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
   const shippingVal = shippingCost !== "" ? parseFloat(shippingCost) || 0 : 0;
   const bruttoGesamt = bruttoPositionen + shippingVal;
-  const netto = mwstRate > 0 ? bruttoGesamt / (1 + mwstRate / 100) : bruttoGesamt;
-  const mwstAmt = bruttoGesamt - netto;
+  const productNetto = mwstRate > 0 ? bruttoPositionen / (1 + mwstRate / 100) : bruttoPositionen;
+  const productMwstAmt = bruttoPositionen - productNetto;
+  const shippingNetto = shippingVal > 0 && shippingMwst > 0 ? shippingVal / (1 + shippingMwst / 100) : shippingVal;
+  const shippingMwstAmt = shippingVal - shippingNetto;
+  const netto = productNetto + shippingNetto;
+  const mwstAmt = productMwstAmt + shippingMwstAmt;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -113,9 +122,11 @@ export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialDat
     const payload = {
       date, customerName, customerAddress, customerNum, mwstRate,
       shippingCost: shippingVal > 0 ? shippingVal : null,
-      paymentMethod,
+      shippingMwst,
+      paymentMethod: docType === "angebot" ? "konto" : paymentMethod,
       notes,
-      paymentInfo: paymentInfo || null,
+      paymentInfo: docType === "angebot" ? null : (paymentInfo || null),
+      docType,
       items: items.map((it) => ({
         pos: it.pos,
         quantity: it.quantity,
@@ -283,10 +294,10 @@ export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialDat
         </button>
       </div>
 
-      {/* Transportkosten + Summen */}
+      {/* Versandkosten + Summen */}
       <div className="flex flex-col items-end gap-3">
-        <div className="flex items-center gap-3">
-          <label className="font-mono text-xs font-semibold text-grey-dark">Transportkosten (optional)</label>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="font-mono text-xs font-semibold text-grey-dark">Versand / Transport (optional)</label>
           <div className="relative">
             <input
               type="number"
@@ -295,34 +306,61 @@ export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialDat
               value={shippingCost}
               onChange={(e) => setShippingCost(e.target.value)}
               placeholder="0,00"
-              className="h-9 w-36 rounded-lg border border-grey-border bg-white px-3 pr-8 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
+              className="h-9 w-32 rounded-lg border border-grey-border bg-white px-3 pr-8 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
             />
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs text-grey-mid">€</span>
           </div>
+          {shippingVal > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-grey-mid">MwSt.:</span>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" checked={shippingMwst === 19} onChange={() => setShippingMwst(19)} className="accent-brand-red" />
+                <span className="font-mono text-sm">19 %</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" checked={shippingMwst === 0} onChange={() => setShippingMwst(0)} className="accent-brand-red" />
+                <span className="font-mono text-sm">0 %</span>
+              </label>
+            </div>
+          )}
         </div>
-        <div className="w-72 space-y-1.5 rounded-lg border border-grey-border bg-grey-light p-4">
+        <div className="w-80 space-y-1.5 rounded-lg border border-grey-border bg-grey-light p-4">
           <div className="flex justify-between font-mono text-sm text-grey-mid">
-            <span>Gesamt Netto ({mwstRate} %)</span>
-            <span className="tabular-nums">{netto.toFixed(2)} €</span>
+            <span>Netto Produkte ({mwstRate} %)</span>
+            <span className="tabular-nums">{productNetto.toFixed(2)} €</span>
           </div>
           {mwstRate > 0 && (
             <div className="flex justify-between font-mono text-sm text-grey-mid">
               <span>zzgl. MwSt ({mwstRate} %)</span>
-              <span className="tabular-nums">{mwstAmt.toFixed(2)} €</span>
+              <span className="tabular-nums">{productMwstAmt.toFixed(2)} €</span>
             </div>
           )}
-          {shippingVal > 0 && (
+          {shippingVal > 0 && shippingMwst !== mwstRate && (
+            <>
+              <div className="flex justify-between font-mono text-sm text-grey-mid">
+                <span>Netto Versand ({shippingMwst} %)</span>
+                <span className="tabular-nums">{shippingNetto.toFixed(2)} €</span>
+              </div>
+              {shippingMwst > 0 && (
+                <div className="flex justify-between font-mono text-sm text-grey-mid">
+                  <span>zzgl. MwSt ({shippingMwst} %)</span>
+                  <span className="tabular-nums">{shippingMwstAmt.toFixed(2)} €</span>
+                </div>
+              )}
+            </>
+          )}
+          {shippingVal > 0 && shippingMwst === mwstRate && (
             <div className="flex justify-between font-mono text-sm text-grey-mid">
-              <span>Transportkosten</span>
+              <span>Versand (brutto)</span>
               <span className="tabular-nums">{shippingVal.toFixed(2)} €</span>
             </div>
           )}
           <div className="flex justify-between border-t border-grey-border pt-2 font-mono text-sm font-bold text-grey-dark">
-            <span>Rechnungsbetrag</span>
+            <span>{docType === "angebot" ? "Angebotsbetrag" : "Rechnungsbetrag"}</span>
             <span className="tabular-nums">{bruttoGesamt.toFixed(2)} €</span>
           </div>
           {mwstRate > 0 && (
-            <p className="font-mono text-[10px] text-grey-mid pt-1">* Eingegebene Preise sind Bruttopreise inkl. {mwstRate} % MwSt.</p>
+            <p className="font-mono text-[10px] text-grey-mid pt-1">* Eingegebene Preise sind Bruttopreise inkl. MwSt.</p>
           )}
         </div>
       </div>
@@ -330,33 +368,37 @@ export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialDat
       {/* Notiz + Bezahlart */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
-          <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Notiz (erscheint auf Rechnung)</label>
-          <textarea name="notes" rows={2} defaultValue={initialData?.notes ?? ""} placeholder="z.B. Angebots-Nr., Lieferbedingungen ..."
+          <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
+            Notiz (erscheint auf {docType === "angebot" ? "Angebot" : "Rechnung"})
+          </label>
+          <textarea name="notes" rows={2} defaultValue={initialData?.notes ?? ""} placeholder="z.B. Gültig bis 31.07.2026, Lieferbedingungen ..."
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
         </div>
-        <div className="grid gap-3">
-          <div>
-            <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezahlart</div>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" checked={paymentMethod === "konto"} onChange={() => setPaymentMethod("konto")} className="accent-brand-red" />
-                <span className="text-sm font-semibold">Banküberweisung</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" checked={paymentMethod === "bar"} onChange={() => setPaymentMethod("bar")} className="accent-brand-red" />
-                <span className="text-sm font-semibold">Bar</span>
-              </label>
+        {docType !== "angebot" && (
+          <div className="grid gap-3">
+            <div>
+              <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezahlart</div>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" checked={paymentMethod === "konto"} onChange={() => setPaymentMethod("konto")} className="accent-brand-red" />
+                  <span className="text-sm font-semibold">Banküberweisung</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" checked={paymentMethod === "bar"} onChange={() => setPaymentMethod("bar")} className="accent-brand-red" />
+                  <span className="text-sm font-semibold">Bar</span>
+                </label>
+              </div>
             </div>
+            {paymentMethod === "konto" && (
+              <div className="grid gap-1.5">
+                <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation</label>
+                <textarea name="paymentInfo" rows={2} defaultValue={initialData?.paymentInfo ?? ""}
+                  placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
+                  className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
+              </div>
+            )}
           </div>
-          {paymentMethod === "konto" && (
-            <div className="grid gap-1.5">
-              <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation</label>
-              <textarea name="paymentInfo" rows={2} defaultValue={initialData?.paymentInfo ?? ""}
-                placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
-                className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {error && (
@@ -372,7 +414,9 @@ export function InvoiceForm({ skus, initialData }: { skus: SkuData[]; initialDat
         ) : <div />}
         <button type="submit" disabled={isPending}
           className="rounded-lg bg-brand-red px-6 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50 transition-colors">
-          {isPending ? "Wird gespeichert…" : initialData ? "Korrektur speichern" : "Rechnung erstellen"}
+          {isPending ? "Wird gespeichert…" : initialData
+            ? (docType === "angebot" ? "Angebot speichern" : "Korrektur speichern")
+            : (docType === "angebot" ? "Angebot erstellen" : "Rechnung erstellen")}
         </button>
       </div>
     </form>

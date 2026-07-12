@@ -1,0 +1,3 @@
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "shippingMwst" INTEGER NOT NULL DEFAULT 19;
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "docType" TEXT NOT NULL DEFAULT 'rechnung';
+CREATE INDEX IF NOT EXISTS "Invoice_docType_idx" ON "Invoice"("docType");
