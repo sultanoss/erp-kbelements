@@ -124,6 +124,14 @@ export default async function AuswertungPage({
         >
           Anzeigen
         </button>
+        {skuFilter && (
+          <a
+            href={`/auswertung?von=${fromStr}&bis=${toStr}`}
+            className="h-10 inline-flex items-center rounded-lg border border-grey-border bg-white px-4 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
+          >
+            × SKU löschen
+          </a>
+        )}
         {(totalSales > 0 || totalHerdsets > 0) && (
           <span className="ml-2 self-end pb-2 font-mono text-xs text-grey-mid">
             {totalSales} Einzelverkäufe · {totalHerdsets} Herdsets
