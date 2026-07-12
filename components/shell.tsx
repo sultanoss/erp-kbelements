@@ -5,8 +5,8 @@ import { MobileNav } from "./mobile-nav";
 import { type IconName } from "./nav-link";
 
 export type NavItem =
-  | { href: string; label: string; icon: IconName; children?: never }
-  | { href?: never; label: string; icon: IconName; children: { href: string; label: string }[] };
+  | { href: string; label: string; icon: IconName; separator?: boolean; children?: never }
+  | { href?: never; label: string; icon: IconName; separator?: boolean; children: { href: string; label: string }[] };
 
 const baseLinks: NavItem[] = [
   { href: "/", label: "Dashboard", icon: "Home" },
@@ -15,14 +15,14 @@ const baseLinks: NavItem[] = [
   { href: "/auswertung", label: "Auswertung", icon: "BarChart2" },
   { href: "/receipts", label: "Wareneingang", icon: "PackagePlus" },
   { href: "/corrections", label: "Korrekturen", icon: "SlidersHorizontal" },
-  { href: "/activity", label: "Protokoll", icon: "Shield" },
-  { label: "Buchhaltung", icon: "Receipt", children: [
+  { href: "/activity", label: "Protokoll", icon: "Shield", separator: true },
+  { label: "Buchhaltung", icon: "Receipt", separator: true, children: [
     { href: "/buchhaltung",           label: "Rechnungen"   },
     { href: "/buchhaltung/storniert", label: "Storniert"    },
     { href: "/gutschrift",            label: "Gutschriften" },
     { href: "/export",                label: "Export"       },
   ]},
-  { label: "Angebote", icon: "FileText", children: [
+  { label: "Angebote", icon: "FileText", separator: true, children: [
     { href: "/angebot",     label: "Alle Angebote" },
     { href: "/angebot/neu", label: "Neues Angebot" },
   ]},

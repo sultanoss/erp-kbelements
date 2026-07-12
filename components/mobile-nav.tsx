@@ -96,13 +96,16 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
           Navigation
         </div>
         <div className="space-y-0.5">
-          {links.map((link) =>
-            link.children ? (
-              <NavGroup key={link.label} icon={link.icon} label={link.label} children={link.children} />
-            ) : (
-              <NavLink key={link.href} href={link.href} icon={link.icon} label={link.label} />
-            )
-          )}
+          {links.map((link) => (
+            <div key={link.label}>
+              {link.separator && <div className="mx-3 my-2 border-t border-white/10" />}
+              {link.children ? (
+                <NavGroup icon={link.icon} label={link.label} children={link.children} />
+              ) : (
+                <NavLink href={link.href} icon={link.icon} label={link.label} />
+              )}
+            </div>
+          ))}
         </div>
       </nav>
 

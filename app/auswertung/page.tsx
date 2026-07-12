@@ -26,9 +26,9 @@ function getMonthRange() {
 export default async function AuswertungPage({
   searchParams,
 }: {
-  searchParams: Promise<{ von?: string; bis?: string }>;
+  searchParams: Promise<{ von?: string; bis?: string; sku?: string }>;
 }) {
-  const { von, bis } = await searchParams;
+  const { von, bis, sku: skuFilter } = await searchParams;
   const { from: defaultFrom, to: defaultTo } = getMonthRange();
 
   const from = von ? new Date(`${von}T00:00:00`) : defaultFrom;
@@ -73,6 +73,7 @@ export default async function AuswertungPage({
   const skuTotals = new Map(skuRows.map((r) => [r.sku, r._sum.quantity ?? 0]));
   const allSkuRows = allItems
     .map((i) => ({ sku: i.sku, total: skuTotals.get(i.sku) ?? 0 }))
+    .filter((r) => !skuFilter || r.sku.toLowerCase().includes(skuFilter.toLowerCase()))
     .sort((a, b) => b.total - a.total);
   const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86400000) + 1);
 
@@ -105,6 +106,16 @@ export default async function AuswertungPage({
             min="2026-06-25"
             defaultValue={toStr}
             className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+          />
+        </label>
+        <label className="grid gap-1.5">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU-Filter</span>
+          <input
+            name="sku"
+            type="text"
+            defaultValue={skuFilter ?? ""}
+            placeholder="z.B. KB-001"
+            className="h-10 w-36 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
           />
         </label>
         <button
