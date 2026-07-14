@@ -1,4 +1,4 @@
-const OTTO_TOKEN_URL = "https://api.otto.market/v1/token";
+const OTTO_TOKEN_URL = "https://api.otto.market/oauth2/token";
 const OTTO_ORDERS_URL = "https://api.otto.market/v4/orders";
 
 export interface NormalizedOrder {
@@ -36,6 +36,7 @@ async function getToken(): Promise<string> {
       grant_type: "client_credentials",
       client_id: clientId,
       client_secret: clientSecret,
+      scope: "developer",
     }),
   });
 
