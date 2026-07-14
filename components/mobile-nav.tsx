@@ -8,9 +8,9 @@ import { type NavItem } from "./shell";
 import { logoutAction } from "@/app/actions";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { BarChart2, Boxes, ClipboardList, FileText, Home, PackagePlus, Receipt, Shield, SlidersHorizontal, Users } from "lucide-react";
+import { BarChart2, Boxes, ClipboardList, FileText, Home, PackagePlus, Receipt, Shield, ShoppingBag, SlidersHorizontal, Users } from "lucide-react";
 
-const ICONS = { Home, Boxes, ClipboardList, PackagePlus, Shield, SlidersHorizontal, Users, BarChart2, Receipt, FileText } as const;
+const ICONS = { Home, Boxes, ClipboardList, PackagePlus, Shield, SlidersHorizontal, Users, BarChart2, Receipt, FileText, ShoppingBag } as const;
 
 function NavGroup({ icon, label, children }: { icon: IconName; label: string; children: { href: string; label: string }[] }) {
   const pathname = usePathname();
