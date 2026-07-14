@@ -43,7 +43,31 @@ export async function GET() {
 
   const headers = { Authorization: `Bearer ${token}` };
 
-  // Step 2: Test various endpoints
+  // Step 2: Try different scopes to find valid ones
+  const scopesToTry = ["Orders", "orders", "Shipments", "fulfillment", "openid", "partner", "portal", "api"];
+  results.scope_tests = {};
+  for (const scope of scopesToTry) {
+    try {
+      const r = await fetch(TOKEN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ grant_type: "client_credentials", client_id: clientId, client_secret: clientSecret, scope }),
+      });
+      const text = await r.text();
+      if (r.ok) {
+        const d = JSON.parse(text) as { access_token: string };
+        const parts = d.access_token.split(".");
+        if (parts.length === 3) {
+          const p = JSON.parse(Buffer.from(parts[1], "base64").toString()) as { scope: string };
+          (results.scope_tests as Record<string, unknown>)[scope] = { status: r.status, granted_scope: p.scope };
+        }
+      } else {
+        (results.scope_tests as Record<string, unknown>)[scope] = { status: r.status, error: text };
+      }
+    } catch { /* ignore */ }
+  }
+
+  // Step 4: Test various endpoints
   const endpoints = [
     { name: "orders_no_filter", url: "https://api.otto.market/v4/orders" },
     { name: "orders_processable", url: "https://api.otto.market/v4/orders?fulfillmentStatus=PROCESSABLE&limit=1" },
