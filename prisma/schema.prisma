@@ -200,6 +200,11 @@ model OrderItem {
   price          Float
 }
 
+model Setting {
+  key   String @id
+  value String
+}
+
 model ActivityLog {
   id        String       @id @default(cuid())
   type      ActivityType

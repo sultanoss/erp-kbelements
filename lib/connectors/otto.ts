@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/prisma";
+
 const OTTO_TOKEN_URL = "https://api.otto.market/oauth2/token";
 const OTTO_ORDERS_URL = "https://api.otto.market/v4/orders";
 
@@ -18,7 +20,6 @@ export interface NormalizedOrder {
   }[];
 }
 
-// In-memory token cache (valid for 1 hour per serverless instance)
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
 
@@ -29,11 +30,22 @@ async function getToken(): Promise<string> {
   const clientSecret = process.env.OTTO_CLIENT_SECRET;
   if (!clientId || !clientSecret) throw new Error("OTTO_CLIENT_ID oder OTTO_CLIENT_SECRET fehlt");
 
+  // Read refresh token from DB (set during /api/otto/install flow)
+  const setting = await prisma.setting.findUnique({ where: { key: "OTTO_REFRESH_TOKEN" } });
+  const refreshToken = setting?.value;
+
+  if (!refreshToken) {
+    throw new Error(
+      "Otto nicht verbunden. Bitte /api/otto/install aufrufen um Otto zu autorisieren."
+    );
+  }
+
   const res = await fetch(OTTO_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type: "client_credentials",
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
       client_id: clientId,
       client_secret: clientSecret,
     }),
@@ -44,9 +56,18 @@ async function getToken(): Promise<string> {
     throw new Error(`Otto Token-Fehler ${res.status}: ${text}`);
   }
 
-  const data = await res.json() as { access_token: string; expires_in: number };
+  const data = await res.json() as { access_token: string; expires_in: number; refresh_token?: string };
   cachedToken = data.access_token;
   tokenExpiresAt = Date.now() + data.expires_in * 1000;
+
+  // If Otto rotates the refresh token, save the new one
+  if (data.refresh_token && data.refresh_token !== refreshToken) {
+    await prisma.setting.update({
+      where: { key: "OTTO_REFRESH_TOKEN" },
+      data: { value: data.refresh_token },
+    });
+  }
+
   return cachedToken;
 }
 
