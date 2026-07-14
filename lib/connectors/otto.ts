@@ -27,18 +27,13 @@ async function getToken(): Promise<string> {
 
   const clientId = process.env.OTTO_CLIENT_ID;
   const clientSecret = process.env.OTTO_CLIENT_SECRET;
-  const username = process.env.OTTO_USERNAME;
-  const password = process.env.OTTO_PASSWORD;
   if (!clientId || !clientSecret) throw new Error("OTTO_CLIENT_ID oder OTTO_CLIENT_SECRET fehlt");
-  if (!username || !password) throw new Error("OTTO_USERNAME oder OTTO_PASSWORD fehlt");
 
   const res = await fetch(OTTO_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type: "password",
-      username,
-      password,
+      grant_type: "client_credentials",
       client_id: clientId,
       client_secret: clientSecret,
     }),
@@ -59,7 +54,7 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
   const token = await getToken();
 
   const url = new URL(OTTO_ORDERS_URL);
-  url.searchParams.set("fulfillmentStatus", "ANNOUNCED");
+  url.searchParams.set("fulfillmentStatus", "PROCESSABLE");
   url.searchParams.set("limit", "50");
 
   const res = await fetch(url.toString(), {
