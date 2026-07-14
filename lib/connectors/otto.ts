@@ -80,32 +80,49 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
         countryCode?: string;
       };
       positionItems: {
-        sku: string;
-        title?: string;
-        productTitle?: string;
-        quantity: number;
-        salePrice?: { amount: number };
         itemValueGrossPrice?: { amount: number };
+        salePrice?: { amount: number };
+        product?: {
+          sku: string;
+          productTitle?: string;
+          articleNumber?: string;
+        };
       }[];
     }[];
   };
 
   const resources = data.resources ?? [];
 
-  return resources.map((o) => ({
-    externalId: o.salesOrderId,
-    marketplace: "OTTO",
-    orderDate: new Date(o.orderDate),
-    customerName: `${o.deliveryAddress.firstName} ${o.deliveryAddress.lastName}`.trim(),
-    street: `${o.deliveryAddress.street}${o.deliveryAddress.houseNumber ? " " + o.deliveryAddress.houseNumber : ""}`,
-    zip: o.deliveryAddress.zipCode,
-    city: o.deliveryAddress.city,
-    country: o.deliveryAddress.countryCode ?? "DE",
-    items: o.positionItems.map((p) => ({
-      marketplaceSku: p.sku,
-      title: p.title ?? p.productTitle ?? p.sku,
-      quantity: p.quantity,
-      price: p.salePrice?.amount ?? p.itemValueGrossPrice?.amount ?? 0,
-    })),
-  }));
+  return resources.map((o) => {
+    // Each positionItem = 1 unit — group by SKU and sum quantities
+    const itemMap = new Map<string, { title: string; quantity: number; price: number }>();
+    for (const p of o.positionItems) {
+      const sku = p.product?.sku ?? p.product?.articleNumber ?? "UNKNOWN";
+      const title = p.product?.productTitle ?? sku;
+      const price = p.itemValueGrossPrice?.amount ?? p.salePrice?.amount ?? 0;
+      const existing = itemMap.get(sku);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        itemMap.set(sku, { title, quantity: 1, price });
+      }
+    }
+
+    return {
+      externalId: o.salesOrderId,
+      marketplace: "OTTO",
+      orderDate: new Date(o.orderDate),
+      customerName: `${o.deliveryAddress.firstName} ${o.deliveryAddress.lastName}`.trim(),
+      street: `${o.deliveryAddress.street}${o.deliveryAddress.houseNumber ? " " + o.deliveryAddress.houseNumber : ""}`,
+      zip: o.deliveryAddress.zipCode,
+      city: o.deliveryAddress.city,
+      country: o.deliveryAddress.countryCode ?? "DE",
+      items: Array.from(itemMap.entries()).map(([sku, item]) => ({
+        marketplaceSku: sku,
+        title: item.title,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+    };
+  });
 }
