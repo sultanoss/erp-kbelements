@@ -4,131 +4,89 @@ import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
-import { cleanupDuplicateSales } from "@/app/actions";
+import { fixSalesDate } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function CleanupPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ date?: string }>;
-}) {
+export default async function CleanupPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/");
 
-  const { date } = await searchParams;
-  const queryDate = date ?? "2026-07-13";
-
-  // Alle Juli-Verkäufe nach exaktem Datums-Timestamp gruppiert
-  const juliFrom = new Date("2026-07-01T00:00:00.000Z");
-  const juliTo   = new Date("2026-07-31T23:59:59.999Z");
-
-  const allJuliGroups = await prisma.sale.groupBy({
-    by: ["date"],
-    where: { date: { gte: juliFrom, lte: juliTo } },
-    _sum: { quantity: true },
-    _count: true,
-    orderBy: { date: "asc" },
-  });
-
-  // Auch Monate davor/danach prüfen (falls Datum falsch gespeichert)
-  const allSalesRecent = await prisma.sale.groupBy({
-    by: ["date"],
-    where: { date: { gte: new Date("2026-07-10T00:00:00.000Z"), lte: new Date("2026-07-16T23:59:59.999Z") } },
-    _sum: { quantity: true },
-    _count: true,
-    orderBy: { date: "asc" },
-  });
-
-  // Für das gewählte Datum: Duplikate analysieren
-  const from = new Date(`${queryDate}T00:00:00.000Z`);
-  const to   = new Date(`${queryDate}T23:59:59.999Z`);
+  // Alle Verkäufe der letzten 3 Tage: zeige date vs createdAt
+  const from = new Date("2026-07-12T00:00:00.000Z");
+  const to   = new Date("2026-07-14T23:59:59.999Z");
 
   const sales = await prisma.sale.findMany({
     where: { date: { gte: from, lte: to } },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, sku: true, marketplace: true, quantity: true, createdAt: true, date: true },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, sku: true, marketplace: true, quantity: true, date: true, createdAt: true },
   });
 
-  const groups = new Map<string, typeof sales>();
+  // Gruppiere nach: Verkaufsdatum (date) + Erstelldatum (createdAt-Tag)
+  const byDateCombo = new Map<string, { count: number; qty: number }>();
   for (const s of sales) {
-    const key = `${s.sku}__${s.marketplace}`;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(s);
+    const saleDay = s.date.toISOString().slice(0, 10);
+    const createDay = s.createdAt.toISOString().slice(0, 10);
+    const key = `sale:${saleDay} | erstellt:${createDay}`;
+    const cur = byDateCombo.get(key) ?? { count: 0, qty: 0 };
+    byDateCombo.set(key, { count: cur.count + 1, qty: cur.qty + s.quantity });
   }
 
-  const totalQty = sales.reduce((s, r) => s + r.quantity, 0);
-  const duplicateGroups = [...groups.values()].filter((g) => g.length > 1);
-  const duplicateCount = duplicateGroups.reduce((s, g) => s + g.length - 1, 0);
+  // Verdächtige Einträge: sale.date = 13.07 aber createdAt = 14.07
+  const suspicious = sales.filter((s) => {
+    const saleDay  = s.date.toISOString().slice(0, 10);
+    const createDay = s.createdAt.toISOString().slice(0, 10);
+    return saleDay === "2026-07-13" && createDay === "2026-07-14";
+  });
 
-  const action = cleanupDuplicateSales.bind(null, queryDate);
+  const suspQty = suspicious.reduce((s, r) => s + r.quantity, 0);
+
+  const fixAction = fixSalesDate.bind(null, "2026-07-13", "2026-07-14");
 
   return (
     <AppShell>
-      <PageHeader title="Duplikate bereinigen" eyebrow="Temporäres Admin-Tool" />
+      <PageHeader title="Datums-Diagnose" eyebrow="Temporäres Admin-Tool" />
 
       <div className="max-w-2xl space-y-5">
 
-        {/* Alle Juli-Tage Übersicht */}
+        {/* Übersicht: sale-date vs. createdAt */}
         <Panel className="overflow-hidden">
           <div className="border-b border-grey-border px-5 py-3 font-mono text-xs font-bold text-grey-dark uppercase tracking-wider">
-            Alle Verkäufe 10–16 Juli (exakte DB-Timestamps)
+            Verkaufsdatum vs. Erstelldatum (12–14 Juli)
           </div>
-          <div className="divide-y divide-grey-border max-h-96 overflow-y-auto">
-            {allSalesRecent.map((r) => (
-              <div key={r.date.toISOString()} className="flex items-center justify-between px-5 py-2.5 font-mono text-xs">
-                <span className="text-grey-dark">{r.date.toISOString()}</span>
-                <span className="text-grey-mid">{r._count} Einträge</span>
-                <span className="font-bold text-brand-red">{r._sum.quantity} Stk.</span>
+          <div className="divide-y divide-grey-border">
+            {[...byDateCombo.entries()].map(([key, val]) => (
+              <div key={key} className={`flex items-center justify-between px-5 py-3 font-mono text-xs ${key.includes("sale:2026-07-13") && key.includes("erstellt:2026-07-14") ? "bg-orange-50" : ""}`}>
+                <span className="text-grey-dark">{key}</span>
+                <span className="text-grey-mid">{val.count} Einträge</span>
+                <span className="font-bold text-brand-red">{val.qty} Stk.</span>
               </div>
             ))}
-            {allSalesRecent.length === 0 && (
-              <div className="px-5 py-4 text-grey-mid">Keine Einträge gefunden</div>
-            )}
+            {byDateCombo.size === 0 && <div className="px-5 py-4 text-grey-mid font-mono text-xs">Keine Einträge</div>}
           </div>
         </Panel>
 
-        {/* Datumsauswahl für Cleanup */}
-        <form method="GET" className="flex items-end gap-3">
-          <label className="grid gap-1.5">
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum bereinigen</span>
-            <input name="date" type="date" defaultValue={queryDate}
-              className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none" />
-          </label>
-          <button type="submit" className="h-10 rounded-lg bg-brand-red px-4 text-sm font-semibold text-white hover:bg-brand-red-dark">
-            Analysieren
-          </button>
-        </form>
-
-        <Panel className="p-5 space-y-3">
-          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Diagnose für {queryDate} (UTC 00:00–23:59)</div>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="font-mono text-2xl font-black text-grey-dark">{sales.length}</div>
-              <div className="font-mono text-[10px] text-grey-mid uppercase tracking-wider mt-1">Datensätze</div>
+        {/* Verdächtige Einträge */}
+        {suspicious.length > 0 && (
+          <Panel className="p-5 space-y-4 border-2 border-orange-300">
+            <div className="border-l-2 border-orange-500 pl-3 text-sm font-bold text-orange-700">
+              ⚠ {suspicious.length} Einträge: Verkaufsdatum 13.07 aber heute (14.07) erstellt
             </div>
-            <div>
-              <div className="font-mono text-2xl font-black text-grey-dark">{totalQty}</div>
-              <div className="font-mono text-[10px] text-grey-mid uppercase tracking-wider mt-1">Menge gesamt</div>
-            </div>
-            <div>
-              <div className={`font-mono text-2xl font-black ${duplicateCount > 0 ? "text-brand-red" : "text-green-700"}`}>{duplicateCount}</div>
-              <div className="font-mono text-[10px] text-grey-mid uppercase tracking-wider mt-1">Duplikate</div>
-            </div>
-          </div>
-        </Panel>
-
-        {duplicateCount > 0 && (
-          <form action={action}>
-            <button type="submit" className="w-full rounded-lg bg-brand-red py-3 text-sm font-bold text-white hover:bg-brand-red-dark">
-              {duplicateCount} Duplikate löschen & Bestand wiederherstellen
-            </button>
-          </form>
+            <p className="text-sm text-grey-mid">
+              Diese Verkäufe wurden heute importiert, aber mit dem Datum 13.07 statt 14.07 gespeichert.
+              Das Datum kann auf 14.07 korrigiert werden. Menge: <strong>{suspQty} Stk.</strong>
+            </p>
+            <form action={fixAction}>
+              <button type="submit" className="w-full rounded-lg bg-orange-600 py-3 text-sm font-bold text-white hover:bg-orange-700">
+                Datum korrigieren: {suspicious.length} Einträge von 13.07 → 14.07
+              </button>
+            </form>
+          </Panel>
         )}
 
-        {duplicateCount === 0 && sales.length > 0 && (
+        {suspicious.length === 0 && (
           <Panel className="p-5 text-center font-mono text-sm text-green-700">
-            ✓ Keine Duplikate für {queryDate} — aber {totalQty} Stk. vorhanden
+            ✓ Keine verdächtigen Einträge (sale 13.07 + erstellt 14.07) gefunden
           </Panel>
         )}
       </div>

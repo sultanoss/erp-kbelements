@@ -859,42 +859,33 @@ export async function goHome() {
   redirect("/");
 }
 
-export async function cleanupDuplicateSales(date: string) {
+export async function fixSalesDate(wrongDate: string, correctDate: string) {
   "use server";
   const user = await requireUser();
   if (user.role !== "ADMIN") throw new Error("Nicht berechtigt");
 
-  const from = new Date(`${date}T00:00:00.000Z`);
-  const to   = new Date(`${date}T23:59:59.999Z`);
+  // Verkäufe mit wrongDate als sale.date, aber heute erstellt
+  const wrongFrom = new Date(`${wrongDate}T00:00:00.000Z`);
+  const wrongTo   = new Date(`${wrongDate}T23:59:59.999Z`);
+  const todayFrom = new Date(`${correctDate}T00:00:00.000Z`);
 
-  const sales = await prisma.sale.findMany({
-    where: { date: { gte: from, lte: to } },
-    orderBy: { createdAt: "asc" },
+  const toFix = await prisma.sale.findMany({
+    where: {
+      date: { gte: wrongFrom, lte: wrongTo },
+      createdAt: { gte: todayFrom },
+    },
   });
 
-  const seen = new Set<string>();
-  const toDelete: typeof sales = [];
-  for (const s of sales) {
-    const key = `${s.sku}__${s.marketplace}`;
-    if (seen.has(key)) {
-      toDelete.push(s);
-    } else {
-      seen.add(key);
-    }
-  }
-
-  for (const dup of toDelete) {
-    await prisma.$transaction(async (tx) => {
-      await tx.item.update({
-        where: { sku: dup.sku },
-        data: { stock: { increment: dup.quantity } },
-      });
-      await tx.sale.delete({ where: { id: dup.id } });
+  const newDate = new Date(`${correctDate}T12:00:00.000Z`);
+  for (const s of toFix) {
+    await prisma.sale.update({
+      where: { id: s.id },
+      data: { date: newDate },
     });
   }
 
   revalidatePath("/");
   revalidatePath("/auswertung");
-  redirect(`/admin/cleanup?date=${date}&cleaned=${toDelete.length}`);
+  redirect(`/admin/cleanup?fixed=${toFix.length}`);
 }
 
