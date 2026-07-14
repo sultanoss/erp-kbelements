@@ -33,9 +33,9 @@ async function getToken(): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type: "password",
-      username: clientId,
-      password: clientSecret,
+      grant_type: "client_credentials",
+      client_id: clientId,
+      client_secret: clientSecret,
     }),
   });
 
