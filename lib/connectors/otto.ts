@@ -36,7 +36,6 @@ async function getToken(): Promise<string> {
       grant_type: "client_credentials",
       client_id: clientId,
       client_secret: clientSecret,
-      scope: "developer",
     }),
   });
 
