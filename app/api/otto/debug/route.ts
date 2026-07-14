@@ -67,25 +67,16 @@ export async function GET() {
     } catch { /* ignore */ }
   }
 
-  // Step 4: Test various endpoints
-  const endpoints = [
-    { name: "orders_no_filter", url: "https://api.otto.market/v4/orders" },
-    { name: "orders_processable", url: "https://api.otto.market/v4/orders?fulfillmentStatus=PROCESSABLE&limit=1" },
-    { name: "orders_announced", url: "https://api.otto.market/v4/orders?fulfillmentStatus=ANNOUNCED&limit=1" },
-    { name: "receipts_v2", url: "https://api.otto.market/v2/receipts" },
-    { name: "products_v3", url: "https://api.otto.market/v3/products" },
-    { name: "shipments_v1", url: "https://api.otto.market/v1/shipments" },
-  ];
-
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep.url, { headers });
-      let body: unknown;
-      try { body = await res.json(); } catch { body = await res.text(); }
-      results[ep.name] = { status: res.status, body };
-    } catch (e) {
-      results[ep.name] = { error: (e as Error).message };
+  // Step 4: Get raw order structure (first order only)
+  try {
+    const ordersRes = await fetch("https://api.otto.market/v4/orders?fulfillmentStatus=PROCESSABLE&limit=1", { headers });
+    if (ordersRes.ok) {
+      results.raw_orders_sample = await ordersRes.json();
+    } else {
+      results.raw_orders_error = { status: ordersRes.status, body: await ordersRes.text() };
     }
+  } catch (e) {
+    results.raw_orders_exception = (e as Error).message;
   }
 
   return NextResponse.json(results, { headers: { "Cache-Control": "no-store" } });
