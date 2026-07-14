@@ -20,9 +20,9 @@ const inputClass = "h-9 rounded-lg border border-grey-border bg-white px-3 font-
 export default async function BestellungenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; marketplace?: string }>;
+  searchParams: Promise<{ status?: string; marketplace?: string; q?: string }>;
 }) {
-  const { status, marketplace } = await searchParams;
+  const { status, marketplace, q } = await searchParams;
 
   const orders = await prisma.order.findMany({
     take: 200,
@@ -30,17 +30,34 @@ export default async function BestellungenPage({
     where: {
       ...(status ? { status } : {}),
       ...(marketplace ? { marketplace } : {}),
+      ...(q ? {
+        OR: [
+          { orderNumber: { contains: q, mode: "insensitive" } },
+          { customerName: { contains: q, mode: "insensitive" } },
+          { items: { some: { marketplaceSku: { contains: q, mode: "insensitive" } } } },
+        ],
+      } : {}),
     },
     include: { items: true },
   });
 
-  const hasFilter = !!(status || marketplace);
+  const hasFilter = !!(status || marketplace || q);
 
   return (
     <AppShell>
       <PageHeader title="Bestellungen" eyebrow="Alle Marktplatz-Bestellungen" />
 
       <form method="GET" className="mb-5 flex flex-wrap items-end gap-3">
+        <label className="grid gap-1.5">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Suche</span>
+          <input
+            type="search"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Bestellnr., Name, SKU …"
+            className={`${inputClass} w-56`}
+          />
+        </label>
         <label className="grid gap-1.5">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</span>
           <select name="status" defaultValue={status ?? ""} className={inputClass}>
@@ -79,7 +96,7 @@ export default async function BestellungenPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Marktplatz</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunde</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Artikel</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
             </tr>
           </thead>
@@ -104,6 +121,9 @@ export default async function BestellungenPage({
                 </td>
                 <td className="px-4 py-3">
                   <a href={`/bestellungen/${order.id}`} className="block">
+                    {order.orderNumber && (
+                      <div className="mb-1 font-mono text-[10px] text-grey-mid">{order.orderNumber}</div>
+                    )}
                     <div className="flex flex-wrap gap-1">
                       {order.items.slice(0, 2).map((item) => (
                         <span key={item.id} className="inline-flex items-center rounded border border-grey-border bg-grey-light px-1.5 py-0.5 font-mono text-[10px] font-semibold text-grey-dark">
