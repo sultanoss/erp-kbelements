@@ -168,6 +168,38 @@ model InvoiceItemSku {
   invoiceItem   InvoiceItem @relation(fields: [invoiceItemId], references: [id], onDelete: Cascade)
 }
 
+model Order {
+  id           String      @id @default(cuid())
+  externalId   String      @unique
+  marketplace  String
+  status       String      @default("NEU")
+  customerName String
+  street       String
+  zip          String
+  city         String
+  country      String      @default("DE")
+  orderDate    DateTime
+  trackingNumber String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
+
+  @@index([status])
+  @@index([marketplace])
+  @@index([orderDate])
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  marketplaceSku String
+  internalSku    String?
+  title          String
+  quantity       Int
+  price          Float
+}
+
 model ActivityLog {
   id        String       @id @default(cuid())
   type      ActivityType

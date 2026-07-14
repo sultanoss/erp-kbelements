@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart2, Boxes, ClipboardList, FileText, Home, PackagePlus, Receipt, Shield, SlidersHorizontal, Users } from "lucide-react";
+import { BarChart2, Boxes, ClipboardList, FileText, Home, PackagePlus, Receipt, Shield, ShoppingBag, SlidersHorizontal, Users } from "lucide-react";
 import { clsx } from "clsx";
 
-const ICONS = { Home, Boxes, ClipboardList, PackagePlus, Shield, SlidersHorizontal, Users, BarChart2, Receipt, FileText } as const;
+const ICONS = { Home, Boxes, ClipboardList, PackagePlus, Shield, SlidersHorizontal, Users, BarChart2, Receipt, FileText, ShoppingBag } as const;
 
 export type IconName = keyof typeof ICONS;
 

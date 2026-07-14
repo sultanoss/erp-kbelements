@@ -10,6 +10,7 @@ export type NavItem =
 
 const baseLinks: NavItem[] = [
   { href: "/", label: "Dashboard", icon: "Home" },
+  { href: "/bestellungen", label: "Bestellungen", icon: "ShoppingBag" },
   { href: "/inventory", label: "Lager", icon: "Boxes" },
   { href: "/sales", label: "Verkäufe", icon: "ClipboardList" },
   { href: "/auswertung", label: "Auswertung", icon: "BarChart2" },

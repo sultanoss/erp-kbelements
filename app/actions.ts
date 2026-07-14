@@ -859,33 +859,4 @@ export async function goHome() {
   redirect("/");
 }
 
-export async function fixSalesDate(wrongDate: string, correctDate: string) {
-  "use server";
-  const user = await requireUser();
-  if (user.role !== "ADMIN") throw new Error("Nicht berechtigt");
-
-  // Verkäufe mit wrongDate als sale.date, aber heute erstellt
-  const wrongFrom = new Date(`${wrongDate}T00:00:00.000Z`);
-  const wrongTo   = new Date(`${wrongDate}T23:59:59.999Z`);
-  const todayFrom = new Date(`${correctDate}T00:00:00.000Z`);
-
-  const toFix = await prisma.sale.findMany({
-    where: {
-      date: { gte: wrongFrom, lte: wrongTo },
-      createdAt: { gte: todayFrom },
-    },
-  });
-
-  const newDate = new Date(`${correctDate}T12:00:00.000Z`);
-  for (const s of toFix) {
-    await prisma.sale.update({
-      where: { id: s.id },
-      data: { date: newDate },
-    });
-  }
-
-  revalidatePath("/");
-  revalidatePath("/auswertung");
-  redirect(`/admin/cleanup?fixed=${toFix.length}`);
-}
 
