@@ -3,6 +3,7 @@ const OTTO_ORDERS_URL = "https://api.otto.market/v4/orders";
 
 export interface NormalizedOrder {
   externalId: string;
+  orderNumber?: string;
   marketplace: string;
   orderDate: Date;
   customerName: string;
@@ -69,6 +70,7 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
   const data = await res.json() as {
     resources?: {
       salesOrderId: string;
+      orderNumber?: string;
       orderDate: string;
       deliveryAddress: {
         firstName: string;
@@ -110,6 +112,7 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
 
     return {
       externalId: o.salesOrderId,
+      orderNumber: o.orderNumber,
       marketplace: "OTTO",
       orderDate: new Date(o.orderDate),
       customerName: `${o.deliveryAddress.firstName} ${o.deliveryAddress.lastName}`.trim(),

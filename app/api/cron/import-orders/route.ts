@@ -25,6 +25,7 @@ export async function GET(request: Request) {
         await prisma.order.create({
           data: {
             externalId: order.externalId,
+            orderNumber: order.orderNumber,
             marketplace: order.marketplace,
             orderDate: order.orderDate,
             customerName: order.customerName,

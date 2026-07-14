@@ -26,7 +26,7 @@ export default async function BestellungDetailPage({
   return (
     <AppShell>
       <PageHeader
-        title={`Bestellung #${order.externalId.slice(-8).toUpperCase()}`}
+        title={order.orderNumber ? `Bestellung ${order.orderNumber}` : `Bestellung #${order.externalId.slice(-8).toUpperCase()}`}
         eyebrow={order.marketplace}
         backHref="/bestellungen"
         backLabel="Alle Bestellungen"
@@ -165,13 +165,19 @@ export default async function BestellungDetailPage({
                 <dt className="font-mono text-xs text-grey-mid">Marktplatz</dt>
                 <dd className="font-mono text-xs font-bold text-brand-red">{order.marketplace}</dd>
               </div>
+              {order.orderNumber && (
+                <div className="flex justify-between px-5 py-3">
+                  <dt className="font-mono text-xs text-grey-mid">Otto-Bestellnr.</dt>
+                  <dd className="font-mono text-xs font-bold text-grey-dark">{order.orderNumber}</dd>
+                </div>
+              )}
               <div className="flex justify-between px-5 py-3">
                 <dt className="font-mono text-xs text-grey-mid">Bestelldatum</dt>
                 <dd className="font-mono text-xs text-grey-dark">{new Date(order.orderDate).toLocaleDateString("de-DE")}</dd>
               </div>
               <div className="flex justify-between px-5 py-3">
-                <dt className="font-mono text-xs text-grey-mid">Externe ID</dt>
-                <dd className="font-mono text-xs text-grey-dark break-all max-w-[140px] text-right">{order.externalId}</dd>
+                <dt className="font-mono text-[10px] text-grey-mid/70">Externe ID</dt>
+                <dd className="font-mono text-[10px] text-grey-mid break-all max-w-[140px] text-right">{order.externalId}</dd>
               </div>
               <div className="flex justify-between px-5 py-3">
                 <dt className="font-mono text-xs text-grey-mid">Importiert</dt>
