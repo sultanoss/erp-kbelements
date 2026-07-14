@@ -27,13 +27,18 @@ async function getToken(): Promise<string> {
 
   const clientId = process.env.OTTO_CLIENT_ID;
   const clientSecret = process.env.OTTO_CLIENT_SECRET;
+  const username = process.env.OTTO_USERNAME;
+  const password = process.env.OTTO_PASSWORD;
   if (!clientId || !clientSecret) throw new Error("OTTO_CLIENT_ID oder OTTO_CLIENT_SECRET fehlt");
+  if (!username || !password) throw new Error("OTTO_USERNAME oder OTTO_PASSWORD fehlt");
 
   const res = await fetch(OTTO_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type: "client_credentials",
+      grant_type: "password",
+      username,
+      password,
       client_id: clientId,
       client_secret: clientSecret,
     }),
