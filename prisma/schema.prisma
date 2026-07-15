@@ -179,6 +179,11 @@ model Order {
   zip            String
   city           String
   country        String      @default("DE")
+  billingName    String?
+  billingStreet  String?
+  billingZip     String?
+  billingCity    String?
+  billingCountry String?
   orderDate      DateTime
   orderNumber    String?
   trackingNumber String?

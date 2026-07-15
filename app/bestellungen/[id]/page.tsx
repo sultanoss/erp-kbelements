@@ -157,6 +157,22 @@ export default async function BestellungDetailPage({
             </div>
           </Panel>
 
+          {/* Rechnungsanschrift */}
+          <Panel className="overflow-hidden">
+            <div className="border-b border-grey-border px-5 py-3">
+              <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Rechnungsanschrift</div>
+            </div>
+            <div className="space-y-1 p-5 font-mono text-sm text-grey-dark">
+              {!order.billingName && (
+                <div className="mb-2 font-mono text-[10px] text-grey-mid/70 italic">Keine separate Rechnungsadresse — Lieferadresse wird verwendet</div>
+              )}
+              <div className="font-bold">{order.billingName ?? order.customerName}</div>
+              <div>{order.billingStreet ?? order.street}</div>
+              <div>{order.billingZip ?? order.zip} {order.billingCity ?? order.city}</div>
+              <div className="text-grey-mid">{order.billingCountry ?? order.country}</div>
+            </div>
+          </Panel>
+
           {/* Details */}
           <Panel className="overflow-hidden">
             <div className="border-b border-grey-border px-5 py-3">

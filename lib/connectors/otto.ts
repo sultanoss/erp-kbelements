@@ -12,6 +12,11 @@ export interface NormalizedOrder {
   zip: string;
   city: string;
   country: string;
+  billingName?: string;
+  billingStreet?: string;
+  billingZip?: string;
+  billingCity?: string;
+  billingCountry?: string;
   items: {
     marketplaceSku: string;
     positionItemId?: string;
@@ -83,6 +88,15 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
         city: string;
         countryCode?: string;
       };
+      invoiceAddress?: {
+        firstName: string;
+        lastName: string;
+        street: string;
+        houseNumber?: string;
+        zipCode: string;
+        city: string;
+        countryCode?: string;
+      };
       positionItems: {
         positionItemId: string;
         itemValueGrossPrice?: { amount: number };
@@ -125,6 +139,15 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
       zip: o.deliveryAddress.zipCode,
       city: o.deliveryAddress.city,
       country: o.deliveryAddress.countryCode ?? "DE",
+      billingName: o.invoiceAddress
+        ? `${o.invoiceAddress.firstName} ${o.invoiceAddress.lastName}`.trim()
+        : undefined,
+      billingStreet: o.invoiceAddress
+        ? `${o.invoiceAddress.street}${o.invoiceAddress.houseNumber ? " " + o.invoiceAddress.houseNumber : ""}`
+        : undefined,
+      billingZip:     o.invoiceAddress?.zipCode,
+      billingCity:    o.invoiceAddress?.city,
+      billingCountry: o.invoiceAddress?.countryCode,
       items: Array.from(itemMap.entries()).map(([sku, item]) => ({
         marketplaceSku: sku,
         positionItemId: item.positionItemId,
