@@ -68,6 +68,11 @@ export class DHLShippingProvider implements ShippingProvider {
           details: {
             weight: { uom: "kg", value: input.weight },
           },
+          services: {
+            dhlRetoure: {
+              billingNumber: process.env.DHL_BILLING_NUMBER_RETURN ?? "",
+            },
+          },
         },
       ],
     };
@@ -87,6 +92,8 @@ export class DHLShippingProvider implements ShippingProvider {
       items?: Array<{
         shipmentNo?: string;
         label?: { url?: string };
+        returnShipmentNo?: string;
+        returnLabel?: { url?: string };
         sstatus?: { title?: string; detail?: string };
       }>;
       title?: string;
@@ -106,6 +113,8 @@ export class DHLShippingProvider implements ShippingProvider {
     return {
       trackingNumber: item.shipmentNo,
       labelUrl: item.label?.url,
+      returnTrackingNumber: item.returnShipmentNo,
+      returnLabelUrl: item.returnLabel?.url,
       dhlShipmentId: item.shipmentNo,
       carrierResponse: json,
     };

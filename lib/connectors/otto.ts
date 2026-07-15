@@ -166,16 +166,24 @@ export async function sendOttoShipmentNotification(params: {
   salesOrderId: string;
   carrier: "DHL" | "GEL";
   trackingNumber: string;
+  returnTrackingNumber?: string;
   positionItemIds: string[];
   shipDate: string; // YYYY-MM-DD
 }): Promise<void> {
   const token = await getToken();
+  const ottoCarrier = params.carrier === "DHL" ? "DHL" : "GLS";
 
   const body = {
     trackingKey: {
-      carrier: params.carrier === "DHL" ? "DHL" : "GLS", // GEL maps to GLS in Otto
+      carrier: ottoCarrier,
       trackingNumber: params.trackingNumber,
     },
+    ...(params.returnTrackingNumber ? {
+      returnTrackingKey: {
+        carrier: ottoCarrier,
+        trackingNumber: params.returnTrackingNumber,
+      },
+    } : {}),
     shipDate: params.shipDate,
     shipmentItems: params.positionItemIds.map((positionItemId) => ({
       positionItemId,

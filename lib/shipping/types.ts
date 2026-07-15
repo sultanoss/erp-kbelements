@@ -24,6 +24,8 @@ export interface ShipmentInput {
 export interface ShipmentResult {
   trackingNumber: string;
   labelUrl?: string;
+  returnTrackingNumber?: string;
+  returnLabelUrl?: string;
   dhlShipmentId?: string;
   carrierResponse?: unknown;
 }

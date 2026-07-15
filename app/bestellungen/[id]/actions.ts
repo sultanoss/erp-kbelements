@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getShippingProvider } from "@/lib/shipping";
+import type { ShipmentResult } from "@/lib/shipping/types";
 import { sendOttoShipmentNotification } from "@/lib/connectors/otto";
 
 export async function markAsAbgeschlossen(formData: FormData) {
@@ -73,7 +74,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   }
 
   // Call carrier service — if this fails, nothing is saved
-  let shipmentResult: { trackingNumber: string; labelUrl?: string; dhlShipmentId?: string; carrierResponse?: unknown };
+  let shipmentResult: ShipmentResult;
   try {
     const provider = getShippingProvider(carrier);
     shipmentResult = await provider.createShipment({
@@ -114,9 +115,11 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           orderId: id,
           carrier,
           status: "LABEL_CREATED",
-          trackingNumber: shipmentResult.trackingNumber,
-          labelUrl: shipmentResult.labelUrl,
-          dhlShipmentId: shipmentResult.dhlShipmentId,
+          trackingNumber:       shipmentResult.trackingNumber,
+          labelUrl:             shipmentResult.labelUrl,
+          returnTrackingNumber: shipmentResult.returnTrackingNumber,
+          returnLabelUrl:       shipmentResult.returnLabelUrl,
+          dhlShipmentId:        shipmentResult.dhlShipmentId,
           weight,
           carrierResponse: shipmentResult.carrierResponse as never,
           items: {
@@ -173,6 +176,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           salesOrderId: order.externalId,
           carrier,
           trackingNumber: shipmentResult.trackingNumber,
+          returnTrackingNumber: shipmentResult.returnTrackingNumber,
           positionItemIds,
           shipDate: today,
         });
