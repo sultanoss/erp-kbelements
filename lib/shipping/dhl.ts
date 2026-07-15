@@ -72,7 +72,7 @@ export class DHLShippingProvider implements ShippingProvider {
       ],
     };
 
-    const res = await fetch(`${getBaseUrl()}/orders?validate=false&includeDocs=URL`, {
+    const res = await fetch(`${getBaseUrl()}/orders?validate=false&includeDocs=URL&printFormat=910-300-300`, {
       method: "POST",
       headers: {
         Authorization: getAuthHeader(),

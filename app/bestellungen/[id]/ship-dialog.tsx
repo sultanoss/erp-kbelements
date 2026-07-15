@@ -53,6 +53,14 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
+  async function handlePrint(url: string) {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const win = window.open(blobUrl, "_blank");
+    if (win) win.onload = () => win.print();
+  }
+
   async function handleSearch(q: string) {
     setSearch(q);
     if (q.length < 2) { setSearchResults([]); return; }
@@ -214,19 +222,18 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
                   </div>
                 </div>
                 {result.labelUrl && (
-                  <a
-                    href={result.labelUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => result.labelUrl && handlePrint(result.labelUrl)}
                     className="inline-flex items-center gap-2 rounded-lg border border-brand-red px-4 py-2 font-mono text-xs font-semibold text-brand-red hover:bg-brand-red hover:text-white transition-colors"
                   >
                     <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="7 10 12 15 17 10" />
-                      <line x1="12" y1="15" x2="12" y2="3" />
+                      <polyline points="6 9 6 2 18 2 18 9" />
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                      <rect x="6" y="14" width="12" height="8" />
                     </svg>
-                    Label herunterladen
-                  </a>
+                    Label drucken (A5)
+                  </button>
                 )}
                 <button
                   type="button"
