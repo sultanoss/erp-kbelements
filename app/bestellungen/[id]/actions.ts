@@ -26,7 +26,7 @@ export async function markAsOffen(formData: FormData) {
 }
 
 export type ShipOrderResult =
-  | { ok: true; trackingNumber: string; labelUrl?: string }
+  | { ok: true; trackingNumber: string; labelUrl?: string; sandbox?: boolean }
   | { ok: false; error: string };
 
 export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
@@ -92,6 +92,16 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     });
   } catch (e) {
     return { ok: false, error: (e as Error).message };
+  }
+
+  // Sandbox: nur DHL-Verbindung testen — kein DB-Schreibvorgang, kein Lagerabzug, kein Otto-Call
+  if (process.env.DHL_ENV === "sandbox") {
+    return {
+      ok: true,
+      trackingNumber: shipmentResult.trackingNumber,
+      labelUrl: shipmentResult.labelUrl,
+      sandbox: true,
+    };
   }
 
   // Transaction: create shipment + deduct inventory + update order

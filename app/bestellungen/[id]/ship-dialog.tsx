@@ -167,7 +167,40 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
             </div>
 
             {result?.ok ? (
-              /* Success State */
+              result.sandbox ? (
+                /* Sandbox Test State */
+                <div className="flex flex-col items-center gap-4 p-8 text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600">
+                    <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-bold text-grey-dark">Sandbox-Test erfolgreich</div>
+                    <div className="mt-1 font-mono text-xs text-grey-mid">
+                      DHL API funktioniert — kein echter Versand
+                    </div>
+                  </div>
+                  <div className="w-full rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-left">
+                    <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-600 mb-1">Test-Tracking</div>
+                    <div className="font-mono text-xs text-blue-800 break-all">{result.trackingNumber}</div>
+                  </div>
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-mono text-[10px] text-amber-700 text-left w-full">
+                    Bestellung bleibt offen · Kein Lagerabzug · Otto nicht benachrichtigt.<br />
+                    Für echten Versand: <strong>DHL_ENV=production</strong> in Vercel setzen.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="rounded-lg border border-grey-border px-4 py-2 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              ) : (
+              /* Production Success State */
               <div className="flex flex-col items-center gap-4 p-8 text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-700">
                   <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -203,6 +236,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
                   Schließen
                 </button>
               </div>
+              )
             ) : (
               /* Form */
               <form ref={formRef} onSubmit={handleSubmit}>
