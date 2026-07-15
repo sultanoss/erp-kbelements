@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { markAsOffen } from "./actions";
 import { ShipDialog } from "./ship-dialog";
+import { PrintLabelButton } from "./print-label-button";
 
 export const dynamic = "force-dynamic";
 
@@ -217,6 +218,9 @@ export default async function BestellungDetailPage({
                 </div>
               )}
             </dl>
+            {order.shipments?.[0]?.labelUrl && (
+              <PrintLabelButton url={order.shipments[0].labelUrl} />
+            )}
           </Panel>
         </div>
       </div>
