@@ -76,6 +76,7 @@ export class DHLShippingProvider implements ShippingProvider {
       method: "POST",
       headers: {
         Authorization: getAuthHeader(),
+        "dhl-api-key": process.env.DHL_API_KEY ?? "",
         "Content-Type": "application/json",
         Accept: "application/json",
       },
