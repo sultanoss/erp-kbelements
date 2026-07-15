@@ -16,7 +16,7 @@ export default async function BestellungDetailPage({
   const { id } = await params;
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: true },
+    include: { items: true, shipments: true },
   });
 
   if (!order) notFound();
@@ -208,6 +208,12 @@ export default async function BestellungDetailPage({
                 <div className="flex justify-between px-5 py-3">
                   <dt className="font-mono text-xs text-grey-mid">Tracking</dt>
                   <dd className="font-mono text-xs font-bold text-grey-dark">{order.trackingNumber}</dd>
+                </div>
+              )}
+              {order.marketplace === "OTTO" && order.shipments?.[0]?.returnTrackingNumber && (
+                <div className="flex justify-between px-5 py-3">
+                  <dt className="font-mono text-xs text-grey-mid">Retourennummer</dt>
+                  <dd className="font-mono text-xs font-bold text-grey-dark">{order.shipments[0].returnTrackingNumber}</dd>
                 </div>
               )}
             </dl>
