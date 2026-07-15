@@ -71,6 +71,14 @@ export class DHLShippingProvider implements ShippingProvider {
           services: {
             dhlRetoure: {
               billingNumber: process.env.DHL_BILLING_NUMBER_RETURN ?? "",
+              returnAddress: {
+                name1:         process.env.DHL_SHIPPER_NAME ?? "",
+                addressStreet: process.env.DHL_SHIPPER_STREET ?? "",
+                addressHouse:  process.env.DHL_SHIPPER_HOUSE ?? "",
+                postalCode:    process.env.DHL_SHIPPER_ZIP ?? "",
+                city:          process.env.DHL_SHIPPER_CITY ?? "",
+                country:       "DEU",
+              },
             },
           },
         },
