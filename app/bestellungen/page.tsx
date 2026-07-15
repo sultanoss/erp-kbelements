@@ -20,38 +20,47 @@ const inputClass = "h-9 rounded-lg border border-grey-border bg-white px-3 font-
 export default async function BestellungenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; marketplace?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; marketplace?: string; q?: string; datFrom?: string; datTo?: string }>;
 }) {
-  const { status, marketplace, q } = await searchParams;
+  const { status, marketplace, q, datFrom, datTo } = await searchParams;
+
+  // Convert Berlin date strings (YYYY-MM-DD) to UTC boundaries
+  const dateFilter = datFrom || datTo ? {
+    orderDate: {
+      ...(datFrom ? { gte: new Date(datFrom + "T00:00:00+02:00") } : {}),
+      ...(datTo   ? { lte: new Date(datTo   + "T23:59:59+02:00") } : {}),
+    },
+  } : {};
 
   const [orders, lastImport] = await Promise.all([
-  prisma.order.findMany({
-    take: 200,
-    orderBy: { orderDate: "desc" },
-    where: {
-      ...(status ? { status } : {}),
-      ...(marketplace ? { marketplace } : {}),
-      ...(q ? {
-        OR: [
-          { orderNumber: { contains: q, mode: "insensitive" } },
-          { customerName: { contains: q, mode: "insensitive" } },
-          { items: { some: { marketplaceSku: { contains: q, mode: "insensitive" } } } },
-        ],
-      } : {}),
-    },
-    include: { items: true },
-  }),
-  prisma.setting.findUnique({ where: { key: "lastOrderImport" } }),
+    prisma.order.findMany({
+      take: 200,
+      orderBy: { orderDate: "desc" },
+      where: {
+        ...(status ? { status } : {}),
+        ...(marketplace ? { marketplace } : {}),
+        ...(q ? {
+          OR: [
+            { orderNumber: { contains: q, mode: "insensitive" } },
+            { customerName: { contains: q, mode: "insensitive" } },
+            { items: { some: { marketplaceSku: { contains: q, mode: "insensitive" } } } },
+          ],
+        } : {}),
+        ...dateFilter,
+      },
+      include: { items: true },
+    }),
+    prisma.setting.findUnique({ where: { key: "lastOrderImport" } }),
   ]);
 
-  const hasFilter = !!(status || marketplace || q);
+  const hasFilter = !!(status || marketplace || q || datFrom || datTo);
 
   return (
     <AppShell>
       <PageHeader title="Bestellungen" eyebrow="Alle Marktplatz-Bestellungen" />
 
       <div className="mb-3 font-mono text-[10px] text-grey-mid">
-        Letzte Aktualisierung: {lastImport ? new Date(lastImport.value).toLocaleString("de-DE") : "—"}
+        Letzte Aktualisierung: {lastImport ? new Date(lastImport.value).toLocaleString("de-DE", { timeZone: "Europe/Berlin" }) : "—"}
       </div>
 
       <form method="GET" className="mb-5 flex flex-wrap items-end gap-3">
@@ -64,6 +73,14 @@ export default async function BestellungenPage({
             placeholder="Bestellnr., Name, SKU …"
             className={`${inputClass} w-56`}
           />
+        </label>
+        <label className="grid gap-1.5">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Von</span>
+          <input type="date" name="datFrom" defaultValue={datFrom ?? ""} className={inputClass} />
+        </label>
+        <label className="grid gap-1.5">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bis</span>
+          <input type="date" name="datTo" defaultValue={datTo ?? ""} className={inputClass} />
         </label>
         <label className="grid gap-1.5">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</span>
