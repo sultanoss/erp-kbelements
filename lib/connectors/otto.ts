@@ -27,11 +27,11 @@ export interface NormalizedOrder {
   }[];
 }
 
-let cachedToken: string | null = null;
-let tokenExpiresAt = 0;
+const tokenCache: Record<string, { token: string; expiresAt: number }> = {};
 
-async function getToken(): Promise<string> {
-  if (cachedToken && Date.now() < tokenExpiresAt - 60_000) return cachedToken;
+async function getToken(scope: string = "orders"): Promise<string> {
+  const cached = tokenCache[scope];
+  if (cached && Date.now() < cached.expiresAt - 60_000) return cached.token;
 
   const clientId = process.env.OTTO_CLIENT_ID;
   const clientSecret = process.env.OTTO_CLIENT_SECRET;
@@ -44,7 +44,7 @@ async function getToken(): Promise<string> {
       grant_type: "client_credentials",
       client_id: clientId,
       client_secret: clientSecret,
-      scope: "orders",
+      scope,
     }),
   });
 
@@ -54,9 +54,8 @@ async function getToken(): Promise<string> {
   }
 
   const data = await res.json() as { access_token: string; expires_in: number };
-  cachedToken = data.access_token;
-  tokenExpiresAt = Date.now() + data.expires_in * 1000;
-  return cachedToken;
+  tokenCache[scope] = { token: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
+  return data.access_token;
 }
 
 export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
@@ -170,7 +169,7 @@ export async function sendOttoShipmentNotification(params: {
   positionItemIds: string[];
   shipDate: string; // YYYY-MM-DD
 }): Promise<void> {
-  const token = await getToken();
+  const token = await getToken("shipments");
   const ottoCarrier = params.carrier === "DHL" ? "DHL" : "GLS";
 
   const body = {
