@@ -36,6 +36,7 @@ export async function GET(request: Request) {
             items: {
               create: order.items.map((item) => ({
                 marketplaceSku: item.marketplaceSku,
+                positionItemId: item.positionItemId,
                 title: item.title,
                 quantity: item.quantity,
                 price: item.price,

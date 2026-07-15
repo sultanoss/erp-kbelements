@@ -49,17 +49,18 @@ model User {
 
 
 model Item {
-  sku          String         @id
-  name         String         @default("")
-  stock        Int            @default(0)
-  stockNS      Int            @default(0)
-  minStock     Int            @default(0)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  sales        Sale[]
-  receipts     Receipt[]
-  corrections  Correction[]
-  activities   ActivityLog[]
+  sku           String         @id
+  name          String         @default("")
+  stock         Int            @default(0)
+  stockNS       Int            @default(0)
+  minStock      Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  sales         Sale[]
+  receipts      Receipt[]
+  corrections   Correction[]
+  activities    ActivityLog[]
+  shipmentItems ShipmentItem[]
 }
 
 model Sale {
@@ -169,21 +170,22 @@ model InvoiceItemSku {
 }
 
 model Order {
-  id           String      @id @default(cuid())
-  externalId   String      @unique
-  marketplace  String
-  status       String      @default("NEU")
-  customerName String
-  street       String
-  zip          String
-  city         String
-  country      String      @default("DE")
-  orderDate    DateTime
-  orderNumber  String?
+  id             String      @id @default(cuid())
+  externalId     String      @unique
+  marketplace    String
+  status         String      @default("NEU")
+  customerName   String
+  street         String
+  zip            String
+  city           String
+  country        String      @default("DE")
+  orderDate      DateTime
+  orderNumber    String?
   trackingNumber String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  items        OrderItem[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  items          OrderItem[]
+  shipments      Shipment[]
 
   @@index([status])
   @@index([marketplace])
@@ -196,9 +198,41 @@ model OrderItem {
   order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   marketplaceSku String
   internalSku    String?
+  positionItemId String?
   title          String
   quantity       Int
   price          Float
+}
+
+model Shipment {
+  id              String         @id @default(cuid())
+  orderId         String
+  order           Order          @relation(fields: [orderId], references: [id])
+  carrier         String
+  status          String         @default("LABEL_CREATED")
+  trackingNumber  String?
+  labelUrl        String?
+  dhlShipmentId   String?
+  weight          Float?
+  carrierResponse Json?
+  notifiedOttoAt  DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  items           ShipmentItem[]
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model ShipmentItem {
+  id          String   @id @default(cuid())
+  shipmentId  String
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  internalSku String
+  item        Item     @relation(fields: [internalSku], references: [sku])
+  quantity    Int
+  warehouse   String   @default("neuware")
+  createdAt   DateTime @default(now())
 }
 
 model Setting {

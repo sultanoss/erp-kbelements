@@ -1,5 +1,6 @@
 const OTTO_TOKEN_URL = "https://api.otto.market/oauth2/token";
 const OTTO_ORDERS_URL = "https://api.otto.market/v4/orders";
+const OTTO_SHIPMENTS_URL = "https://api.otto.market/v4/shipments";
 
 export interface NormalizedOrder {
   externalId: string;
@@ -13,6 +14,7 @@ export interface NormalizedOrder {
   country: string;
   items: {
     marketplaceSku: string;
+    positionItemId?: string;
     title: string;
     quantity: number;
     price: number;
@@ -82,6 +84,7 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
         countryCode?: string;
       };
       positionItems: {
+        positionItemId: string;
         itemValueGrossPrice?: { amount: number };
         salePrice?: { amount: number };
         product?: {
@@ -97,7 +100,9 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
 
   return resources.map((o) => {
     // Each positionItem = 1 unit — group by SKU and sum quantities
-    const itemMap = new Map<string, { title: string; quantity: number; price: number }>();
+    const itemMap = new Map<string, {
+      title: string; quantity: number; price: number; positionItemId: string;
+    }>();
     for (const p of o.positionItems) {
       const sku = p.product?.sku ?? p.product?.articleNumber ?? "UNKNOWN";
       const title = p.product?.productTitle ?? sku;
@@ -106,7 +111,7 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
       if (existing) {
         existing.quantity += 1;
       } else {
-        itemMap.set(sku, { title, quantity: 1, price });
+        itemMap.set(sku, { title, quantity: 1, price, positionItemId: p.positionItemId });
       }
     }
 
@@ -122,10 +127,47 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
       country: o.deliveryAddress.countryCode ?? "DE",
       items: Array.from(itemMap.entries()).map(([sku, item]) => ({
         marketplaceSku: sku,
+        positionItemId: item.positionItemId,
         title: item.title,
         quantity: item.quantity,
         price: item.price,
       })),
     };
   });
+}
+
+export async function sendOttoShipmentNotification(params: {
+  salesOrderId: string;
+  carrier: "DHL" | "GEL";
+  trackingNumber: string;
+  positionItemIds: string[];
+  shipDate: string; // YYYY-MM-DD
+}): Promise<void> {
+  const token = await getToken();
+
+  const body = {
+    trackingKey: {
+      carrier: params.carrier === "DHL" ? "DHL" : "GLS", // GEL maps to GLS in Otto
+      trackingNumber: params.trackingNumber,
+    },
+    shipDate: params.shipDate,
+    shipmentItems: params.positionItemIds.map((positionItemId) => ({
+      positionItemId,
+      salesOrderId: params.salesOrderId,
+    })),
+  };
+
+  const res = await fetch(OTTO_SHIPMENTS_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Otto Versandmeldung Fehler ${res.status}: ${text}`);
+  }
 }

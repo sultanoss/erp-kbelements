@@ -3,7 +3,8 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { markAsAbgeschlossen, markAsOffen } from "./actions";
+import { markAsOffen } from "./actions";
+import { ShipDialog } from "./ship-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -112,23 +113,15 @@ export default async function BestellungDetailPage({
                   <div>
                     <div className="font-mono text-[10px] font-bold text-amber-800">Bereit zum Versenden</div>
                     <div className="mt-0.5 font-mono text-[10px] text-amber-700">
-                      Beim Klick kannst du Paketgröße und Versandart auswählen.
+                      Versandart und Artikel auswählen, dann Label erstellen.
                     </div>
                   </div>
                 </div>
-                <form action={markAsAbgeschlossen}>
-                  <input type="hidden" name="id" value={order.id} />
-                  <button
-                    type="submit"
-                    className="inline-flex items-center gap-2.5 rounded-xl bg-brand-red px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-red-dark"
-                  >
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="22" y1="2" x2="11" y2="13" />
-                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                    </svg>
-                    Versenden
-                  </button>
-                </form>
+                <ShipDialog
+                  orderId={order.id}
+                  orderNumber={order.orderNumber}
+                  marketplace={order.marketplace}
+                />
               </div>
             )}
           </Panel>

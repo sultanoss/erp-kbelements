@@ -12,3 +12,8 @@ prisma/undo-*.ts
 prisma/check-*.ts
 prisma/test-*.ts
 test-*.mjs
+
+.vercel
+.env.vercel.*
+.env.prod.local
+.env.production.local
