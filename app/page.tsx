@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, ordersNew] = await Promise.all([
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: "TAGESVERKAUF" }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: "TAGESVERKAUF" }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: "TAGESVERKAUF" }, _sum: { quantity: true } }),
@@ -35,7 +35,6 @@ export default async function DashboardPage() {
       where: { date: { gte: monthStart, lte: monthEnd }, source: "TAGESVERKAUF" },
       _sum: { quantity: true },
     }),
-    prisma.order.count({ where: { status: "NEU" } }),
   ]);
 
   // Build day-by-day map for chart
@@ -56,12 +55,11 @@ export default async function DashboardPage() {
     <AppShell>
       <PageHeader title="Dashboard" eyebrow="Übersicht" />
 
-      {/* Zeile 1: 4 Metriken */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Zeile 1: 3 Metriken */}
+      <div className="grid gap-4 md:grid-cols-3">
         <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} />
         <Metric label="Herdsets heute" value={herdsetToday._sum.quantity ?? 0} />
         <Metric label={`Verkäufe ${monthLabel}`} value={thisMonthQty} pct={pct} />
-        <MetricLink label="Neue Bestellungen" value={ordersNew} href="/bestellungen?status=NEU" highlight />
       </div>
 
       {/* Zeile 2: Niedrig-Bestand + Top-Verkäufe */}
@@ -124,17 +122,6 @@ export default async function DashboardPage() {
         </Panel>
       </div>
     </AppShell>
-  );
-}
-
-function MetricLink({ label, value, href, highlight }: { label: string; value: number; href: string; highlight?: boolean }) {
-  return (
-    <a href={href} className="block">
-      <Panel className="p-5 transition-colors hover:border-brand-red">
-        <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">{label}</div>
-        <div className={`font-mono text-4xl font-black tabular-nums ${highlight && value > 0 ? "text-brand-red" : "text-grey-dark"}`}>{value}</div>
-      </Panel>
-    </a>
   );
 }
 

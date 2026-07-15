@@ -136,8 +136,8 @@ export default async function BestellungDetailPage({
                 Abgeschlossen
               </span>
             ) : (
-              <span className="inline-flex items-center rounded border border-blue-200 bg-blue-50 px-3 py-1 font-mono text-xs font-bold text-blue-700">
-                Neu
+              <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-3 py-1 font-mono text-xs font-bold text-amber-700">
+                Offen
               </span>
             )}
           </Panel>

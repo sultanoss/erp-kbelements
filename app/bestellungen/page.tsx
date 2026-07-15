@@ -6,12 +6,12 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<string, string> = {
-  NEU: "Neu",
+  NEU: "Offen",
   ABGESCHLOSSEN: "Abgeschlossen",
 };
 
 const statusBadge: Record<string, string> = {
-  NEU: "bg-blue-50 text-blue-700 border-blue-200",
+  NEU: "bg-amber-50 text-amber-700 border-amber-200",
   ABGESCHLOSSEN: "bg-green-50 text-green-700 border-green-200",
 };
 
@@ -24,7 +24,8 @@ export default async function BestellungenPage({
 }) {
   const { status, marketplace, q } = await searchParams;
 
-  const orders = await prisma.order.findMany({
+  const [orders, lastImport] = await Promise.all([
+  prisma.order.findMany({
     take: 200,
     orderBy: { orderDate: "desc" },
     where: {
@@ -39,13 +40,19 @@ export default async function BestellungenPage({
       } : {}),
     },
     include: { items: true },
-  });
+  }),
+  prisma.setting.findUnique({ where: { key: "lastOrderImport" } }),
+  ]);
 
   const hasFilter = !!(status || marketplace || q);
 
   return (
     <AppShell>
       <PageHeader title="Bestellungen" eyebrow="Alle Marktplatz-Bestellungen" />
+
+      <div className="mb-3 font-mono text-[10px] text-grey-mid">
+        Letzte Aktualisierung: {lastImport ? new Date(lastImport.value).toLocaleString("de-DE") : "—"}
+      </div>
 
       <form method="GET" className="mb-5 flex flex-wrap items-end gap-3">
         <label className="grid gap-1.5">
@@ -62,7 +69,7 @@ export default async function BestellungenPage({
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</span>
           <select name="status" defaultValue={status ?? ""} className={inputClass}>
             <option value="">Alle</option>
-            <option value="NEU">Neu</option>
+            <option value="NEU">Offen</option>
             <option value="ABGESCHLOSSEN">Abgeschlossen</option>
           </select>
         </label>
@@ -106,6 +113,9 @@ export default async function BestellungenPage({
                 <td className="px-4 py-3 font-mono text-xs text-grey-mid">
                   <a href={`/bestellungen/${order.id}`} className="block w-full h-full">
                     {new Date(order.orderDate).toLocaleDateString("de-DE")}
+                    <div className="text-[10px] text-grey-mid/70">
+                      {new Date(order.orderDate).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr
+                    </div>
                   </a>
                 </td>
                 <td className="px-4 py-3">

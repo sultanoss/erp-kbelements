@@ -52,5 +52,11 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
 
+  await prisma.setting.upsert({
+    where: { key: "lastOrderImport" },
+    update: { value: new Date().toISOString() },
+    create: { key: "lastOrderImport", value: new Date().toISOString() },
+  });
+
   return Response.json({ ok: true, imported, skipped, errors });
 }
