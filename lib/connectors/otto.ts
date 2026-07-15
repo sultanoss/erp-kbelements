@@ -1,6 +1,6 @@
 const OTTO_TOKEN_URL = "https://api.otto.market/oauth2/token";
 const OTTO_ORDERS_URL = "https://api.otto.market/v4/orders";
-const OTTO_SHIPMENTS_URL = "https://api.otto.market/v4/shipments";
+const OTTO_SHIPMENTS_BASE_URL = "https://api.otto.market/v4/shipments";
 
 export interface NormalizedOrder {
   externalId: string;
@@ -173,25 +173,21 @@ export async function sendOttoShipmentNotification(params: {
   const token = await getToken();
   const ottoCarrier = params.carrier === "DHL" ? "DHL" : "GLS";
 
-  const body = {
-    trackingKey: {
-      carrier: ottoCarrier,
-      trackingNumber: params.trackingNumber,
-    },
-    ...(params.returnTrackingNumber ? {
-      returnTrackingKey: {
-        carrier: ottoCarrier,
-        trackingNumber: params.returnTrackingNumber,
-      },
-    } : {}),
-    shipDate: params.shipDate,
-    shipmentItems: params.positionItemIds.map((positionItemId) => ({
-      positionItemId,
-      salesOrderId: params.salesOrderId,
-    })),
-  };
+  const url = `${OTTO_SHIPMENTS_BASE_URL}/carriers/${ottoCarrier}/trackingnumbers/${params.trackingNumber}/positionitems`;
 
-  const res = await fetch(OTTO_SHIPMENTS_URL, {
+  const body: Record<string, unknown> = {
+    positionItemIds: params.positionItemIds,
+    salesOrderId: params.salesOrderId,
+    shipDate: params.shipDate,
+  };
+  if (params.returnTrackingNumber) {
+    body.returnTrackingKey = {
+      carrier: ottoCarrier,
+      trackingNumber: params.returnTrackingNumber,
+    };
+  }
+
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
