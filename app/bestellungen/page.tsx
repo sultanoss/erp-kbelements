@@ -112,9 +112,9 @@ export default async function BestellungenPage({
               <tr key={order.id} className="cursor-pointer transition-colors hover:bg-grey-light/60">
                 <td className="px-4 py-3 font-mono text-xs text-grey-mid">
                   <a href={`/bestellungen/${order.id}`} className="block w-full h-full">
-                    {new Date(order.orderDate).toLocaleDateString("de-DE")}
+                    {new Date(order.orderDate).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
                     <div className="text-[10px] text-grey-mid/70">
-                      {new Date(order.orderDate).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr
+                      {new Date(order.orderDate).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" })} Uhr
                     </div>
                   </a>
                 </td>

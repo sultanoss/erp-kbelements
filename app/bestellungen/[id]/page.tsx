@@ -93,7 +93,7 @@ export default async function BestellungDetailPage({
                 <div>
                   <div className="text-sm font-bold text-grey-dark">Bestellung abgeschlossen</div>
                   <div className="mt-0.5 font-mono text-xs text-grey-mid">
-                    Abgeschlossen am {new Date(order.updatedAt).toLocaleDateString("de-DE")}
+                    Abgeschlossen am {new Date(order.updatedAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
                   </div>
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default async function BestellungDetailPage({
               )}
               <div className="flex justify-between px-5 py-3">
                 <dt className="font-mono text-xs text-grey-mid">Bestelldatum</dt>
-                <dd className="font-mono text-xs text-grey-dark">{new Date(order.orderDate).toLocaleDateString("de-DE")}</dd>
+                <dd className="font-mono text-xs text-grey-dark">{new Date(order.orderDate).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}</dd>
               </div>
               <div className="flex justify-between px-5 py-3">
                 <dt className="font-mono text-[10px] text-grey-mid/70">Externe ID</dt>
@@ -181,7 +181,7 @@ export default async function BestellungDetailPage({
               </div>
               <div className="flex justify-between px-5 py-3">
                 <dt className="font-mono text-xs text-grey-mid">Importiert</dt>
-                <dd className="font-mono text-xs text-grey-dark">{new Date(order.createdAt).toLocaleDateString("de-DE")}</dd>
+                <dd className="font-mono text-xs text-grey-dark">{new Date(order.createdAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}</dd>
               </div>
               {order.trackingNumber && (
                 <div className="flex justify-between px-5 py-3">
