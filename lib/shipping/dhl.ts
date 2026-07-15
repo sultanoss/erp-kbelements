@@ -94,8 +94,8 @@ export class DHLShippingProvider implements ShippingProvider {
     };
 
     if (!res.ok) {
-      const detail = json.detail ?? json.title ?? `HTTP ${res.status}`;
-      throw new Error(`DHL API Fehler: ${detail}`);
+      const detail = json.detail ?? json.title ?? JSON.stringify(json);
+      throw new Error(`DHL API Fehler ${res.status}: ${detail}`);
     }
 
     const item = json.items?.[0];
