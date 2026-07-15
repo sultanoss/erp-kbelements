@@ -79,6 +79,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     const provider = getShippingProvider(carrier);
     shipmentResult = await provider.createShipment({
       orderId: id,
+      orderNumber: order.orderNumber ?? undefined,
       carrier,
       weight,
       trackingNumber: manualTracking,

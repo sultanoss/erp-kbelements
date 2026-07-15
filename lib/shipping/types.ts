@@ -8,6 +8,7 @@ export interface ShipmentItemInput {
 
 export interface ShipmentInput {
   orderId: string;
+  orderNumber?: string;
   carrier: Carrier;
   trackingNumber?: string; // GEL only
   weight?: number;         // DHL only (kg)

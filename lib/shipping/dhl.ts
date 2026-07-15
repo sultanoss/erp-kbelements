@@ -1,4 +1,10 @@
-import type { ShipmentInput, ShipmentResult, ShippingProvider } from "./types";
+import type { ShipmentInput, ShipmentItemInput, ShipmentResult, ShippingProvider } from "./types";
+
+function buildRefNo(orderNumber: string | undefined, items: ShipmentItemInput[]): string {
+  const skus = items.map(i => i.internalSku).join(",");
+  const ref = [orderNumber, skus].filter(Boolean).join(" ");
+  return ref.slice(0, 35);
+}
 
 const BASE_URLS = {
   sandbox: "https://api-sandbox.dhl.com/parcel/de/shipping/v2",
@@ -48,7 +54,7 @@ export class DHLShippingProvider implements ShippingProvider {
         {
           product: input.consignee.country === "DE" || input.consignee.country === "DEU" ? "V01PAK" : "V62WP",
           billingNumber: getBillingNumber(),
-          refNo: input.orderId,
+          refNo: buildRefNo(input.orderNumber, input.items),
           shipper: {
             name1: process.env.DHL_SHIPPER_NAME ?? "KB Elements",
             addressStreet: shipperStreet,
@@ -71,6 +77,7 @@ export class DHLShippingProvider implements ShippingProvider {
           services: {
             dhlRetoure: {
               billingNumber: process.env.DHL_BILLING_NUMBER_RETURN ?? "",
+              refNo: buildRefNo(input.orderNumber, input.items),
               returnAddress: {
                 name1:         process.env.DHL_SHIPPER_NAME ?? "",
                 addressStreet: process.env.DHL_SHIPPER_STREET ?? "",
