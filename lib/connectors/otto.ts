@@ -17,6 +17,7 @@ export interface NormalizedOrder {
   billingZip?: string;
   billingCity?: string;
   billingCountry?: string;
+  phoneNumber?: string;
   items: {
     marketplaceSku: string;
     positionItemId?: string;
@@ -87,6 +88,7 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
         zipCode: string;
         city: string;
         countryCode?: string;
+        phoneNumber?: string;
       };
       invoiceAddress?: {
         firstName: string;
@@ -148,6 +150,7 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
       billingZip:     o.invoiceAddress?.zipCode,
       billingCity:    o.invoiceAddress?.city,
       billingCountry: o.invoiceAddress?.countryCode,
+      phoneNumber:    o.deliveryAddress.phoneNumber,
       items: Array.from(itemMap.entries()).map(([sku, item]) => ({
         marketplaceSku: sku,
         positionItemId: item.positionItemId,

@@ -142,10 +142,10 @@ export default async function BestellungenPage({
                 </td>
                 <td className="px-4 py-3 text-grey-dark">
                   <a href={`/bestellungen/${order.id}`} className="block">
-                    <div className="font-semibold">{order.customerName}</div>
+                    <div className="font-semibold">{order.billingName ?? order.customerName}</div>
                     <div className="font-mono text-xs text-grey-mid">{order.zip} {order.city}</div>
                     {order.billingName && order.billingName !== order.customerName && (
-                      <div className="font-mono text-[10px] text-grey-mid/70">Rechng.: {order.billingName}</div>
+                      <div className="font-mono text-[10px] text-grey-mid/70">Liefern: {order.customerName}</div>
                     )}
                   </a>
                 </td>

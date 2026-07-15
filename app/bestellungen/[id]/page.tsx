@@ -154,6 +154,9 @@ export default async function BestellungDetailPage({
               <div>{order.street}</div>
               <div>{order.zip} {order.city}</div>
               <div className="text-grey-mid">{order.country}</div>
+              {order.phoneNumber && (
+                <div className="text-grey-mid">{order.phoneNumber}</div>
+              )}
             </div>
           </Panel>
 

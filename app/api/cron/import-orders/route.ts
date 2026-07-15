@@ -38,6 +38,7 @@ export async function GET(request: Request) {
             billingZip:     order.billingZip,
             billingCity:    order.billingCity,
             billingCountry: order.billingCountry,
+            phoneNumber:    order.phoneNumber,
             items: {
               create: order.items.map((item) => ({
                 marketplaceSku: item.marketplaceSku,

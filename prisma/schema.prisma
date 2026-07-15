@@ -184,6 +184,7 @@ model Order {
   billingZip     String?
   billingCity    String?
   billingCountry String?
+  phoneNumber    String?
   orderDate      DateTime
   orderNumber    String?
   trackingNumber String?
