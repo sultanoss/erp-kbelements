@@ -177,7 +177,7 @@ export async function sendOttoShipmentNotification(params: {
       carrier: ottoCarrier,
       trackingNumber: params.trackingNumber,
     },
-    shipDate: `${params.shipDate}T00:00:00.000Z`,
+    shipDate: new Date().toISOString(),
     shipFromAddress: {
       city:        process.env.DHL_SHIPPER_CITY ?? "",
       countryCode: "DEU",
