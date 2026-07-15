@@ -16,16 +16,31 @@ interface SelectedItem {
   warehouse: "neuware" | "ns";
 }
 
+interface OrderItemSummary {
+  marketplaceSku: string;
+  quantity: number;
+}
+
 interface Props {
   orderId: string;
   orderNumber?: string | null;
   marketplace: string;
+  orderItems: OrderItemSummary[];
 }
+
+const WEIGHT_CLASSES = [
+  { label: "3 kg",    value: "3" },
+  { label: "5 kg",    value: "5" },
+  { label: "10 kg",   value: "10" },
+  { label: "15 kg",   value: "15" },
+  { label: "20 kg",   value: "20" },
+  { label: "31,5 kg", value: "31.5" },
+];
 
 const inputClass =
   "h-9 w-full rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
 
-export function ShipDialog({ orderId, orderNumber, marketplace }: Props) {
+export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Props) {
   const [open, setOpen] = useState(false);
   const [carrier, setCarrier] = useState<"DHL" | "GEL">("DHL");
   const [weight, setWeight] = useState("");
@@ -127,6 +142,16 @@ export function ShipDialog({ orderId, orderNumber, marketplace }: Props) {
                 <div className="text-sm font-bold text-grey-dark">Bestellung versenden</div>
                 {orderNumber && (
                   <div className="mt-0.5 font-mono text-xs text-grey-mid">{orderNumber}</div>
+                )}
+                {orderItems.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {orderItems.map((item) => (
+                      <span key={item.marketplaceSku} className="inline-flex items-center rounded border border-grey-border bg-grey-light px-1.5 py-0.5 font-mono text-[10px] font-semibold text-grey-dark">
+                        {item.marketplaceSku}
+                        {item.quantity > 1 && <span className="ml-1 text-grey-mid">×{item.quantity}</span>}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
               <button
@@ -283,16 +308,17 @@ export function ShipDialog({ orderId, orderNumber, marketplace }: Props) {
                         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
                           Gewicht (kg)
                         </span>
-                        <input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
+                        <select
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
-                          placeholder="z.B. 1.50"
                           required
                           className={inputClass}
-                        />
+                        >
+                          <option value="">Gewichtsklasse wählen …</option>
+                          {WEIGHT_CLASSES.map((w) => (
+                            <option key={w.value} value={w.value}>{w.label}</option>
+                          ))}
+                        </select>
                       </label>
                     </div>
                   )}

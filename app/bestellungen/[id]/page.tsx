@@ -121,6 +121,7 @@ export default async function BestellungDetailPage({
                   orderId={order.id}
                   orderNumber={order.orderNumber}
                   marketplace={order.marketplace}
+                  orderItems={order.items.map((i) => ({ marketplaceSku: i.marketplaceSku, quantity: i.quantity }))}
                 />
               </div>
             )}
