@@ -46,7 +46,7 @@ export class DHLShippingProvider implements ShippingProvider {
       profile: "STANDARD_GRUPPENPROFIL",
       shipments: [
         {
-          product: "V62WP",
+          product: input.consignee.country === "DE" || input.consignee.country === "DEU" ? "V01PAK" : "V62WP",
           billingNumber: getBillingNumber(),
           refNo: input.orderId,
           shipper: {
