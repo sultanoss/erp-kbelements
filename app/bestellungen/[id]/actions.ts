@@ -12,3 +12,13 @@ export async function markAsAbgeschlossen(formData: FormData) {
   revalidatePath("/bestellungen");
   revalidatePath("/");
 }
+
+export async function markAsOffen(formData: FormData) {
+  const id = formData.get("id") as string;
+  if (!id) return;
+
+  await prisma.order.update({ where: { id }, data: { status: "NEU" } });
+  revalidatePath(`/bestellungen/${id}`);
+  revalidatePath("/bestellungen");
+  revalidatePath("/");
+}

@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { markAsAbgeschlossen } from "./actions";
+import { markAsAbgeschlossen, markAsOffen } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -84,18 +84,26 @@ export default async function BestellungDetailPage({
             </div>
 
             {isAbgeschlossen ? (
-              <div className="flex items-center gap-4 p-5">
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-700">
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-grey-dark">Bestellung abgeschlossen</div>
-                  <div className="mt-0.5 font-mono text-xs text-grey-mid">
-                    Abgeschlossen am {new Date(order.updatedAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
+              <div className="flex items-center justify-between p-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-700">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-grey-dark">Bestellung abgeschlossen</div>
+                    <div className="mt-0.5 font-mono text-xs text-grey-mid">
+                      Abgeschlossen am {new Date(order.updatedAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
+                    </div>
                   </div>
                 </div>
+                <form action={markAsOffen}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <button type="submit" className="rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors">
+                    Wieder öffnen
+                  </button>
+                </form>
               </div>
             ) : (
               <div className="flex flex-col gap-4 p-5">
