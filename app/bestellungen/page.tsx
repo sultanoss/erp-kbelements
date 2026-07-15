@@ -152,17 +152,17 @@ export default async function BestellungenPage({
                 <td className="px-4 py-3">
                   <a href={`/bestellungen/${order.id}`} className="block">
                     {order.orderNumber && (
-                      <div className="mb-1 font-mono text-[10px] text-grey-mid">{order.orderNumber}</div>
+                      <div className="mb-1 font-mono text-[11px] text-grey-mid">{order.orderNumber}</div>
                     )}
                     <div className="flex flex-wrap gap-1">
                       {order.items.slice(0, 2).map((item) => (
-                        <span key={item.id} className="inline-flex items-center rounded border border-grey-border bg-grey-light px-1.5 py-0.5 font-mono text-[10px] font-semibold text-grey-dark">
+                        <span key={item.id} className="inline-flex items-center rounded border border-grey-border bg-grey-light px-1.5 py-0.5 font-mono text-xs font-semibold text-grey-dark">
                           {item.marketplaceSku}
                           {item.quantity > 1 && <span className="ml-1 text-grey-mid">×{item.quantity}</span>}
                         </span>
                       ))}
                       {order.items.length > 2 && (
-                        <span className="inline-flex items-center rounded border border-grey-border bg-grey-light px-1.5 py-0.5 font-mono text-[10px] text-grey-mid">
+                        <span className="inline-flex items-center rounded border border-grey-border bg-grey-light px-1.5 py-0.5 font-mono text-xs text-grey-mid">
                           +{order.items.length - 2}
                         </span>
                       )}
