@@ -22,29 +22,47 @@ function signedHeaders(method: string, fullUrl: string, bodyStr: string): Record
   };
 }
 
-// Response vom Listen-Endpoint: nur Metadaten, KEINE Adress-/Käuferdaten
+// Nur Metadaten — keine Adressen, keine Units
 type KauflandOrderListItem = {
   id_order: string;
   ts_created_iso?: string;
   order_units_count?: number;
 };
 
-// Response vom Detail-Endpoint: alle Käufer- und Adressdaten
+// Detail-Response enthält Adressen + eingebettete order_units
+type KauflandOrderUnit = {
+  id_order_unit: string | number;
+  id_offer?: string;       // Seller-Angebots-ID → als MarktplatzSKU verwenden
+  price?: number;          // Preis in CENT (÷ 100 = EUR)
+  product?: {
+    title?: string;
+    eans?: string[];
+  };
+};
+
+type KauflandAddress = {
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+  street?: string;
+  house_number?: string;
+  additional_field?: string;
+  postcode?: string;
+  city?: string;
+  country?: string;
+  phone?: string;
+};
+
 type KauflandOrderDetail = {
   id_order: string;
-  id_purchase?: string | number;
   ts_created_iso?: string;
-  buyer?: { firstname?: string; lastname?: string; phone?: string };
-  shipping_address?: {
-    firstname?: string; lastname?: string;
-    street?: string; house_number?: string;
-    postcode?: string; city?: string; country?: string;
+  buyer?: {
+    id_buyer?: number;
+    email?: string;
   };
-  billing_address?: {
-    firstname?: string; lastname?: string;
-    street?: string; house_number?: string;
-    postcode?: string; city?: string; country?: string;
-  };
+  shipping_address?: KauflandAddress;
+  billing_address?: KauflandAddress;
+  order_units?: KauflandOrderUnit[];
 };
 
 // fromIso: ISO-Timestamp ab dem importiert wird, z.B. "2026-07-16T00:00:00Z"
@@ -75,61 +93,53 @@ export async function fetchKauflandOrders(fromIso?: string): Promise<NormalizedO
         break;
       }
 
-      // Detailaufruf: Käufer + Adressen (nicht im Listen-Endpoint enthalten)
+      // Detail-Endpoint: liefert Adressen + order_units eingebettet (kein separater Units-Call nötig)
       const detailUrl = `${BASE}/orders/${o.id_order}`;
       const detailRes = await fetch(detailUrl, { headers: signedHeaders("GET", detailUrl, "") });
-      const detail: KauflandOrderDetail = detailRes.ok
-        ? ((await detailRes.json() as { data?: KauflandOrderDetail }).data ?? { id_order: o.id_order })
-        : { id_order: o.id_order };
+      if (!detailRes.ok) continue;
 
-      // Order-Units: Artikel, SKU, Preis
-      const unitsUrl = `${BASE}/order-units?storefront=${storefront}&id_order=${o.id_order}&limit=100`;
-      const unitsRes = await fetch(unitsUrl, { headers: signedHeaders("GET", unitsUrl, "") });
-      if (!unitsRes.ok) continue;
+      const detailData = await detailRes.json() as { data?: KauflandOrderDetail };
+      const d = detailData.data;
+      if (!d) continue;
 
-      const unitsData = await unitsRes.json() as {
-        data?: Array<{
-          id_order_unit: string | number;
-          offer_sku?: string;              // Seller-eigene SKU (primär)
-          id_product_variant?: string | number; // Kaufland-interne ID
-          ean?: string;                    // EAN-Fallback
-          title?: string;
-          unit_price?: number;
-        }>;
-      };
+      const sa = d.shipping_address ?? {};
+      const ba = d.billing_address;
 
-      const sa = detail.shipping_address ?? {};
-      const ba = detail.billing_address;
+      // Kaufland liefert first_name/last_name (mit Unterstrich), buyer hat KEINEN Namen
+      const firstName = sa.first_name ?? ba?.first_name ?? "";
+      const lastName = sa.last_name ?? ba?.last_name ?? "";
+      const customerName = [firstName, lastName].filter(Boolean).join(" ") || "Unbekannt";
 
-      const customerName = [
-        sa.firstname ?? detail.buyer?.firstname,
-        sa.lastname ?? detail.buyer?.lastname,
-      ].filter(Boolean).join(" ") || "Unbekannt";
+      const units = d.order_units ?? [];
 
       orders.push({
         externalId: String(o.id_order),
-        orderNumber: detail.id_purchase != null
-          ? String(detail.id_purchase)
-          : String(o.id_order),
+        orderNumber: String(o.id_order),
         marketplace: "KAUFLAND",
-        orderDate: new Date(o.ts_created_iso ?? detail.ts_created_iso ?? new Date().toISOString()),
+        orderDate: new Date(o.ts_created_iso ?? d.ts_created_iso ?? new Date().toISOString()),
         customerName,
         street: [sa.street, sa.house_number].filter(Boolean).join(" "),
         zip: sa.postcode ?? "",
         city: sa.city ?? "",
         country: sa.country ?? "DE",
-        billingName: ba ? [ba.firstname, ba.lastname].filter(Boolean).join(" ") : undefined,
-        billingStreet: ba ? [ba.street, ba.house_number].filter(Boolean).join(" ") : undefined,
+        billingName: ba
+          ? [ba.first_name, ba.last_name].filter(Boolean).join(" ") || undefined
+          : undefined,
+        billingStreet: ba
+          ? [ba.street, ba.house_number].filter(Boolean).join(" ") || undefined
+          : undefined,
         billingZip: ba?.postcode,
         billingCity: ba?.city,
         billingCountry: ba?.country,
-        phoneNumber: detail.buyer?.phone,
-        items: (unitsData.data ?? []).map((u) => ({
-          marketplaceSku: String(u.offer_sku ?? u.ean ?? u.id_product_variant ?? "UNKNOWN"),
+        phoneNumber: sa.phone || ba?.phone || undefined,
+        items: units.map((u) => ({
+          // id_offer = Kaufland-Angebots-ID (beste verfügbare Seller-SKU)
+          marketplaceSku: u.id_offer ?? "UNKNOWN",
           positionItemId: String(u.id_order_unit),
-          title: u.title ?? String(u.offer_sku ?? u.id_product_variant ?? "Artikel"),
+          title: u.product?.title ?? u.id_offer ?? "Artikel",
           quantity: 1,
-          price: u.unit_price ?? 0,
+          // Preis kommt in Cent → in EUR umrechnen
+          price: u.price != null ? u.price / 100 : 0,
         })),
       });
     }
