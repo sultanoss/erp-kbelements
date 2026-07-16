@@ -198,7 +198,7 @@ export default async function BestellungDetailPage({
               </div>
               {order.orderNumber && (
                 <div className="flex justify-between px-5 py-3">
-                  <dt className="font-mono text-xs text-grey-mid">Otto-Bestellnr.</dt>
+                  <dt className="font-mono text-xs text-grey-mid">Bestellnummer</dt>
                   <dd className="font-mono text-xs font-bold text-grey-dark">{order.orderNumber}</dd>
                 </div>
               )}
@@ -224,6 +224,34 @@ export default async function BestellungDetailPage({
                 <div className="flex justify-between px-5 py-3">
                   <dt className="font-mono text-xs text-grey-mid">Retourennummer</dt>
                   <dd className="font-mono text-xs font-bold text-grey-dark">{order.shipments[0].returnTrackingNumber}</dd>
+                </div>
+              )}
+              {order.marketplace === "KAUFLAND" && order.shipments?.[0] && (
+                <div className="flex items-center justify-between px-5 py-3">
+                  <dt className="font-mono text-xs text-grey-mid">Kaufland-Meldung</dt>
+                  <dd>
+                    {order.shipments[0].status === "PORTAL_NOTIFIED" ? (
+                      <span className="inline-flex items-center rounded border border-green-200 bg-green-50 px-2 py-0.5 font-mono text-[10px] font-bold text-green-700">
+                        Gemeldet
+                      </span>
+                    ) : order.shipments[0].status === "NOTIFY_FAILED" ? (
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 font-mono text-[10px] font-bold text-red-700">
+                          Fehlgeschlagen
+                        </span>
+                        <a
+                          href={`/api/kaufland/retry-notify?orderId=${order.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-mono text-[10px] font-semibold text-brand-red hover:underline"
+                        >
+                          Erneut versuchen
+                        </a>
+                      </div>
+                    ) : (
+                      <span className="font-mono text-[10px] text-grey-mid">—</span>
+                    )}
+                  </dd>
                 </div>
               )}
             </dl>

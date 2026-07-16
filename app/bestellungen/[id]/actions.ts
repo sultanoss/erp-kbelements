@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 import { getShippingProvider } from "@/lib/shipping";
 import type { ShipmentResult } from "@/lib/shipping/types";
 import { sendOttoShipmentNotification } from "@/lib/connectors/otto";
+import { sendKauflandShipmentNotification, uploadKauflandInvoice } from "@/lib/connectors/kaufland";
+import { createInvoiceFromOrder } from "@/lib/invoice-helper";
+import { generateInvoicePdf } from "@/lib/invoice-pdf";
+import { auth } from "@/auth";
 
 export async function markAsAbgeschlossen(formData: FormData) {
   const id = formData.get("id") as string;
@@ -191,6 +195,44 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           data: { status: "NOTIFY_FAILED" },
         });
       }
+    }
+  }
+
+  // Kaufland: automatisch Rechnung erstellen, Sendungsnummer melden, Rechnung hochladen
+  if (order.marketplace === "KAUFLAND") {
+    const orderUnitIds = order.items
+      .map((i) => i.positionItemId)
+      .filter((pid): pid is string => !!pid);
+
+    try {
+      const session = await auth();
+      const userId = (session?.user as { id?: string } | null)?.id;
+      if (!userId) throw new Error("Kein Benutzer-Kontext");
+
+      const inv = await createInvoiceFromOrder(order, userId);
+      const pdfBytes = await generateInvoicePdf(inv);
+
+      if (orderUnitIds.length > 0) {
+        await sendKauflandShipmentNotification({
+          orderUnitIds,
+          trackingNumber: shipmentResult.trackingNumber,
+          carrier,
+        });
+      }
+
+      await uploadKauflandInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
+
+      await prisma.shipment.update({
+        where: { id: shipmentId },
+        data: { status: "PORTAL_NOTIFIED" },
+      });
+      revalidatePath("/buchhaltung");
+    } catch (err) {
+      console.error("Kaufland-Meldung fehlgeschlagen:", err);
+      await prisma.shipment.update({
+        where: { id: shipmentId },
+        data: { status: "NOTIFY_FAILED" },
+      });
     }
   }
 

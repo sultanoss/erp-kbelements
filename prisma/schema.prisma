@@ -140,6 +140,7 @@ model Invoice {
   originalInvoiceId  String?
   originalInvoiceNum String?
   marketplace        String?
+  orderId            String?
   createdAt          DateTime      @default(now())
   userId          String
   user            User          @relation(fields: [userId], references: [id])
@@ -149,6 +150,7 @@ model Invoice {
   @@index([number])
   @@index([status])
   @@index([docType])
+  @@index([orderId])
 }
 
 model InvoiceItem {
