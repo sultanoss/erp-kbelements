@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
   // DHL combines outbound + return label on a single page when dhlRetoure is used.
   // Crop to the top half to show only the outbound shipping label.
-  if (srcDoc.getPageCount() === 1) {
+  if (srcDoc.getPageCount() === 1 && req.nextUrl.searchParams.get("crop") === "1") {
     const addedPage = newDoc.getPages()[0];
     const { width, height } = addedPage.getSize();
     // PDF coords: y=0 is bottom, y=height is top → top half starts at y=height/2

@@ -1,8 +1,8 @@
 "use client";
 
-export function PrintLabelButton({ url }: { url: string }) {
+export function PrintLabelButton({ url, crop }: { url: string; crop?: boolean }) {
   function handlePrint() {
-    const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}`;
+    const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}${crop ? "&crop=1" : ""}`;
     const win = window.open(proxyUrl, "_blank", "width=600,height=800");
     if (win) win.onload = () => win.print();
   }

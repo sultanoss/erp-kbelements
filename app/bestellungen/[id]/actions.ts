@@ -31,7 +31,7 @@ export async function markAsOffen(formData: FormData) {
 }
 
 export type ShipOrderResult =
-  | { ok: true; trackingNumber: string; labelUrl?: string; sandbox?: boolean }
+  | { ok: true; trackingNumber: string; labelUrl?: string; returnTrackingNumber?: string; sandbox?: boolean }
   | { ok: false; error: string };
 
 export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
@@ -240,5 +240,5 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   revalidatePath("/bestellungen");
   revalidatePath("/");
 
-  return { ok: true, trackingNumber: shipmentResult.trackingNumber, labelUrl: shipmentResult.labelUrl };
+  return { ok: true, trackingNumber: shipmentResult.trackingNumber, labelUrl: shipmentResult.labelUrl, returnTrackingNumber: shipmentResult.returnTrackingNumber };
 }

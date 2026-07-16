@@ -250,7 +250,7 @@ export default async function BestellungDetailPage({
               )}
             </dl>
             {order.shipments?.[0]?.labelUrl && (
-              <PrintLabelButton url={order.shipments[0].labelUrl} />
+              <PrintLabelButton url={order.shipments[0].labelUrl} crop={!!order.shipments[0].returnTrackingNumber} />
             )}
           </Panel>
         </div>

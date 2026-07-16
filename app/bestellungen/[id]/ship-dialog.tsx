@@ -53,8 +53,8 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
-  function handlePrint(url: string) {
-    const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}`;
+  function handlePrint(url: string, crop: boolean) {
+    const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}${crop ? "&crop=1" : ""}`;
     const win = window.open(proxyUrl, "_blank", "width=600,height=800");
     if (win) win.onload = () => win.print();
   }
@@ -222,7 +222,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
                 {result.labelUrl && (
                   <button
                     type="button"
-                    onClick={() => result.labelUrl && handlePrint(result.labelUrl)}
+                    onClick={() => result.labelUrl && handlePrint(result.labelUrl, !!result.returnTrackingNumber)}
                     className="inline-flex items-center gap-2 rounded-lg border border-brand-red px-4 py-2 font-mono text-xs font-semibold text-brand-red hover:bg-brand-red hover:text-white transition-colors"
                   >
                     <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
