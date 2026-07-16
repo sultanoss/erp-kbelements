@@ -72,11 +72,14 @@ export async function GET(request: Request) {
   }
 
   if (process.env.KAUFLAND_CLIENT_KEY) {
-    try {
-      // Nur Bestellungen ab Go-Live importieren (kein historischer Backlog)
-      await saveOrders(await fetchKauflandOrders("2026-07-16T00:00:00Z"));
-    } catch (e) {
-      errors.push(`KAUFLAND: ${(e as Error).message}`);
+    const storefronts = (process.env.KAUFLAND_STOREFRONT ?? "de").split(",").map((s) => s.trim());
+    for (const sf of storefronts) {
+      try {
+        // Nur Bestellungen ab Go-Live importieren (kein historischer Backlog)
+        await saveOrders(await fetchKauflandOrders("2026-07-16T00:00:00Z", sf));
+      } catch (e) {
+        errors.push(`KAUFLAND/${sf.toUpperCase()}: ${(e as Error).message}`);
+      }
     }
   }
 

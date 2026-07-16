@@ -2,6 +2,10 @@ import { prisma } from "./prisma";
 import type { Order, OrderItem } from "@prisma/client";
 import type { InvWithItems } from "./invoice-pdf";
 
+function mwstFuerLand(country?: string | null): number {
+  return country === "AT" || country === "FR" ? 20 : 19;
+}
+
 export async function createInvoiceFromOrder(
   order: Order & { items: OrderItem[] },
   userId: string,
@@ -34,9 +38,9 @@ export async function createInvoiceFromOrder(
       customerName: order.billingName ?? order.customerName,
       customerAddress,
       customerNum: null,
-      mwstRate: 19,
+      mwstRate: mwstFuerLand(order.billingCountry ?? order.country),
       shippingCost: null,
-      shippingMwst: 19,
+      shippingMwst: mwstFuerLand(order.billingCountry ?? order.country),
       paymentMethod: "konto",
       notes: null,
       paymentInfo: null,

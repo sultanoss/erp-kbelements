@@ -66,15 +66,16 @@ type KauflandOrderDetail = {
 };
 
 // fromIso: ISO-Timestamp ab dem importiert wird, z.B. "2026-07-16T00:00:00Z"
+// storefront: "de", "at", "fr" — überschreibt KAUFLAND_STOREFRONT env var
 // API liefert Bestellungen absteigend (neueste zuerst) → frühzeitiger Abbruch möglich
-export async function fetchKauflandOrders(fromIso?: string): Promise<NormalizedOrder[]> {
-  const storefront = process.env.KAUFLAND_STOREFRONT ?? "de";
+export async function fetchKauflandOrders(fromIso?: string, storefront?: string): Promise<NormalizedOrder[]> {
+  const sf = storefront ?? process.env.KAUFLAND_STOREFRONT ?? "de";
   const orders: NormalizedOrder[] = [];
   let offset = 0;
   const limit = 100;
 
   while (true) {
-    const url = `${BASE}/orders?storefront=${storefront}&status=need_to_be_sent&limit=${limit}&offset=${offset}`;
+    const url = `${BASE}/orders?storefront=${sf}&status=need_to_be_sent&limit=${limit}&offset=${offset}`;
     const res = await fetch(url, { headers: signedHeaders("GET", url, "") });
     if (!res.ok) {
       const text = await res.text();

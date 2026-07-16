@@ -137,6 +137,11 @@ export default async function BestellungenPage({
                 <td className="px-4 py-3">
                   <a href={`/bestellungen/${order.id}`} className="block">
                     <span className="font-mono text-xs font-semibold text-brand-red">{order.marketplace}</span>
+                    {order.marketplace === "KAUFLAND" && order.country && order.country !== "DE" && (
+                      <span className="ml-1.5 inline-flex items-center rounded bg-grey-light border border-grey-border px-1.5 py-0.5 font-mono text-[9px] font-bold text-grey-dark">
+                        {order.country}
+                      </span>
+                    )}
                   </a>
                 </td>
                 <td className="px-4 py-3 text-grey-dark">

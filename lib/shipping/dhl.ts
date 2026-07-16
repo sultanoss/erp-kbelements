@@ -23,10 +23,18 @@ function getAuthHeader(): string {
   return "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
 }
 
-function getBillingNumber(): string {
-  const bn = process.env.DHL_BILLING_NUMBER_SHIPPING;
-  if (!bn) throw new Error("DHL_BILLING_NUMBER_SHIPPING not configured");
+function getBillingNumber(country: string): string {
+  const isDomestic = country === "DE" || country === "DEU";
+  const bn = isDomestic
+    ? process.env.DHL_BILLING_NUMBER_SHIPPING
+    : process.env.DHL_BILLING_NUMBER_INTERNATIONAL;
+  if (!bn) throw new Error(isDomestic ? "DHL_BILLING_NUMBER_SHIPPING not configured" : "DHL_BILLING_NUMBER_INTERNATIONAL not configured");
   return bn;
+}
+
+function toIso3(c: string): string {
+  const map: Record<string, string> = { DE: "DEU", AT: "AUT", FR: "FRA" };
+  return map[c] ?? c;
 }
 
 function splitStreetAndHouse(street: string): { street: string; house: string } {
@@ -48,12 +56,15 @@ export class DHLShippingProvider implements ShippingProvider {
       input.consignee.street
     );
 
+    const consigneeCountryIso3 = toIso3(input.consignee.country);
+    const isDomestic = consigneeCountryIso3 === "DEU";
+
     const body = {
       profile: "STANDARD_GRUPPENPROFIL",
       shipments: [
         {
-          product: input.consignee.country === "DE" || input.consignee.country === "DEU" ? "V01PAK" : "V62WP",
-          billingNumber: getBillingNumber(),
+          product: isDomestic ? "V01PAK" : "V53WPAK",
+          billingNumber: getBillingNumber(input.consignee.country),
           refNo: buildRefNo(input.orderNumber, input.items),
           shipper: {
             name1: process.env.DHL_SHIPPER_NAME ?? "KB Elements",
@@ -69,25 +80,27 @@ export class DHLShippingProvider implements ShippingProvider {
             addressHouse: consigneeHouse,
             postalCode: input.consignee.zip,
             city: input.consignee.city,
-            country: input.consignee.country === "DE" ? "DEU" : input.consignee.country,
+            country: consigneeCountryIso3,
           },
           details: {
             weight: { uom: "kg", value: input.weight },
           },
-          services: {
-            dhlRetoure: {
-              billingNumber: process.env.DHL_BILLING_NUMBER_RETURN ?? "",
-              refNo: buildRefNo(input.orderNumber, input.items),
-              returnAddress: {
-                name1:         process.env.DHL_SHIPPER_NAME ?? "",
-                addressStreet: process.env.DHL_SHIPPER_STREET ?? "",
-                addressHouse:  process.env.DHL_SHIPPER_HOUSE ?? "",
-                postalCode:    process.env.DHL_SHIPPER_ZIP ?? "",
-                city:          process.env.DHL_SHIPPER_CITY ?? "",
-                country:       "DEU",
+          ...(isDomestic ? {
+            services: {
+              dhlRetoure: {
+                billingNumber: process.env.DHL_BILLING_NUMBER_RETURN ?? "",
+                refNo: buildRefNo(input.orderNumber, input.items),
+                returnAddress: {
+                  name1:         process.env.DHL_SHIPPER_NAME ?? "",
+                  addressStreet: process.env.DHL_SHIPPER_STREET ?? "",
+                  addressHouse:  process.env.DHL_SHIPPER_HOUSE ?? "",
+                  postalCode:    process.env.DHL_SHIPPER_ZIP ?? "",
+                  city:          process.env.DHL_SHIPPER_CITY ?? "",
+                  country:       "DEU",
+                },
               },
             },
-          },
+          } : {}),
         },
       ],
     };
