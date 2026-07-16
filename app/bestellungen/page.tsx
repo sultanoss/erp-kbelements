@@ -110,7 +110,6 @@ export default async function BestellungenPage({
             Zurücksetzen
           </a>
         )}
-        <span className="ml-auto self-end pb-1.5 font-mono text-xs text-grey-mid">{orders.length} Bestellungen</span>
       </form>
 
       <Panel className="overflow-x-auto">
