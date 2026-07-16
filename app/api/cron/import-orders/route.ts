@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { fetchNewOrders, type NormalizedOrder } from "@/lib/connectors/otto";
 import { fetchKauflandOrders } from "@/lib/connectors/kaufland";
+import { fetchMediaMarktOrders } from "@/lib/connectors/mediamarkt";
 
 export const maxDuration = 60;
 
@@ -80,6 +81,14 @@ export async function GET(request: Request) {
       } catch (e) {
         errors.push(`KAUFLAND/${sf.toUpperCase()}: ${(e as Error).message}`);
       }
+    }
+  }
+
+  if (process.env.MEDIAMARKT_API_KEY) {
+    try {
+      await saveOrders(await fetchMediaMarktOrders("2026-07-16T00:00:00Z"));
+    } catch (e) {
+      errors.push(`MEDIAMARKT: ${(e as Error).message}`);
     }
   }
 

@@ -6,6 +6,7 @@ import { getShippingProvider } from "@/lib/shipping";
 import type { ShipmentResult } from "@/lib/shipping/types";
 import { sendOttoShipmentNotification } from "@/lib/connectors/otto";
 import { sendKauflandShipmentNotification, uploadKauflandInvoice } from "@/lib/connectors/kaufland";
+import { sendMediaMarktShipmentNotification, uploadMediaMarktInvoice } from "@/lib/connectors/mediamarkt";
 import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
@@ -233,6 +234,26 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         where: { id: shipmentId },
         data: { status: "NOTIFY_FAILED" },
       });
+    }
+  }
+
+  if (order.marketplace === "MEDIAMARKT") {
+    try {
+      const session2 = await auth();
+      const userId2 = (session2?.user as { id?: string } | null)?.id;
+      const inv = await createInvoiceFromOrder(order, userId2 ?? "");
+      const pdfBytes = await generateInvoicePdf(inv);
+      await sendMediaMarktShipmentNotification({
+        orderId: order.externalId,
+        trackingNumber: shipmentResult.trackingNumber,
+        carrier,
+      });
+      await uploadMediaMarktInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
+      await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+      revalidatePath("/buchhaltung");
+    } catch (err) {
+      console.error("MediaMarkt-Meldung fehlgeschlagen:", err);
+      await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "NOTIFY_FAILED" } });
     }
   }
 
