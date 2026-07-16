@@ -18,7 +18,17 @@ export async function GET(request: Request) {
     for (const order of orders) {
       try {
         const existing = await prisma.order.findUnique({ where: { externalId: order.externalId } });
-        if (existing) { skipped++; continue; }
+        if (existing) {
+          // Bei schlechtem Import (UNKNOWN-Artikel) → löschen und neu importieren
+          const hasBadData = await prisma.orderItem.findFirst({
+            where: { orderId: existing.id, marketplaceSku: "UNKNOWN" },
+          });
+          if (!hasBadData) { skipped++; continue; }
+          await prisma.orderItem.deleteMany({ where: { orderId: existing.id } });
+          await prisma.shipmentItem.deleteMany({ where: { shipment: { orderId: existing.id } } });
+          await prisma.shipment.deleteMany({ where: { orderId: existing.id } });
+          await prisma.order.delete({ where: { id: existing.id } });
+        }
 
         await prisma.order.create({
           data: {
