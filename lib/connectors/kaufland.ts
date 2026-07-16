@@ -10,7 +10,7 @@ function signedHeaders(method: string, fullUrl: string, bodyStr: string): Record
 
   const timestamp = Math.floor(Date.now() / 1000);
   const msg = [method.toUpperCase(), fullUrl, bodyStr, String(timestamp)].join("\n");
-  const sig = createHmac("sha256", secretKey).update(msg).digest("base64");
+  const sig = createHmac("sha256", secretKey).update(msg).digest("hex");
 
   return {
     "Shop-Client-Key": clientKey,
