@@ -63,9 +63,8 @@ export async function GET(request: Request) {
 
   if (process.env.KAUFLAND_CLIENT_KEY) {
     try {
-      // Nur Bestellungen ab heute (00:00 UTC) importieren
-      const todayIso = new Date().toISOString().slice(0, 10) + "T00:00:00Z";
-      await saveOrders(await fetchKauflandOrders(todayIso));
+      // Nur Bestellungen ab Go-Live importieren (kein historischer Backlog)
+      await saveOrders(await fetchKauflandOrders("2026-07-16T00:00:00Z"));
     } catch (e) {
       errors.push(`KAUFLAND: ${(e as Error).message}`);
     }
