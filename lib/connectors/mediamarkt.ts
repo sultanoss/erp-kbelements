@@ -138,7 +138,7 @@ export async function uploadMediaMarktInvoice(
   const url = `${BASE}/orders/${orderId}/invoice`;
 
   const formData = new FormData();
-  formData.append("file", new Blob([pdfBytes], { type: "application/pdf" }), filename);
+  formData.append("file", new Blob([Buffer.from(pdfBytes)], { type: "application/pdf" }), filename);
 
   const res = await fetch(url, {
     method: "POST",
