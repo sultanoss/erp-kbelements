@@ -84,7 +84,7 @@ export default function ExportPage() {
             <tbody className="divide-y divide-grey-border">
               {[
                 ["Belegart", "Rechnung / Gutschrift / Storniert"],
-                ["Belegnummer", "RE-202607-10001"],
+                ["Belegnummer", "KBR-2601"],
                 ["Datum", "12.07.2026"],
                 ["Kundennummer", "KD-001"],
                 ["Kundenname", "Mustermann GmbH"],

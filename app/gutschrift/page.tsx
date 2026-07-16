@@ -45,7 +45,7 @@ export default async function GutschriftListPage({
           </div>
           <div className="flex flex-col gap-1">
             <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">GS-Nr.</label>
-            <input type="text" name="num" defaultValue={num ?? ""} placeholder="GS-202607-…"
+            <input type="text" name="num" defaultValue={num ?? ""} placeholder="KBG-…"
               className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-40" />
           </div>
           <div className="flex flex-col gap-1">

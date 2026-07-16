@@ -57,7 +57,7 @@ export default async function BuchhaltungPage({
               type="text"
               name="num"
               defaultValue={num ?? ""}
-              placeholder="RE-202607-…"
+              placeholder="KBR-…"
               className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-40"
             />
           </div>

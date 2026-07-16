@@ -220,17 +220,15 @@ export async function createInvoice(data: {
 }) {
   const user = await requireUser();
 
-  const now = new Date();
-  const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const prefix = data.docType === "angebot" ? `AN-${ym}-` : data.docType === "gutschrift" ? `GS-${ym}-` : `RE-${ym}-`;
+  const prefix = data.docType === "angebot" ? "KBA-" : data.docType === "gutschrift" ? "KBG-" : "KBR-";
   const noStock = data.docType === "angebot" || data.docType === "gutschrift";
 
   const last = await prisma.invoice.findFirst({
     where: { number: { startsWith: prefix }, docType: data.docType },
     orderBy: { number: "desc" },
   });
-  const seq = last ? parseInt(last.number.split("-")[2] ?? "0", 10) + 1 : 10001;
-  const number = `${prefix}${seq}`;
+  const seq = last ? parseInt(last.number.replace(prefix, ""), 10) + 1 : 2601;
+  const number = `${prefix}${String(seq).padStart(4, "0")}`;
 
   const invoice = await prisma.$transaction(async (tx) => {
     const inv = await tx.invoice.create({
@@ -308,16 +306,13 @@ export async function createGutschrift(originalInvoiceId: string, formData: Form
   const datumRaw = String(formData.get("datum") ?? "");
   const notiz = String(formData.get("notiz") ?? "").trim();
 
-  const now = new Date();
-  const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const prefix = `GS-${ym}-`;
-
-  const last = await prisma.invoice.findFirst({
-    where: { number: { startsWith: prefix }, docType: "gutschrift" },
+  const gsPrefix = "KBG-";
+  const lastGs = await prisma.invoice.findFirst({
+    where: { number: { startsWith: gsPrefix }, docType: "gutschrift" },
     orderBy: { number: "desc" },
   });
-  const seq = last ? parseInt(last.number.split("-")[2] ?? "0", 10) + 1 : 10001;
-  const number = `${prefix}${seq}`;
+  const gsSeq = lastGs ? parseInt(lastGs.number.replace(gsPrefix, ""), 10) + 1 : 2601;
+  const number = `${gsPrefix}${String(gsSeq).padStart(4, "0")}`;
 
   const invoice = await prisma.invoice.create({
     data: {
