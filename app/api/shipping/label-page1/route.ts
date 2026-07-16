@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
 
   const outBytes = await newDoc.save();
 
-  return new NextResponse(outBytes, {
+  return new NextResponse(Buffer.from(outBytes), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": "inline",
