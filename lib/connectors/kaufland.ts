@@ -22,84 +22,101 @@ function signedHeaders(method: string, fullUrl: string, bodyStr: string): Record
   };
 }
 
-export async function fetchKauflandOrders(): Promise<NormalizedOrder[]> {
-  const storefront = process.env.KAUFLAND_STOREFRONT ?? "de";
-  const url = `${BASE}/orders?storefront=${storefront}&status=need_to_be_sent&limit=100`;
-
-  const res = await fetch(url, { headers: signedHeaders("GET", url, "") });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Kaufland Orders-Fehler ${res.status}: ${text}`);
-  }
-
-  const data = await res.json() as {
-    data?: Array<{
-      id_order: string;
-      id_purchase?: string | number;
-      ts_created: string;
-      buyer?: { firstname?: string; lastname?: string; phone?: string };
-      shipping_address?: {
-        firstname?: string; lastname?: string;
-        street?: string; house_number?: string;
-        postcode?: string; city?: string; country?: string;
-      };
-      billing_address?: {
-        firstname?: string; lastname?: string;
-        street?: string; house_number?: string;
-        postcode?: string; city?: string; country?: string;
-      };
-    }>;
+type KauflandOrder = {
+  id_order: string;
+  id_purchase?: string | number;
+  ts_created_iso?: string;
+  buyer?: { firstname?: string; lastname?: string; phone?: string };
+  shipping_address?: {
+    firstname?: string; lastname?: string;
+    street?: string; house_number?: string;
+    postcode?: string; city?: string; country?: string;
   };
+  billing_address?: {
+    firstname?: string; lastname?: string;
+    street?: string; house_number?: string;
+    postcode?: string; city?: string; country?: string;
+  };
+};
 
+// fromIso: ISO-Timestamp ab dem importiert wird, z.B. "2026-07-16T00:00:00Z"
+// API liefert Bestellungen absteigend (neueste zuerst) → frühzeitiger Abbruch möglich
+export async function fetchKauflandOrders(fromIso?: string): Promise<NormalizedOrder[]> {
+  const storefront = process.env.KAUFLAND_STOREFRONT ?? "de";
   const orders: NormalizedOrder[] = [];
+  let offset = 0;
+  const limit = 100;
 
-  for (const o of data.data ?? []) {
-    const unitsUrl = `${BASE}/order-units?storefront=${storefront}&id_order=${o.id_order}&limit=100`;
-    const unitsRes = await fetch(unitsUrl, { headers: signedHeaders("GET", unitsUrl, "") });
-    if (!unitsRes.ok) continue;
+  while (true) {
+    const url = `${BASE}/orders?storefront=${storefront}&status=need_to_be_sent&limit=${limit}&offset=${offset}`;
+    const res = await fetch(url, { headers: signedHeaders("GET", url, "") });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Kaufland Orders-Fehler ${res.status}: ${text}`);
+    }
 
-    const unitsData = await unitsRes.json() as {
-      data?: Array<{
-        id_order_unit: string | number;
-        id_product_variant?: string | number;
-        ean?: string;
-        title?: string;
-        unit_price?: number;
-      }>;
-    };
+    const data = await res.json() as { data?: KauflandOrder[]; pagination?: { total: number } };
+    const page = data.data ?? [];
+    if (page.length === 0) break;
 
-    const sa = o.shipping_address ?? {};
-    const ba = o.billing_address;
+    let hitOldOrder = false;
+    for (const o of page) {
+      // Frühzeitiger Abbruch: ältere Bestellung als fromIso gefunden → Rest ebenfalls älter
+      if (fromIso && o.ts_created_iso && o.ts_created_iso < fromIso) {
+        hitOldOrder = true;
+        break;
+      }
 
-    const customerName = [
-      sa.firstname ?? o.buyer?.firstname,
-      sa.lastname ?? o.buyer?.lastname,
-    ].filter(Boolean).join(" ") || "Unbekannt";
+      const unitsUrl = `${BASE}/order-units?storefront=${storefront}&id_order=${o.id_order}&limit=100`;
+      const unitsRes = await fetch(unitsUrl, { headers: signedHeaders("GET", unitsUrl, "") });
+      if (!unitsRes.ok) continue;
 
-    orders.push({
-      externalId: String(o.id_order),
-      orderNumber: o.id_purchase != null ? String(o.id_purchase) : undefined,
-      marketplace: "KAUFLAND",
-      orderDate: new Date(o.ts_created),
-      customerName,
-      street: [sa.street, sa.house_number].filter(Boolean).join(" "),
-      zip: sa.postcode ?? "",
-      city: sa.city ?? "",
-      country: sa.country ?? "DE",
-      billingName: ba ? [ba.firstname, ba.lastname].filter(Boolean).join(" ") : undefined,
-      billingStreet: ba ? [ba.street, ba.house_number].filter(Boolean).join(" ") : undefined,
-      billingZip: ba?.postcode,
-      billingCity: ba?.city,
-      billingCountry: ba?.country,
-      phoneNumber: o.buyer?.phone,
-      items: (unitsData.data ?? []).map((u) => ({
-        marketplaceSku: String(u.id_product_variant ?? u.ean ?? "UNKNOWN"),
-        positionItemId: String(u.id_order_unit),
-        title: u.title ?? String(u.id_product_variant ?? "Artikel"),
-        quantity: 1,
-        price: u.unit_price ?? 0,
-      })),
-    });
+      const unitsData = await unitsRes.json() as {
+        data?: Array<{
+          id_order_unit: string | number;
+          id_product_variant?: string | number;
+          ean?: string;
+          title?: string;
+          unit_price?: number;
+        }>;
+      };
+
+      const sa = o.shipping_address ?? {};
+      const ba = o.billing_address;
+
+      const customerName = [
+        sa.firstname ?? o.buyer?.firstname,
+        sa.lastname ?? o.buyer?.lastname,
+      ].filter(Boolean).join(" ") || "Unbekannt";
+
+      orders.push({
+        externalId: String(o.id_order),
+        orderNumber: o.id_purchase != null ? String(o.id_purchase) : undefined,
+        marketplace: "KAUFLAND",
+        orderDate: new Date(o.ts_created_iso ?? new Date().toISOString()),
+        customerName,
+        street: [sa.street, sa.house_number].filter(Boolean).join(" "),
+        zip: sa.postcode ?? "",
+        city: sa.city ?? "",
+        country: sa.country ?? "DE",
+        billingName: ba ? [ba.firstname, ba.lastname].filter(Boolean).join(" ") : undefined,
+        billingStreet: ba ? [ba.street, ba.house_number].filter(Boolean).join(" ") : undefined,
+        billingZip: ba?.postcode,
+        billingCity: ba?.city,
+        billingCountry: ba?.country,
+        phoneNumber: o.buyer?.phone,
+        items: (unitsData.data ?? []).map((u) => ({
+          marketplaceSku: String(u.id_product_variant ?? u.ean ?? "UNKNOWN"),
+          positionItemId: String(u.id_order_unit),
+          title: u.title ?? String(u.id_product_variant ?? "Artikel"),
+          quantity: 1,
+          price: u.unit_price ?? 0,
+        })),
+      });
+    }
+
+    if (hitOldOrder || page.length < limit) break;
+    offset += limit;
   }
 
   return orders;
