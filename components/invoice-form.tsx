@@ -168,6 +168,10 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
             <span className="text-sm font-semibold">19 %</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="mwst" value="20" checked={mwstRate === 20} onChange={() => setMwstRate(20)} className="accent-brand-red" />
+            <span className="text-sm font-semibold">20 %</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
             <input type="radio" name="mwst" value="0" checked={mwstRate === 0} onChange={() => setMwstRate(0)} className="accent-brand-red" />
             <span className="text-sm font-semibold">0 % (steuerfrei)</span>
           </label>
