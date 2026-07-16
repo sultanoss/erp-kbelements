@@ -23,29 +23,6 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const netto = inv.mwstRate > 0 ? bruttoGesamt / (1 + inv.mwstRate / 100) : bruttoGesamt;
   const mwst = bruttoGesamt - netto;
 
-  const emailSubject = `KB ELEMENTS Rechnung ${inv.number}`;
-  const emailBody = [
-    "Sehr geehrte Damen und Herren,",
-    "",
-    "anbei übersenden wir Ihnen die Rechnung als Anhang.",
-    "",
-    "Bei weiteren Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.",
-    "",
-    "Mit freundlichen Grüßen / Best regards",
-    "",
-    "",
-    "KB ELEMENTS GmbH",
-    "Im Weidchen 21",
-    "52353 Düren",
-    "",
-    "www.kbelements.de",
-    "",
-    "Amtsgericht Düren – HRB 8363",
-    "USt-IdNr.: DE323000595",
-    "",
-    "P.S. Please consider the environment and do not print this email unless necessary.",
-  ].join("\n");
-  const mailtoUrl = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
 
   return (
     <AppShell>
@@ -73,7 +50,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
           Lieferschein
         </Link>
-        <a href={mailtoUrl}
+        <a href={`/api/invoice/${id}/eml`} download
           className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
           <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
