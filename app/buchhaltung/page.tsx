@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import { BuchhaltungRow } from "./buchhaltung-row";
 
 export const dynamic = "force-dynamic";
 
@@ -121,7 +122,7 @@ export default async function BuchhaltungPage({
                 inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0) +
                 (inv.shippingCost ?? 0);
               return (
-                <tr key={inv.id} className="transition-colors hover:bg-grey-light/60">
+                <BuchhaltungRow key={inv.id} id={inv.id}>
                   <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{inv.number}</td>
                   <td className="px-4 py-3 font-mono text-xs text-grey-mid">{formatDate(inv.date)}</td>
                   <td className="px-4 py-3 text-sm text-grey-dark">{inv.customerName}</td>
@@ -139,7 +140,7 @@ export default async function BuchhaltungPage({
                       </Link>
                     </div>
                   </td>
-                </tr>
+                </BuchhaltungRow>
               );
             })}
           </tbody>

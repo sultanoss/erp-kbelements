@@ -275,6 +275,7 @@ export async function GET(
 
   const eml = [
     "MIME-Version: 1.0",
+    "X-Unsent: 1",
     `Subject: ${subjectB64}`,
     "From: verkauf@kbelements.de",
     "To: ",
