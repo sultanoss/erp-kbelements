@@ -27,6 +27,16 @@ export async function GET(req: NextRequest) {
   const newDoc = await PDFDocument.create();
   const [page] = await newDoc.copyPages(srcDoc, [0]);
   newDoc.addPage(page);
+
+  // DHL combines outbound + return label on a single page when dhlRetoure is used.
+  // Crop to the top half to show only the outbound shipping label.
+  if (srcDoc.getPageCount() === 1) {
+    const addedPage = newDoc.getPages()[0];
+    const { width, height } = addedPage.getSize();
+    // PDF coords: y=0 is bottom, y=height is top → top half starts at y=height/2
+    addedPage.setCropBox(0, height / 2, width, height / 2);
+  }
+
   const outBytes = await newDoc.save();
 
   return new NextResponse(outBytes, {
