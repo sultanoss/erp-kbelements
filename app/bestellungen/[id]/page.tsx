@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { markAsOffen, markAsAbgeschlossen } from "./actions";
 import { ShipDialog } from "./ship-dialog";
 import { PrintLabelButton } from "./print-label-button";
+import { RetryKauflandButton } from "./retry-kaufland-button";
 
 export const dynamic = "force-dynamic";
 
@@ -239,14 +240,7 @@ export default async function BestellungDetailPage({
                         <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 font-mono text-[10px] font-bold text-red-700">
                           Fehlgeschlagen
                         </span>
-                        <a
-                          href={`/api/kaufland/retry-notify?orderId=${order.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono text-[10px] font-semibold text-brand-red hover:underline"
-                        >
-                          Erneut versuchen
-                        </a>
+                        <RetryKauflandButton orderId={order.id} />
                       </div>
                     ) : (
                       <span className="font-mono text-[10px] text-grey-mid">—</span>
