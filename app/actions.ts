@@ -306,6 +306,7 @@ export async function createGutschrift(originalInvoiceId: string, formData: Form
   const datumRaw = String(formData.get("datum") ?? "");
   const notiz = String(formData.get("notiz") ?? "").trim();
 
+  const now = new Date();
   const gsPrefix = "KBG-";
   const lastGs = await prisma.invoice.findFirst({
     where: { number: { startsWith: gsPrefix }, docType: "gutschrift" },
