@@ -2,7 +2,8 @@
 
 export function PrintLabelButton({ url }: { url: string }) {
   function handlePrint() {
-    const win = window.open(url, "_blank", "width=600,height=800");
+    const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}`;
+    const win = window.open(proxyUrl, "_blank", "width=600,height=800");
     if (win) win.onload = () => win.print();
   }
 

@@ -53,11 +53,9 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
-  async function handlePrint(url: string) {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const win = window.open(blobUrl, "_blank");
+  function handlePrint(url: string) {
+    const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}`;
+    const win = window.open(proxyUrl, "_blank", "width=600,height=800");
     if (win) win.onload = () => win.print();
   }
 
