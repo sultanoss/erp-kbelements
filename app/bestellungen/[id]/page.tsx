@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { markAsOffen } from "./actions";
+import { markAsOffen, markAsAbgeschlossen } from "./actions";
 import { ShipDialog } from "./ship-dialog";
 import { PrintLabelButton } from "./print-label-button";
 
@@ -124,6 +124,15 @@ export default async function BestellungDetailPage({
                   marketplace={order.marketplace}
                   orderItems={order.items.map((i) => ({ marketplaceSku: i.marketplaceSku, quantity: i.quantity }))}
                 />
+                <form action={markAsAbgeschlossen}>
+                  <input type="hidden" name="id" value={order.id} />
+                  <button
+                    type="submit"
+                    className="w-full rounded-lg border border-grey-border bg-white px-4 py-2 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
+                  >
+                    Ohne Versand abschließen (kein Lagerabzug)
+                  </button>
+                </form>
               </div>
             )}
           </Panel>
