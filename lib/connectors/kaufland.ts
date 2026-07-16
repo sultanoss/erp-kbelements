@@ -184,7 +184,7 @@ export async function uploadKauflandInvoice(
   pdfBytes: Uint8Array,
   filename: string,
 ): Promise<void> {
-  const url = `${BASE}/orders/${idOrder}/invoices`;
+  const url = `${BASE}/order-invoices/${idOrder}`;
   const bodyObj = {
     original_name: filename,
     mime_type: "application/pdf",
