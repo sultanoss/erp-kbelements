@@ -22,7 +22,15 @@ function signedHeaders(method: string, fullUrl: string, bodyStr: string): Record
   };
 }
 
-type KauflandOrder = {
+// Response vom Listen-Endpoint: nur Metadaten, KEINE Adress-/Käuferdaten
+type KauflandOrderListItem = {
+  id_order: string;
+  ts_created_iso?: string;
+  order_units_count?: number;
+};
+
+// Response vom Detail-Endpoint: alle Käufer- und Adressdaten
+type KauflandOrderDetail = {
   id_order: string;
   id_purchase?: string | number;
   ts_created_iso?: string;
@@ -55,18 +63,26 @@ export async function fetchKauflandOrders(fromIso?: string): Promise<NormalizedO
       throw new Error(`Kaufland Orders-Fehler ${res.status}: ${text}`);
     }
 
-    const data = await res.json() as { data?: KauflandOrder[]; pagination?: { total: number } };
+    const data = await res.json() as { data?: KauflandOrderListItem[]; pagination?: { total: number } };
     const page = data.data ?? [];
     if (page.length === 0) break;
 
     let hitOldOrder = false;
     for (const o of page) {
-      // Frühzeitiger Abbruch: ältere Bestellung als fromIso gefunden → Rest ebenfalls älter
+      // Frühzeitiger Abbruch: ältere Bestellung als fromIso → Rest ebenfalls älter
       if (fromIso && o.ts_created_iso && o.ts_created_iso < fromIso) {
         hitOldOrder = true;
         break;
       }
 
+      // Detailaufruf: Käufer + Adressen (nicht im Listen-Endpoint enthalten)
+      const detailUrl = `${BASE}/orders/${o.id_order}`;
+      const detailRes = await fetch(detailUrl, { headers: signedHeaders("GET", detailUrl, "") });
+      const detail: KauflandOrderDetail = detailRes.ok
+        ? ((await detailRes.json() as { data?: KauflandOrderDetail }).data ?? { id_order: o.id_order })
+        : { id_order: o.id_order };
+
+      // Order-Units: Artikel, SKU, Preis
       const unitsUrl = `${BASE}/order-units?storefront=${storefront}&id_order=${o.id_order}&limit=100`;
       const unitsRes = await fetch(unitsUrl, { headers: signedHeaders("GET", unitsUrl, "") });
       if (!unitsRes.ok) continue;
@@ -74,26 +90,29 @@ export async function fetchKauflandOrders(fromIso?: string): Promise<NormalizedO
       const unitsData = await unitsRes.json() as {
         data?: Array<{
           id_order_unit: string | number;
-          id_product_variant?: string | number;
-          ean?: string;
+          offer_sku?: string;              // Seller-eigene SKU (primär)
+          id_product_variant?: string | number; // Kaufland-interne ID
+          ean?: string;                    // EAN-Fallback
           title?: string;
           unit_price?: number;
         }>;
       };
 
-      const sa = o.shipping_address ?? {};
-      const ba = o.billing_address;
+      const sa = detail.shipping_address ?? {};
+      const ba = detail.billing_address;
 
       const customerName = [
-        sa.firstname ?? o.buyer?.firstname,
-        sa.lastname ?? o.buyer?.lastname,
+        sa.firstname ?? detail.buyer?.firstname,
+        sa.lastname ?? detail.buyer?.lastname,
       ].filter(Boolean).join(" ") || "Unbekannt";
 
       orders.push({
         externalId: String(o.id_order),
-        orderNumber: o.id_purchase != null ? String(o.id_purchase) : undefined,
+        orderNumber: detail.id_purchase != null
+          ? String(detail.id_purchase)
+          : String(o.id_order),
         marketplace: "KAUFLAND",
-        orderDate: new Date(o.ts_created_iso ?? new Date().toISOString()),
+        orderDate: new Date(o.ts_created_iso ?? detail.ts_created_iso ?? new Date().toISOString()),
         customerName,
         street: [sa.street, sa.house_number].filter(Boolean).join(" "),
         zip: sa.postcode ?? "",
@@ -104,11 +123,11 @@ export async function fetchKauflandOrders(fromIso?: string): Promise<NormalizedO
         billingZip: ba?.postcode,
         billingCity: ba?.city,
         billingCountry: ba?.country,
-        phoneNumber: o.buyer?.phone,
+        phoneNumber: detail.buyer?.phone,
         items: (unitsData.data ?? []).map((u) => ({
-          marketplaceSku: String(u.id_product_variant ?? u.ean ?? "UNKNOWN"),
+          marketplaceSku: String(u.offer_sku ?? u.ean ?? u.id_product_variant ?? "UNKNOWN"),
           positionItemId: String(u.id_order_unit),
-          title: u.title ?? String(u.id_product_variant ?? "Artikel"),
+          title: u.title ?? String(u.offer_sku ?? u.id_product_variant ?? "Artikel"),
           quantity: 1,
           price: u.unit_price ?? 0,
         })),
