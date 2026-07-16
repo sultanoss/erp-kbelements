@@ -172,6 +172,8 @@ export async function sendKauflandShipmentNotification(params: {
 
     if (!res.ok) {
       const text = await res.text();
+      // "already_marked_as_sent" ist kein Fehler — Unit wurde bereits gemeldet
+      if (text.includes("already_marked_as_sent")) continue;
       throw new Error(`Kaufland Versandmeldung Fehler ${res.status} (unit ${unitId}): ${text}`);
     }
   }
