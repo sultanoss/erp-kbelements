@@ -156,7 +156,8 @@ export async function sendKauflandShipmentNotification(params: {
   trackingNumber: string;
   carrier: "DHL" | "GEL";
 }): Promise<void> {
-  const carrierCode = params.carrier === "DHL" ? "dhl" : "gls";
+  // Kaufland erwartet Großbuchstaben: "DHL", "GLS" etc.
+  const carrierCode = params.carrier === "DHL" ? "DHL" : "GLS";
 
   for (const unitId of params.orderUnitIds) {
     const url = `${BASE}/order-units/${unitId}/send`;
@@ -164,8 +165,8 @@ export async function sendKauflandShipmentNotification(params: {
     const bodyStr = JSON.stringify(bodyObj);
 
     const res = await fetch(url, {
-      method: "POST",
-      headers: signedHeaders("POST", url, bodyStr),
+      method: "PATCH",
+      headers: signedHeaders("PATCH", url, bodyStr),
       body: bodyStr,
     });
 
