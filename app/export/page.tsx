@@ -16,14 +16,14 @@ export default function ExportPage() {
       <div className="max-w-lg space-y-6">
         <Panel className="p-6">
           <div className="mb-5 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-            CSV-Export für Steuerberater
+            Export für Steuerberater
           </div>
           <p className="mb-5 text-sm text-grey-mid">
-            Exportiert alle Rechnungen, Stornierungen und Gutschriften als CSV-Datei.
-            Semikolon-getrennt, UTF-8 — direkt in Excel öffenbar.
+            Exportiert alle Rechnungen, Stornierungen und Gutschriften. CSV: Semikolon-getrennt, UTF-8.
+            PDF-ZIP: Jede Rechnung als eigene PDF-Datei in einem ZIP-Archiv.
           </p>
 
-          <form method="GET" action="/export/download" className="space-y-4">
+          <form method="GET" id="exportForm" action="/export/download" className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1">
                 <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
@@ -67,18 +67,48 @@ export default function ExportPage() {
               </select>
             </div>
 
-            <button
-              type="submit"
-              className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-brand-red font-mono text-sm font-semibold text-white transition-colors hover:bg-brand-red-dark"
-            >
-              CSV herunterladen
-            </button>
+            <div className="flex flex-col gap-1">
+              <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
+                Marktplatz
+              </label>
+              <select
+                name="marketplace"
+                defaultValue=""
+                className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+              >
+                <option value="">Alle Marktplätze</option>
+                <option value="OTTO">OTTO</option>
+                <option value="AMAZON">Amazon</option>
+                <option value="KAUFLAND">Kaufland</option>
+                <option value="MEDIAMARKT">MediaMarkt</option>
+                <option value="EBAY">eBay</option>
+                <option value="SHOPIFY">Shopify</option>
+                <option value="DIREKT">Direkt / Manuell</option>
+              </select>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                formAction="/export/download"
+                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-grey-border bg-white font-mono text-sm font-semibold text-grey-dark transition-colors hover:border-brand-red hover:text-brand-red"
+              >
+                CSV herunterladen
+              </button>
+              <button
+                type="submit"
+                formAction="/api/export/pdf-zip"
+                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-brand-red font-mono text-sm font-semibold text-white transition-colors hover:bg-brand-red-dark"
+              >
+                PDF-ZIP herunterladen
+              </button>
+            </div>
           </form>
         </Panel>
 
         <Panel className="p-5">
           <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
-            Enthaltene Spalten
+            CSV-Spalten
           </div>
           <table className="w-full text-sm">
             <tbody className="divide-y divide-grey-border">

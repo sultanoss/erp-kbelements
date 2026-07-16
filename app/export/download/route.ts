@@ -17,15 +17,7 @@ export async function GET(request: Request) {
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   const type = searchParams.get("type") ?? "all";
-
-  const dateFilter = from || to
-    ? {
-        date: {
-          ...(from ? { gte: new Date(`${from}T00:00:00`) } : {}),
-          ...(to ? { lte: new Date(`${to}T23:59:59.999`) } : {}),
-        },
-      }
-    : {};
+  const marketplace = searchParams.get("marketplace") ?? "";
 
   const invoices = await prisma.invoice.findMany({
     where: {
@@ -33,7 +25,15 @@ export async function GET(request: Request) {
       ...(type === "storniert" ? { docType: "rechnung", status: "storniert" } : {}),
       ...(type === "gutschrift" ? { docType: "gutschrift" } : {}),
       ...(type === "all" ? { docType: { in: ["rechnung", "gutschrift"] as string[] } } : {}),
-      ...dateFilter,
+      ...(from || to
+        ? {
+            date: {
+              ...(from ? { gte: new Date(`${from}T00:00:00`) } : {}),
+              ...(to ? { lte: new Date(`${to}T23:59:59.999`) } : {}),
+            },
+          }
+        : {}),
+      ...(marketplace ? { marketplace } : {}),
     },
     include: { items: true },
     orderBy: { date: "asc" },

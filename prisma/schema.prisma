@@ -139,6 +139,7 @@ model Invoice {
   docType            String        @default("rechnung")
   originalInvoiceId  String?
   originalInvoiceNum String?
+  marketplace        String?
   createdAt          DateTime      @default(now())
   userId          String
   user            User          @relation(fields: [userId], references: [id])
