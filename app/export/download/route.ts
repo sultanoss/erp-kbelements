@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const to = searchParams.get("to");
   const type = searchParams.get("type") ?? "all";
   const marketplace = searchParams.get("marketplace") ?? "";
+  const pm = searchParams.get("pm") ?? "";
 
   const invoices = await prisma.invoice.findMany({
     where: {
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
           }
         : {}),
       ...(marketplace ? { marketplace } : {}),
+      ...(pm ? { paymentMethod: pm } : {}),
     },
     include: { items: true },
     orderBy: { date: "asc" },

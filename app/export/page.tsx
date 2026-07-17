@@ -87,6 +87,21 @@ export default function ExportPage() {
               </select>
             </div>
 
+            <div className="flex flex-col gap-1">
+              <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
+                Zahlungsart
+              </label>
+              <select
+                name="pm"
+                defaultValue=""
+                className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+              >
+                <option value="">Alle</option>
+                <option value="konto">Überweisung</option>
+                <option value="bar">Bar</option>
+              </select>
+            </div>
+
             <div className="flex gap-3">
               <button
                 type="submit"
