@@ -24,5 +24,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api/auth|api/cron|api/otto|api/mediamarkt/debug-dr11|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/auth|api/cron|api/otto|api/mediamarkt/debug-dr11|api/mediamarkt/debug-or74|_next/static|_next/image|favicon.ico).*)"],
 };
