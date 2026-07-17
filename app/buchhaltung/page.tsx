@@ -29,7 +29,7 @@ export default async function BuchhaltungPage({
       }),
       ...(pm && { paymentMethod: pm }),
     },
-    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ createdAt: "desc" }],
     include: { items: true },
   });
 
