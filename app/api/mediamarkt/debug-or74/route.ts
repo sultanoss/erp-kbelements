@@ -26,23 +26,28 @@ export async function GET(request: Request) {
     results[label] = { status: res.status, body: await res.text() };
   }
 
-  // Variante 1: Array mit type_code=INVOICE, orderId
-  await tryUpload("1_array_type_code", orderId, [{ type_code: "INVOICE", file_name: "test.pdf" }]);
+  // Basis: Objekt-Format hat "size mismatch" ergeben — Varianten davon:
 
-  // Variante 2: Array mit type_code=INVOICE, commercialId
-  await tryUpload("2_array_type_code_commercial", commercialId, [{ type_code: "INVOICE", file_name: "test.pdf" }]);
+  // V1: Objekt mit file_names (Plural)
+  await tryUpload("1_obj_file_names_plural", orderId, { type_code: "INVOICE", file_names: ["test.pdf"] });
 
-  // Variante 3: Objekt statt Array
-  await tryUpload("3_object_type_code", orderId, { type_code: "INVOICE", file_name: "test.pdf" });
+  // V2: Objekt mit files-Array innen
+  await tryUpload("2_obj_files_array", orderId, { type_code: "INVOICE", files: [{ file_name: "test.pdf" }] });
 
-  // Variante 4: type statt type_code
-  await tryUpload("4_type_field", orderId, [{ type: "INVOICE", file_name: "test.pdf" }]);
+  // V3: Wrapper-Objekt mit order_documents-Array
+  await tryUpload("3_wrapper_array", orderId, { order_documents: [{ type_code: "INVOICE", file_name: "test.pdf" }] });
 
-  // Variante 5: document_type Feld
-  await tryUpload("5_document_type_field", orderId, [{ document_type: "INVOICE", file_name: "test.pdf" }]);
+  // V4: Array mit file_names (Plural)
+  await tryUpload("4_array_file_names_plural", orderId, [{ type_code: "INVOICE", file_names: ["test.pdf"] }]);
 
-  // Variante 6: Kein Typ, nur Dateiname
-  await tryUpload("6_no_type", orderId, [{ file_name: "test.pdf" }]);
+  // V5: Objekt nur mit type_code (kein file_name)
+  await tryUpload("5_obj_no_filename", orderId, { type_code: "INVOICE" });
+
+  // V6: Array nur mit type_code
+  await tryUpload("6_array_no_filename", orderId, [{ type_code: "INVOICE" }]);
+
+  // V7: Objekt mit "name" statt "file_name"
+  await tryUpload("7_obj_name_field", orderId, { type_code: "INVOICE", name: "test.pdf" });
 
   return NextResponse.json(results);
 }
