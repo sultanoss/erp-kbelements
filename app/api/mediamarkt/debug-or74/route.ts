@@ -16,43 +16,33 @@ export async function GET(request: Request) {
   const commercialId = orderId.replace(/-A$/, "");
   const results: Record<string, unknown> = { orderId, commercialId };
 
-  // Variante 1: order_id (mit -A), document_type=INVOICE
-  {
+  async function tryUpload(label: string, id: string, orderDocs: unknown) {
     const fd = new FormData();
-    fd.append("file", new Blob([DUMMY_PDF], { type: "application/pdf" }), "test.pdf");
-    fd.append("document_type", "INVOICE");
-    const res = await fetch(`${BASE}/orders/${orderId}/documents`, {
+    fd.append("files", new Blob([DUMMY_PDF], { type: "application/pdf" }), "test.pdf");
+    fd.append("order_documents", JSON.stringify(orderDocs));
+    const res = await fetch(`${BASE}/orders/${id}/documents`, {
       method: "POST", headers: authHeaders(), body: fd,
     });
-    results["1_orderId_INVOICE"] = { status: res.status, body: await res.text() };
+    results[label] = { status: res.status, body: await res.text() };
   }
 
-  // Variante 2: commercial_id (ohne -A), document_type=INVOICE
-  {
-    const fd = new FormData();
-    fd.append("file", new Blob([DUMMY_PDF], { type: "application/pdf" }), "test.pdf");
-    fd.append("document_type", "INVOICE");
-    const res = await fetch(`${BASE}/orders/${commercialId}/documents`, {
-      method: "POST", headers: authHeaders(), body: fd,
-    });
-    results["2_commercialId_INVOICE"] = { status: res.status, body: await res.text() };
-  }
+  // Variante 1: Array mit type_code=INVOICE, orderId
+  await tryUpload("1_array_type_code", orderId, [{ type_code: "INVOICE", file_name: "test.pdf" }]);
 
-  // Variante 3: order_id, kein document_type
-  {
-    const fd = new FormData();
-    fd.append("file", new Blob([DUMMY_PDF], { type: "application/pdf" }), "test.pdf");
-    const res = await fetch(`${BASE}/orders/${orderId}/documents`, {
-      method: "POST", headers: authHeaders(), body: fd,
-    });
-    results["3_orderId_noType"] = { status: res.status, body: await res.text() };
-  }
+  // Variante 2: Array mit type_code=INVOICE, commercialId
+  await tryUpload("2_array_type_code_commercial", commercialId, [{ type_code: "INVOICE", file_name: "test.pdf" }]);
 
-  // Variante 4: GET auf /documents um zu sehen was schon da ist
-  {
-    const res = await fetch(`${BASE}/orders/${orderId}/documents`, { headers: authHeaders() });
-    results["4_GET_existing_docs"] = { status: res.status, body: await res.json().catch(() => "parse error") };
-  }
+  // Variante 3: Objekt statt Array
+  await tryUpload("3_object_type_code", orderId, { type_code: "INVOICE", file_name: "test.pdf" });
+
+  // Variante 4: type statt type_code
+  await tryUpload("4_type_field", orderId, [{ type: "INVOICE", file_name: "test.pdf" }]);
+
+  // Variante 5: document_type Feld
+  await tryUpload("5_document_type_field", orderId, [{ document_type: "INVOICE", file_name: "test.pdf" }]);
+
+  // Variante 6: Kein Typ, nur Dateiname
+  await tryUpload("6_no_type", orderId, [{ file_name: "test.pdf" }]);
 
   return NextResponse.json(results);
 }
