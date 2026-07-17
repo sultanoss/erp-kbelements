@@ -30,33 +30,36 @@ export async function GET(request: Request) {
   const userId = (session.user as { id?: string }).id;
   if (!userId) return NextResponse.json({ error: "Kein Benutzer-ID in Session" }, { status: 500 });
 
-  try {
-    const inv = await createInvoiceFromOrder(order, userId);
-    const pdfBytes = await generateInvoicePdf(inv);
+  const orderLineIds = order.items.map((i) => i.positionItemId).filter((x): x is string => !!x);
+  const log: string[] = [];
 
+  try {
+    // OR23 → OR24: Tracking übermitteln, dann Versand bestätigen
     await sendMediaMarktShipmentNotification({
       orderId: order.externalId,
       trackingNumber: shipment.trackingNumber,
       carrier: shipment.carrier as "DHL" | "GEL",
+      orderLineIds,
     });
+    log.push("OR23 + OR24 OK");
 
+    // OR81: Rechnung hochladen
+    const inv = await createInvoiceFromOrder(order, userId);
+    const pdfBytes = await generateInvoicePdf(inv);
     await uploadMediaMarktInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
+    log.push(`OR81 OK: ${inv.number}`);
 
     await prisma.shipment.update({
       where: { id: shipment.id },
       data: { status: "PORTAL_NOTIFIED" },
     });
 
-    return NextResponse.json({
-      result: "success",
-      invoiceNumber: inv.number,
-      trackingNumber: shipment.trackingNumber,
-    });
+    return NextResponse.json({ result: "success", log, invoiceNumber: inv.number, trackingNumber: shipment.trackingNumber });
   } catch (e) {
     await prisma.shipment.update({
       where: { id: shipment.id },
       data: { status: "NOTIFY_FAILED" },
     });
-    return NextResponse.json({ result: "failed", error: (e as Error).message }, { status: 500 });
+    return NextResponse.json({ result: "failed", log, error: (e as Error).message }, { status: 500 });
   }
 }

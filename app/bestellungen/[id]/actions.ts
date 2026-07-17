@@ -243,10 +243,12 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       const userId2 = (session2?.user as { id?: string } | null)?.id;
       const inv = await createInvoiceFromOrder(order, userId2 ?? "");
       const pdfBytes = await generateInvoicePdf(inv);
+      const mmLineIds = order.items.map((i) => i.positionItemId).filter((x): x is string => !!x);
       await sendMediaMarktShipmentNotification({
         orderId: order.externalId,
         trackingNumber: shipmentResult.trackingNumber,
         carrier,
+        orderLineIds: mmLineIds,
       });
       await uploadMediaMarktInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
       await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "PORTAL_NOTIFIED" } });

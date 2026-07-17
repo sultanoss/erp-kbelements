@@ -1,6 +1,14 @@
 import { createHmac } from "crypto";
 import type { NormalizedOrder } from "./otto";
 
+function addrStr(addr: Record<string, unknown>, ...keys: string[]): string {
+  for (const k of keys) {
+    const v = addr[k];
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return "";
+}
+
 const BASE = "https://sellerapi.kaufland.com/v2";
 
 function signedHeaders(method: string, fullUrl: string, bodyStr: string): Record<string, string> {
@@ -106,10 +114,13 @@ export async function fetchKauflandOrders(fromIso?: string, storefront?: string)
       const sa = d.shipping_address ?? {};
       const ba = d.billing_address;
 
-      // Kaufland liefert first_name/last_name (mit Unterstrich), buyer hat KEINEN Namen
-      const firstName = sa.first_name ?? ba?.first_name ?? "";
-      const lastName = sa.last_name ?? ba?.last_name ?? "";
-      const customerName = [firstName, lastName].filter(Boolean).join(" ") || "Unbekannt";
+      // API-Feldname kann first_name (Unterstrich) oder firstname (camelCase) sein
+      const saR = sa as unknown as Record<string, unknown>;
+      const baR = (ba ?? {}) as unknown as Record<string, unknown>;
+      const firstName = addrStr(saR, "first_name", "firstname") || addrStr(baR, "first_name", "firstname");
+      const lastName = addrStr(saR, "last_name", "lastname") || addrStr(baR, "last_name", "lastname");
+      const companyName = addrStr(saR, "company_name", "company") || addrStr(baR, "company_name", "company");
+      const customerName = [firstName, lastName].filter(Boolean).join(" ") || companyName || "Unbekannt";
 
       const units = d.order_units ?? [];
 
