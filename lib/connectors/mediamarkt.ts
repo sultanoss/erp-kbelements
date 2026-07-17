@@ -188,66 +188,19 @@ export async function uploadMediaMarktInvoice(
   pdfBytes: Uint8Array,
   filename: string,
 ): Promise<void> {
-  // DR11: Offenen Rechnungsantrag von Mirakl abrufen (erstellt nach OR24)
-  const dr11Url =
-    `${BASE}/document-request/requests` +
-    `?entity_id=${encodeURIComponent(orderId)}` +
-    `&entity_type=PRODUCT_LOGISTIC_ORDER` +
-    `&state=TO_PROCESS` +
-    `&issuer_type=SHOP`;
-
-  const dr11Res = await fetch(dr11Url, { headers: authHeaders() });
-  if (!dr11Res.ok) {
-    const text = await dr11Res.text();
-    throw new Error(`MediaMarkt DR11 Fehler ${dr11Res.status}: ${text}`);
-  }
-
-  const dr11Data = await dr11Res.json() as { data?: Array<{ id: string }> };
-  const requestId = dr11Data.data?.[0]?.id;
-
-  if (!requestId) {
-    throw new Error(
-      `Kein offener Rechnungsantrag bei MediaMarkt für Bestellung ${orderId} — bitte in 1–2 Minuten erneut versuchen`,
-    );
-  }
-
-  // DR74: Rechnung hochladen mit der request_id von Mirakl
-  const documentNumber = filename.replace(/\.pdf$/i, "");
+  // OR74: Rechnung als Dokument zur Bestellung hochladen (Feld: "files", Plural)
   const formData = new FormData();
+  formData.append("files", new Blob([Buffer.from(pdfBytes)], { type: "application/pdf" }), filename);
+  formData.append("document_type", "INVOICE");
 
-  formData.append(
-    "documents_input",
-    new Blob(
-      [JSON.stringify({
-        requests: [{
-          request_id: requestId,
-          document_number: documentNumber,
-          files: [{ format: "PDF", name: filename }],
-        }],
-      })],
-      { type: "application/json" },
-    ),
-  );
-  formData.append(
-    "files",
-    new Blob([Buffer.from(pdfBytes)], { type: "application/pdf" }),
-    filename,
-  );
-
-  const dr74Res = await fetch(`${BASE}/document-request/documents/upload`, {
+  const res = await fetch(`${BASE}/orders/${orderId}/documents`, {
     method: "POST",
     headers: authHeaders(),
     body: formData,
   });
 
-  if (!dr74Res.ok) {
-    const text = await dr74Res.text();
-    throw new Error(`MediaMarkt DR74 Fehler ${dr74Res.status}: ${text}`);
-  }
-
-  const dr74Data = await dr74Res.json() as { requests?: Array<{ errors?: Array<{ message: string }> }> };
-  const errors = dr74Data.requests?.[0]?.errors;
-  if (errors?.length) {
-    throw new Error(`MediaMarkt DR74: ${errors.map((e) => e.message).join(", ")}`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`MediaMarkt OR74 Fehler ${res.status}: ${text}`);
   }
 }
