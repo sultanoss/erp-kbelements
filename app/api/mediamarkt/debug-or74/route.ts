@@ -26,28 +26,27 @@ export async function GET(request: Request) {
     results[label] = { status: res.status, body: await res.text() };
   }
 
-  // Basis: Objekt-Format hat "size mismatch" ergeben — Varianten davon:
+  // Korrekte Struktur: {"order_documents": [{type_code, file_name}]}
+  // Problem: type_code "INVOICE" ungültig — verschiedene Codes versuchen:
 
-  // V1: Objekt mit file_names (Plural)
-  await tryUpload("1_obj_file_names_plural", orderId, { type_code: "INVOICE", file_names: ["test.pdf"] });
+  const typeCodes = [
+    "SELLER_INVOICE", "MPS_INVOICE", "SHOP_INVOICE", "INVOICE_SELLER",
+    "COMMERCIAL_INVOICE", "TAX_INVOICE", "ORDER_INVOICE", "INV",
+    "ACCOUNTING_DOCUMENT", "BILLING", "BILL",
+  ];
+  for (const code of typeCodes) {
+    await tryUpload(`type_${code}`, orderId, { order_documents: [{ type_code: code, file_name: "test.pdf" }] });
+  }
 
-  // V2: Objekt mit files-Array innen
-  await tryUpload("2_obj_files_array", orderId, { type_code: "INVOICE", files: [{ file_name: "test.pdf" }] });
+  // Auch ohne type_code versuchen
+  await tryUpload("no_type_code", orderId, { order_documents: [{ file_name: "test.pdf" }] });
 
-  // V3: Wrapper-Objekt mit order_documents-Array
-  await tryUpload("3_wrapper_array", orderId, { order_documents: [{ type_code: "INVOICE", file_name: "test.pdf" }] });
+  // Verfügbare Dokumenttypen von Mirakl abfragen
+  const typesRes = await fetch(`${BASE}/document-types`, { headers: authHeaders() });
+  results["available_doc_types"] = { status: typesRes.status, body: await typesRes.text() };
 
-  // V4: Array mit file_names (Plural)
-  await tryUpload("4_array_file_names_plural", orderId, [{ type_code: "INVOICE", file_names: ["test.pdf"] }]);
-
-  // V5: Objekt nur mit type_code (kein file_name)
-  await tryUpload("5_obj_no_filename", orderId, { type_code: "INVOICE" });
-
-  // V6: Array nur mit type_code
-  await tryUpload("6_array_no_filename", orderId, [{ type_code: "INVOICE" }]);
-
-  // V7: Objekt mit "name" statt "file_name"
-  await tryUpload("7_obj_name_field", orderId, { type_code: "INVOICE", name: "test.pdf" });
+  const typesRes2 = await fetch(`${BASE}/order-documents/types`, { headers: authHeaders() });
+  results["available_doc_types2"] = { status: typesRes2.status, body: await typesRes2.text() };
 
   return NextResponse.json(results);
 }
