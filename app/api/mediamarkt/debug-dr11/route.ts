@@ -9,37 +9,34 @@ function authHeaders(): Record<string, string> {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-
   const orderId = new URL(request.url).searchParams.get("orderId") ?? "01125_319923129-A";
-
-  // Alle States abfragen (kein state-Filter)
-  const allRes = await fetch(
-    `${BASE}/document-request/requests?entity_id=${encodeURIComponent(orderId)}&entity_type=PRODUCT_LOGISTIC_ORDER&issuer_type=SHOP`,
-    { headers: authHeaders() },
-  );
-  const allData = await allRes.json();
-
-  // Nur TO_PROCESS abfragen
-  const toProcessRes = await fetch(
-    `${BASE}/document-request/requests?entity_id=${encodeURIComponent(orderId)}&entity_type=PRODUCT_LOGISTIC_ORDER&issuer_type=SHOP&state=TO_PROCESS`,
-    { headers: authHeaders() },
-  );
-  const toProcessData = await toProcessRes.json();
-
-  // Auch commercial_id (ohne -A) versuchen
   const commercialId = orderId.replace(/-A$/, "");
-  const commercialRes = await fetch(
-    `${BASE}/document-request/requests?entity_id=${encodeURIComponent(commercialId)}&entity_type=PRODUCT_LOGISTIC_ORDER&issuer_type=SHOP`,
-    { headers: authHeaders() },
-  );
-  const commercialData = await commercialRes.json();
+
+  async function dr11(params: Record<string, string>) {
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(`${BASE}/document-request/requests?${qs}`, { headers: authHeaders() });
+    return { status: res.status, data: await res.json() };
+  }
+
+  const [r1, r2, r3, r4, r5, r6, r7] = await Promise.all([
+    dr11({ entity_id: orderId, entity_type: "PRODUCT_LOGISTIC_ORDER", issuer_type: "SHOP" }),
+    dr11({ entity_id: orderId, entity_type: "PRODUCT_LOGISTIC_ORDER" }),
+    dr11({ entity_id: commercialId, entity_type: "COMMERCIAL_ORDER", issuer_type: "SHOP" }),
+    dr11({ entity_id: commercialId, entity_type: "COMMERCIAL_ORDER" }),
+    dr11({ entity_id: orderId }),
+    dr11({ entity_id: commercialId }),
+    dr11({ state: "TO_PROCESS", issuer_type: "SHOP" }),
+  ]);
 
   return NextResponse.json({
     orderId,
     commercialId,
-    allRequests: { status: allRes.status, data: allData },
-    toProcessOnly: { status: toProcessRes.status, data: toProcessData },
-    withCommercialId: { status: commercialRes.status, data: commercialData },
+    "1_PRODUCT_LOGISTIC+SHOP": r1,
+    "2_PRODUCT_LOGISTIC_noIssuer": r2,
+    "3_COMMERCIAL_ORDER+SHOP": r3,
+    "4_COMMERCIAL_ORDER_noIssuer": r4,
+    "5_noType_orderId": r5,
+    "6_noType_commercialId": r6,
+    "7_allOpenInShop": r7,
   });
 }
