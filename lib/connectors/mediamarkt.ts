@@ -188,10 +188,12 @@ export async function uploadMediaMarktInvoice(
   pdfBytes: Uint8Array,
   filename: string,
 ): Promise<void> {
-  // OR74: Rechnung als Dokument zur Bestellung hochladen (Feld: "files", Plural)
   const formData = new FormData();
   formData.append("files", new Blob([Buffer.from(pdfBytes)], { type: "application/pdf" }), filename);
-  formData.append("document_type", "INVOICE");
+  formData.append(
+    "order_documents",
+    JSON.stringify({ order_documents: [{ type_code: "CUSTOMER_INVOICE", file_name: filename }] }),
+  );
 
   const res = await fetch(`${BASE}/orders/${orderId}/documents`, {
     method: "POST",
@@ -202,5 +204,11 @@ export async function uploadMediaMarktInvoice(
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`MediaMarkt OR74 Fehler ${res.status}: ${text}`);
+  }
+
+  const data = await res.json() as { errors_count?: number; order_documents?: Array<{ errors?: Array<{ message: string }> }> };
+  if ((data.errors_count ?? 0) > 0) {
+    const msg = data.order_documents?.[0]?.errors?.map((e) => e.message).join(", ") ?? "Unbekannter Fehler";
+    throw new Error(`MediaMarkt OR74 Fehler: ${msg}`);
   }
 }
