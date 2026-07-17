@@ -8,7 +8,6 @@ function authHeaders(): Record<string, string> {
   return { Authorization: key, Accept: "application/json" };
 }
 
-// Lädt eine Mini-PDF (1 Byte) hoch um den Endpunkt zu testen ohne echte Rechnung
 const DUMMY_PDF = new Uint8Array([37, 80, 68, 70, 45, 49, 46, 52, 10]); // %PDF-1.4\n
 
 export async function GET(request: Request) {
@@ -26,32 +25,33 @@ export async function GET(request: Request) {
     results[label] = { status: res.status, body: await res.text() };
   }
 
-  // Lowercase und weitere Varianten von INVOICE
-  const moreCodes = [
-    "invoice", "Invoice", "RECHNUNG", "rechnung",
-    "INVOICE_DOCUMENT", "DOCUMENT", "OTHER", "other",
-    "MISC", "ATTACHMENT", "PDF",
-  ];
-  for (const code of moreCodes) {
-    await tryUpload(`type_${code}`, orderId, { order_documents: [{ type_code: code, file_name: "test.pdf" }] });
-  }
+  // 1. CUSTOMER_INVOICE — aus offizieller Mirakl OR74 Doku
+  await tryUpload("1_CUSTOMER_INVOICE", orderId,
+    { order_documents: [{ type_code: "CUSTOMER_INVOICE", file_name: "test.pdf" }] });
 
-  // Verschiedene API-Pfade für Dokumenttypen
-  for (const path of [
-    "/orders/documents/types",
-    "/configuration/order-document-types",
-    "/configuration/document-types",
-    "/order-document-types",
-  ]) {
+  // 2. OR72: Bereits hochgeladene Dokumente abrufen (verschiedene Pfade)
+  for (const [label, path] of [
+    ["OR72_order_docs", `/orders/${orderId}/documents`],
+    ["OR72_commercial_docs", `/orders/${commercialId}/documents`],
+    ["OR72_v2_path", `/orders/${orderId}/documents?max=10`],
+  ] as [string, string][]) {
     const res = await fetch(`${BASE}${path}`, { headers: authHeaders() });
-    results[`GET_${path}`] = { status: res.status, body: await res.text().catch(() => "err") };
+    const body = res.status !== 405
+      ? await res.json().catch(() => res.text())
+      : "405 Method Not Allowed";
+    results[label] = { status: res.status, body };
   }
 
-  // Alle vorhandenen Dokumente dieser Bestellung abrufen (andere Methoden)
-  const patchRes = await fetch(`${BASE}/orders/${orderId}/documents`, {
-    method: "PATCH", headers: authHeaders(),
-  });
-  results["PATCH_docs_405check"] = { status: patchRes.status };
+  // 3. Dokumenttypen-Liste (alle Varianten)
+  for (const [label, path] of [
+    ["types_order_document_types", "/orders/documents/types"],
+    ["types_config", "/configuration/order-document-types"],
+    ["types_v2", "/order-document-types"],
+    ["types_settings", "/settings/order-document-types"],
+  ] as [string, string][]) {
+    const res = await fetch(`${BASE}${path}`, { headers: authHeaders() });
+    results[label] = { status: res.status, body: await res.text() };
+  }
 
   return NextResponse.json(results);
 }
