@@ -143,7 +143,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
   return (
     <div className="min-h-screen bg-grey-light lg:flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col overflow-hidden">
         {sidebarContent}
       </aside>
 
