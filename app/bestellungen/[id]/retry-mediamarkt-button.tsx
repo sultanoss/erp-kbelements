@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function RetryMediaMarktButton({ orderId }: { orderId: string }) {
+export function RetryMediaMarktButton({ orderId, label }: { orderId: string; label?: string }) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -48,7 +48,7 @@ export function RetryMediaMarktButton({ orderId }: { orderId: string }) {
       disabled={state === "loading"}
       className="font-mono text-[10px] font-semibold text-brand-red hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {state === "loading" ? "Wird gesendet…" : "Erneut versuchen"}
+      {state === "loading" ? "Wird gesendet…" : (label ?? "Erneut versuchen")}
     </button>
   );
 }
