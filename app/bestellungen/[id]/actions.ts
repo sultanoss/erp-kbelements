@@ -10,6 +10,8 @@ import { sendMediaMarktShipmentNotification, uploadMediaMarktInvoice } from "@/l
 import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
+import { cancelDHLShipment } from "@/lib/shipping/dhl";
+import { stornoInvoice } from "@/app/actions";
 
 export async function markAsAbgeschlossen(formData: FormData) {
   const id = formData.get("id") as string;
@@ -264,4 +266,47 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   revalidatePath("/");
 
   return { ok: true, trackingNumber: shipmentResult.trackingNumber, labelUrl: shipmentResult.labelUrl, returnTrackingNumber: shipmentResult.returnTrackingNumber };
+}
+
+export async function storniereBestellung(formData: FormData) {
+  const id = formData.get("id") as string;
+  if (!id) return;
+
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: { shipments: { include: { items: true } } },
+  });
+  if (!order || order.status === "STORNIERT") return;
+
+  const shipment = order.shipments[0];
+
+  if (shipment?.trackingNumber && shipment.carrier === "DHL") {
+    try { await cancelDHLShipment(shipment.trackingNumber); } catch { /* best-effort */ }
+  }
+
+  const invoice = await prisma.invoice.findFirst({
+    where: { orderId: id, status: "aktiv" },
+  });
+  if (invoice) {
+    await stornoInvoice(invoice.id);
+  } else if (shipment?.items.length) {
+    for (const item of shipment.items) {
+      await prisma.item.update({
+        where: { sku: item.internalSku },
+        data: item.warehouse === "ns"
+          ? { stockNS: { increment: item.quantity } }
+          : { stock: { increment: item.quantity } },
+      });
+    }
+  }
+
+  await prisma.order.update({ where: { id }, data: { status: "STORNIERT" } });
+  if (shipment) {
+    await prisma.shipment.update({ where: { id: shipment.id }, data: { status: "STORNIERT" } });
+  }
+
+  revalidatePath(`/bestellungen/${id}`);
+  revalidatePath("/bestellungen");
+  revalidatePath("/");
+  revalidatePath("/buchhaltung");
 }

@@ -3,11 +3,12 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { markAsOffen, markAsAbgeschlossen } from "./actions";
+import { markAsAbgeschlossen } from "./actions";
 import { ShipDialog } from "./ship-dialog";
 import { PrintLabelButton } from "./print-label-button";
 import { RetryKauflandButton } from "./retry-kaufland-button";
 import { RetryMediaMarktButton } from "./retry-mediamarkt-button";
+import { StorniereButton } from "./stornieren-button";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function BestellungDetailPage({
 
   const total = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
   const isAbgeschlossen = order.status === "ABGESCHLOSSEN";
+  const isStorniert = order.status === "STORNIERT";
 
   return (
     <AppShell>
@@ -87,8 +89,23 @@ export default async function BestellungDetailPage({
               <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Versand</div>
             </div>
 
-            {isAbgeschlossen ? (
-              <div className="flex items-center justify-between p-5">
+            {isStorniert ? (
+              <div className="flex items-center gap-4 p-5">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-700">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-red-700">Bestellung storniert</div>
+                  <div className="mt-0.5 font-mono text-xs text-grey-mid">
+                    Storniert am {new Date(order.updatedAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
+                  </div>
+                </div>
+              </div>
+            ) : isAbgeschlossen ? (
+              <div className="flex flex-col gap-4 p-5">
                 <div className="flex items-center gap-4">
                   <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-700">
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -102,12 +119,7 @@ export default async function BestellungDetailPage({
                     </div>
                   </div>
                 </div>
-                <form action={markAsOffen}>
-                  <input type="hidden" name="id" value={order.id} />
-                  <button type="submit" className="rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors">
-                    Wieder öffnen
-                  </button>
-                </form>
+                <StorniereButton orderId={order.id} />
               </div>
             ) : (
               <div className="flex flex-col gap-4 p-5">
@@ -135,6 +147,7 @@ export default async function BestellungDetailPage({
                     Ohne Versand abschließen (kein Lagerabzug)
                   </button>
                 </form>
+                <StorniereButton orderId={order.id} />
               </div>
             )}
           </Panel>
@@ -145,7 +158,11 @@ export default async function BestellungDetailPage({
           {/* Status */}
           <Panel className="p-5">
             <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</div>
-            {isAbgeschlossen ? (
+            {isStorniert ? (
+              <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-bold text-red-700">
+                Storniert
+              </span>
+            ) : isAbgeschlossen ? (
               <span className="inline-flex items-center rounded border border-green-200 bg-green-50 px-3 py-1 font-mono text-xs font-bold text-green-700">
                 Abgeschlossen
               </span>

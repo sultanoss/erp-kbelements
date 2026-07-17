@@ -11,9 +11,9 @@ export const dynamic = "force-dynamic";
 export default async function BuchhaltungPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string; pm?: string }>;
 }) {
-  const { q, num, from, to } = await searchParams;
+  const { q, num, from, to, pm } = await searchParams;
 
   const invoices = await prisma.invoice.findMany({
     where: {
@@ -27,12 +27,13 @@ export default async function BuchhaltungPage({
           ...(to && { lte: new Date(to + "T23:59:59.999") }),
         },
       }),
+      ...(pm && { paymentMethod: pm }),
     },
-    orderBy: { date: "desc" },
+    orderBy: [{ date: "desc" }, { number: "desc" }],
     include: { items: true },
   });
 
-  const hasFilter = !!(q || num || from || to);
+  const hasFilter = !!(q || num || from || to || pm);
 
   return (
     <AppShell>
@@ -78,6 +79,18 @@ export default async function BuchhaltungPage({
               defaultValue={to ?? ""}
               className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
             />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlung</label>
+            <select
+              name="pm"
+              defaultValue={pm ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+            >
+              <option value="">Alle</option>
+              <option value="konto">Überweisung</option>
+              <option value="bar">Bar</option>
+            </select>
           </div>
           <button
             type="submit"

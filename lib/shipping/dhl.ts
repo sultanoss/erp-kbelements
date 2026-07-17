@@ -148,3 +148,21 @@ export class DHLShippingProvider implements ShippingProvider {
     };
   }
 }
+
+export async function cancelDHLShipment(trackingNumber: string): Promise<void> {
+  const res = await fetch(
+    `${getBaseUrl()}/orders?shipmentTrackingNumber=${encodeURIComponent(trackingNumber)}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: getAuthHeader(),
+        "dhl-api-key": process.env.DHL_API_KEY ?? "",
+        Accept: "application/json",
+      },
+    },
+  );
+  if (!res.ok && res.status !== 404) {
+    const text = await res.text();
+    throw new Error(`DHL Stornierung Fehler ${res.status}: ${text}`);
+  }
+}

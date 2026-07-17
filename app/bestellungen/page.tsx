@@ -8,11 +8,13 @@ export const dynamic = "force-dynamic";
 const statusLabel: Record<string, string> = {
   NEU: "Offen",
   ABGESCHLOSSEN: "Abgeschlossen",
+  STORNIERT: "Storniert",
 };
 
 const statusBadge: Record<string, string> = {
   NEU: "bg-amber-50 text-amber-700 border-amber-200",
   ABGESCHLOSSEN: "bg-green-50 text-green-700 border-green-200",
+  STORNIERT: "bg-red-50 text-red-700 border-red-200",
 };
 
 const inputClass = "h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
@@ -88,6 +90,7 @@ export default async function BestellungenPage({
             <option value="">Alle</option>
             <option value="NEU">Offen</option>
             <option value="ABGESCHLOSSEN">Abgeschlossen</option>
+            <option value="STORNIERT">Storniert</option>
           </select>
         </label>
         <label className="grid gap-1.5">
