@@ -26,27 +26,32 @@ export async function GET(request: Request) {
     results[label] = { status: res.status, body: await res.text() };
   }
 
-  // Korrekte Struktur: {"order_documents": [{type_code, file_name}]}
-  // Problem: type_code "INVOICE" ungültig — verschiedene Codes versuchen:
-
-  const typeCodes = [
-    "SELLER_INVOICE", "MPS_INVOICE", "SHOP_INVOICE", "INVOICE_SELLER",
-    "COMMERCIAL_INVOICE", "TAX_INVOICE", "ORDER_INVOICE", "INV",
-    "ACCOUNTING_DOCUMENT", "BILLING", "BILL",
+  // Lowercase und weitere Varianten von INVOICE
+  const moreCodes = [
+    "invoice", "Invoice", "RECHNUNG", "rechnung",
+    "INVOICE_DOCUMENT", "DOCUMENT", "OTHER", "other",
+    "MISC", "ATTACHMENT", "PDF",
   ];
-  for (const code of typeCodes) {
+  for (const code of moreCodes) {
     await tryUpload(`type_${code}`, orderId, { order_documents: [{ type_code: code, file_name: "test.pdf" }] });
   }
 
-  // Auch ohne type_code versuchen
-  await tryUpload("no_type_code", orderId, { order_documents: [{ file_name: "test.pdf" }] });
+  // Verschiedene API-Pfade für Dokumenttypen
+  for (const path of [
+    "/orders/documents/types",
+    "/configuration/order-document-types",
+    "/configuration/document-types",
+    "/order-document-types",
+  ]) {
+    const res = await fetch(`${BASE}${path}`, { headers: authHeaders() });
+    results[`GET_${path}`] = { status: res.status, body: await res.text().catch(() => "err") };
+  }
 
-  // Verfügbare Dokumenttypen von Mirakl abfragen
-  const typesRes = await fetch(`${BASE}/document-types`, { headers: authHeaders() });
-  results["available_doc_types"] = { status: typesRes.status, body: await typesRes.text() };
-
-  const typesRes2 = await fetch(`${BASE}/order-documents/types`, { headers: authHeaders() });
-  results["available_doc_types2"] = { status: typesRes2.status, body: await typesRes2.text() };
+  // Alle vorhandenen Dokumente dieser Bestellung abrufen (andere Methoden)
+  const patchRes = await fetch(`${BASE}/orders/${orderId}/documents`, {
+    method: "PATCH", headers: authHeaders(),
+  });
+  results["PATCH_docs_405check"] = { status: patchRes.status };
 
   return NextResponse.json(results);
 }
