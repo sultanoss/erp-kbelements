@@ -8,6 +8,7 @@ import { sendOttoShipmentNotification } from "@/lib/connectors/otto";
 import { sendKauflandShipmentNotification, uploadKauflandInvoice } from "@/lib/connectors/kaufland";
 import { sendMediaMarktShipmentNotification, uploadMediaMarktInvoice } from "@/lib/connectors/mediamarkt";
 import { sendShopifyFulfillment } from "@/lib/connectors/shopify";
+import { sendEbayShipment } from "@/lib/connectors/ebay";
 import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
@@ -258,6 +259,25 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       revalidatePath("/buchhaltung");
     } catch (err) {
       console.error("MediaMarkt-Meldung fehlgeschlagen:", err);
+      await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "NOTIFY_FAILED" } });
+    }
+  }
+
+  if (order.marketplace === "EBAY") {
+    const lineItems = order.items
+      .filter((i) => i.positionItemId)
+      .map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
+
+    try {
+      await sendEbayShipment({
+        orderId: order.externalId,
+        trackingNumber: shipmentResult.trackingNumber,
+        carrier,
+        lineItems,
+      });
+      await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+    } catch (err) {
+      console.error("eBay-Meldung fehlgeschlagen:", err);
       await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "NOTIFY_FAILED" } });
     }
   }
