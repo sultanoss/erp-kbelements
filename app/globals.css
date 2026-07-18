@@ -45,6 +45,14 @@ select option {
   background: #cccccc;
 }
 
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
+}
+.sidebar-nav {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 ::selection {
   background: rgba(192, 24, 42, 0.12);
   color: #333333;

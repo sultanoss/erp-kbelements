@@ -98,7 +98,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav className="sidebar-nav flex-1 overflow-y-auto px-3 py-4">
         <div className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-white/30">
           Navigation
         </div>
