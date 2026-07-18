@@ -131,7 +131,7 @@ export async function fetchEbayOrders(): Promise<NormalizedOrder[]> {
 
 const EBAY_CARRIER_MAP: Record<string, string> = {
   DHL: "DHL",
-  GEL: "OTHER",
+  GEL: "GEL_EXPRESS",
 };
 
 export async function sendEbayShipment(params: {
