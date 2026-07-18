@@ -77,9 +77,9 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
   }, [open]);
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-brand-black">
+    <div className="flex h-[100dvh] flex-col bg-brand-black">
       {/* Logo */}
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
+      <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-5 py-5">
         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-red text-sm font-black text-white">
           KB
         </div>
@@ -117,7 +117,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
       </nav>
 
       {/* User */}
-      <div className="border-t border-white/10 p-4">
+      <div className="shrink-0 border-t border-white/10 p-4">
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">
             {initials}
@@ -143,7 +143,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
   return (
     <div className="min-h-screen bg-grey-light lg:flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col overflow-hidden">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col h-[100dvh] overflow-hidden">
         {sidebarContent}
       </aside>
 
