@@ -144,6 +144,12 @@ const TRACKING_URL_MAP: Record<string, string> = {
   GEL: "https://www.gel-express.de/de/sendungsverfolgung/",
 };
 
+// Shopify erkennt Sendungsnummern automatisch → explizit company setzen um Auto-Detect zu verhindern
+const CARRIER_COMPANY_MAP: Record<string, string> = {
+  DHL: "DHL",
+  GEL: "Other",
+};
+
 export async function sendShopifyFulfillment(params: {
   orderId: string;
   trackingNumber: string;
@@ -191,7 +197,7 @@ export async function sendShopifyFulfillment(params: {
     fulfillment: {
       notifyCustomer: true,
       trackingInfo: {
-        ...(params.carrier === "DHL" ? { company: "DHL" } : {}),
+        company: CARRIER_COMPANY_MAP[params.carrier] ?? "Other",
         number: params.trackingNumber,
         ...(TRACKING_URL_MAP[params.carrier] ? { url: TRACKING_URL_MAP[params.carrier] } : {}),
       },
