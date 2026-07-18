@@ -34,6 +34,7 @@ const WEIGHT_CLASSES = [
   { label: "10 kg",   value: "10" },
   { label: "15 kg",   value: "15" },
   { label: "20 kg",   value: "20" },
+  { label: "30 kg",   value: "30" },
   { label: "31,5 kg", value: "31.5" },
 ];
 

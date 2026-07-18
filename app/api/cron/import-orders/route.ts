@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { fetchNewOrders, type NormalizedOrder } from "@/lib/connectors/otto";
 import { fetchKauflandOrders } from "@/lib/connectors/kaufland";
 import { fetchMediaMarktOrders } from "@/lib/connectors/mediamarkt";
+import { fetchShopifyOrders } from "@/lib/connectors/shopify";
 
 export const maxDuration = 60;
 
@@ -91,6 +92,14 @@ export async function GET(request: Request) {
       await saveOrders(await fetchMediaMarktOrders("2026-07-16T00:00:00Z"));
     } catch (e) {
       errors.push(`MEDIAMARKT: ${(e as Error).message}`);
+    }
+  }
+
+  if (process.env.SHOPIFY_ACCESS_TOKEN) {
+    try {
+      await saveOrders(await fetchShopifyOrders());
+    } catch (e) {
+      errors.push(`SHOPIFY: ${(e as Error).message}`);
     }
   }
 

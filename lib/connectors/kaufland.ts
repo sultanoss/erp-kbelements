@@ -111,18 +111,46 @@ export async function fetchKauflandOrders(fromIso?: string, storefront?: string)
       const d = detailData.data;
       if (!d) continue;
 
-      const sa = d.shipping_address ?? {};
-      const ba = d.billing_address;
+      // Kaufland API-Feldnamen sind inkonsistent → rohe Records verwenden
+      const detailRaw = detailData.data as unknown as Record<string, unknown>;
+      const saRaw = (
+        detailRaw["shipping_address"] ??
+        detailRaw["delivery_address"] ??
+        detailRaw["shippingAddress"] ??
+        {}
+      ) as Record<string, unknown>;
+      const baRaw = (
+        detailRaw["billing_address"] ??
+        detailRaw["billingAddress"] ??
+        detailRaw["invoice_address"] ??
+        {}
+      ) as Record<string, unknown>;
 
-      // API-Feldname kann first_name (Unterstrich) oder firstname (camelCase) sein
-      const saR = sa as unknown as Record<string, unknown>;
-      const baR = (ba ?? {}) as unknown as Record<string, unknown>;
-      const firstName = addrStr(saR, "first_name", "firstname") || addrStr(baR, "first_name", "firstname");
-      const lastName = addrStr(saR, "last_name", "lastname") || addrStr(baR, "last_name", "lastname");
-      const companyName = addrStr(saR, "company_name", "company") || addrStr(baR, "company_name", "company");
+      const firstName = addrStr(saRaw, "first_name", "firstname", "firstName") || addrStr(baRaw, "first_name", "firstname", "firstName");
+      const lastName = addrStr(saRaw, "last_name", "lastname", "lastName") || addrStr(baRaw, "last_name", "lastname", "lastName");
+      const companyName = addrStr(saRaw, "company_name", "company", "companyName") || addrStr(baRaw, "company_name", "company", "companyName");
       const customerName = [firstName, lastName].filter(Boolean).join(" ") || companyName || "Unbekannt";
 
-      const units = d.order_units ?? [];
+      const street = addrStr(saRaw, "street", "streetname", "street_name", "address1", "address_line1");
+      const houseNr = addrStr(saRaw, "house_number", "housenumber", "house_nr", "houseNumber");
+      const zip = addrStr(saRaw, "postcode", "zip", "zip_code", "postal_code", "postalCode");
+      const city = addrStr(saRaw, "city", "town");
+      const country = addrStr(saRaw, "country", "country_code", "countryCode") || "DE";
+      const phone = addrStr(saRaw, "phone", "phone_number", "phoneNumber") || addrStr(baRaw, "phone", "phone_number", "phoneNumber");
+
+      const bStreet = addrStr(baRaw, "street", "streetname", "street_name", "address1");
+      const bHouseNr = addrStr(baRaw, "house_number", "housenumber", "house_nr");
+      const bZip = addrStr(baRaw, "postcode", "zip", "zip_code", "postal_code", "postalCode");
+      const bCity = addrStr(baRaw, "city", "town");
+      const bCountry = addrStr(baRaw, "country", "country_code", "countryCode");
+      const bName = [
+        addrStr(baRaw, "first_name", "firstname", "firstName"),
+        addrStr(baRaw, "last_name", "lastname", "lastName"),
+      ].filter(Boolean).join(" ");
+
+      const units: KauflandOrderUnit[] = (
+        (detailRaw["order_units"] ?? detailRaw["orderUnits"]) as KauflandOrderUnit[] | undefined
+      ) ?? d.order_units ?? [];
 
       orders.push({
         externalId: String(o.id_order),
@@ -130,20 +158,16 @@ export async function fetchKauflandOrders(fromIso?: string, storefront?: string)
         marketplace: "KAUFLAND",
         orderDate: new Date(o.ts_created_iso ?? d.ts_created_iso ?? new Date().toISOString()),
         customerName,
-        street: [sa.street, sa.house_number].filter(Boolean).join(" "),
-        zip: sa.postcode ?? "",
-        city: sa.city ?? "",
-        country: sa.country ?? "DE",
-        billingName: ba
-          ? [ba.first_name, ba.last_name].filter(Boolean).join(" ") || undefined
-          : undefined,
-        billingStreet: ba
-          ? [ba.street, ba.house_number].filter(Boolean).join(" ") || undefined
-          : undefined,
-        billingZip: ba?.postcode,
-        billingCity: ba?.city,
-        billingCountry: ba?.country,
-        phoneNumber: sa.phone || ba?.phone || undefined,
+        street: [street, houseNr].filter(Boolean).join(" "),
+        zip,
+        city,
+        country,
+        billingName: bName || undefined,
+        billingStreet: [bStreet, bHouseNr].filter(Boolean).join(" ") || undefined,
+        billingZip: bZip || undefined,
+        billingCity: bCity || undefined,
+        billingCountry: bCountry || undefined,
+        phoneNumber: phone || undefined,
         items: units.map((u) => ({
           // id_offer = Kaufland-Angebots-ID (beste verfügbare Seller-SKU)
           marketplaceSku: u.id_offer ?? "UNKNOWN",

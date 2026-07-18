@@ -8,6 +8,7 @@ import { ShipDialog } from "./ship-dialog";
 import { PrintLabelButton } from "./print-label-button";
 import { RetryKauflandButton } from "./retry-kaufland-button";
 import { RetryMediaMarktButton } from "./retry-mediamarkt-button";
+import { RetryShopifyButton } from "./retry-shopify-button";
 import { StorniereButton } from "./stornieren-button";
 
 export const dynamic = "force-dynamic";
@@ -280,6 +281,27 @@ export default async function BestellungDetailPage({
                           Fehlgeschlagen
                         </span>
                         <RetryKauflandButton orderId={order.id} />
+                      </div>
+                    ) : (
+                      <span className="font-mono text-[10px] text-grey-mid">—</span>
+                    )}
+                  </dd>
+                </div>
+              )}
+              {order.marketplace === "SHOPIFY" && order.shipments?.[0] && (
+                <div className="flex items-center justify-between px-5 py-3">
+                  <dt className="font-mono text-xs text-grey-mid">Shopify-Meldung</dt>
+                  <dd>
+                    {order.shipments[0].status === "PORTAL_NOTIFIED" ? (
+                      <span className="inline-flex items-center rounded border border-green-200 bg-green-50 px-2 py-0.5 font-mono text-[10px] font-bold text-green-700">
+                        Gemeldet
+                      </span>
+                    ) : order.shipments[0].status === "NOTIFY_FAILED" ? (
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 font-mono text-[10px] font-bold text-red-700">
+                          Fehlgeschlagen
+                        </span>
+                        <RetryShopifyButton orderId={order.id} />
                       </div>
                     ) : (
                       <span className="font-mono text-[10px] text-grey-mid">—</span>

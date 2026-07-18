@@ -7,6 +7,7 @@ import type { ShipmentResult } from "@/lib/shipping/types";
 import { sendOttoShipmentNotification } from "@/lib/connectors/otto";
 import { sendKauflandShipmentNotification, uploadKauflandInvoice } from "@/lib/connectors/kaufland";
 import { sendMediaMarktShipmentNotification, uploadMediaMarktInvoice } from "@/lib/connectors/mediamarkt";
+import { sendShopifyFulfillment } from "@/lib/connectors/shopify";
 import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
@@ -257,6 +258,20 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       revalidatePath("/buchhaltung");
     } catch (err) {
       console.error("MediaMarkt-Meldung fehlgeschlagen:", err);
+      await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "NOTIFY_FAILED" } });
+    }
+  }
+
+  if (order.marketplace === "SHOPIFY") {
+    try {
+      await sendShopifyFulfillment({
+        orderId: order.externalId,
+        trackingNumber: shipmentResult.trackingNumber,
+        carrier,
+      });
+      await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+    } catch (err) {
+      console.error("Shopify-Meldung fehlgeschlagen:", err);
       await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "NOTIFY_FAILED" } });
     }
   }
