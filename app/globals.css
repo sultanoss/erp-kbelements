@@ -46,11 +46,18 @@ select option {
 }
 
 .sidebar-nav::-webkit-scrollbar {
-  display: none;
+  width: 3px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: #C0182A;
+  border-radius: 3px;
 }
 .sidebar-nav {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: #C0182A transparent;
 }
 
 ::selection {
