@@ -269,6 +269,12 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       .map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
 
     try {
+      const session = await auth();
+      const userId = (session?.user as { id?: string } | null)?.id;
+      if (!userId) throw new Error("Kein Benutzer-Kontext");
+
+      await createInvoiceFromOrder(order, userId);
+
       await sendEbayShipment({
         orderId: order.externalId,
         trackingNumber: shipmentResult.trackingNumber,
@@ -276,6 +282,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         lineItems,
       });
       await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+      revalidatePath("/buchhaltung");
     } catch (err) {
       console.error("eBay-Meldung fehlgeschlagen:", err);
       await prisma.shipment.update({ where: { id: shipmentId }, data: { status: "NOTIFY_FAILED" } });
