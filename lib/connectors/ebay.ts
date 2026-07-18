@@ -77,7 +77,7 @@ export async function fetchEbayOrders(): Promise<NormalizedOrder[]> {
 
   for (;;) {
     const url = new URL(`${EBAY_API}/sell/fulfillment/v1/order`);
-    url.searchParams.set("filter", "orderfulfillmentstatus:{NOT_STARTED|IN_PROGRESS},paymentstatus:{FULLY_PAID}");
+    url.searchParams.set("filter", "orderfulfillmentstatus:{NOT_STARTED|IN_PROGRESS}");
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("offset", String(offset));
 
