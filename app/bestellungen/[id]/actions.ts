@@ -45,6 +45,11 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const weight = formData.get("weight") ? parseFloat(formData.get("weight") as string) : undefined;
   const manualTracking = (formData.get("trackingNumber") as string | null)?.trim() || undefined;
   const itemsJson = formData.get("items") as string;
+  const shipName    = (formData.get("shipName")    as string | null)?.trim() || null;
+  const shipStreet  = (formData.get("shipStreet")  as string | null)?.trim() || null;
+  const shipZip     = (formData.get("shipZip")     as string | null)?.trim() || null;
+  const shipCity    = (formData.get("shipCity")    as string | null)?.trim() || null;
+  const shipCountry = (formData.get("shipCountry") as string | null)?.trim() || null;
 
   if (!id || !carrier) return { ok: false, error: "Fehlende Pflichtfelder" };
   if (carrier !== "DHL" && carrier !== "GEL") return { ok: false, error: "Ungültiger Carrier" };
@@ -93,11 +98,11 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       weight,
       trackingNumber: manualTracking,
       consignee: {
-        name: order.customerName,
-        street: order.street,
-        zip: order.zip,
-        city: order.city,
-        country: order.country,
+        name:    shipName    ?? order.customerName,
+        street:  shipStreet  ?? order.street,
+        zip:     shipZip     ?? order.zip,
+        city:    shipCity    ?? order.city,
+        country: shipCountry ?? order.country,
       },
       items,
     });

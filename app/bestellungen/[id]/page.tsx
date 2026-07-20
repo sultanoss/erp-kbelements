@@ -139,6 +139,13 @@ export default async function BestellungDetailPage({
                   orderNumber={order.orderNumber}
                   marketplace={order.marketplace}
                   orderItems={order.items.map((i) => ({ marketplaceSku: i.marketplaceSku, quantity: i.quantity }))}
+                  consignee={{
+                    name: order.customerName,
+                    street: order.street ?? "",
+                    zip: order.zip ?? "",
+                    city: order.city ?? "",
+                    country: order.country ?? "DE",
+                  }}
                 />
                 <form action={markAsAbgeschlossen}>
                   <input type="hidden" name="id" value={order.id} />

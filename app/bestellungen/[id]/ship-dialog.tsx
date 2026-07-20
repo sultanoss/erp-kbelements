@@ -21,11 +21,20 @@ interface OrderItemSummary {
   quantity: number;
 }
 
+interface Consignee {
+  name: string;
+  street: string;
+  zip: string;
+  city: string;
+  country: string;
+}
+
 interface Props {
   orderId: string;
   orderNumber?: string | null;
   marketplace: string;
   orderItems: OrderItemSummary[];
+  consignee: Consignee;
 }
 
 const WEIGHT_CLASSES = [
@@ -41,7 +50,7 @@ const WEIGHT_CLASSES = [
 const inputClass =
   "h-9 w-full rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
 
-export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Props) {
+export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, consignee }: Props) {
   const [open, setOpen] = useState(false);
   const [carrier, setCarrier] = useState<"DHL" | "GEL">("DHL");
   const [weight, setWeight] = useState("");
@@ -53,6 +62,12 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
   const [result, setResult] = useState<ShipOrderResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+
+  const [shipName, setShipName] = useState(consignee.name);
+  const [shipStreet, setShipStreet] = useState(consignee.street);
+  const [shipZip, setShipZip] = useState(consignee.zip);
+  const [shipCity, setShipCity] = useState(consignee.city);
+  const [shipCountry, setShipCountry] = useState(consignee.country);
 
   function handlePrint(url: string, crop: boolean) {
     const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}${crop ? "&crop=1" : ""}`;
@@ -101,6 +116,11 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
     if (carrier === "DHL") fd.set("weight", weight);
     if (carrier === "GEL") fd.set("trackingNumber", manualTracking);
     fd.set("items", JSON.stringify(selectedItems));
+    fd.set("shipName", shipName.trim());
+    fd.set("shipStreet", shipStreet.trim());
+    fd.set("shipZip", shipZip.trim());
+    fd.set("shipCity", shipCity.trim());
+    fd.set("shipCountry", shipCountry.trim());
 
     startTransition(async () => {
       const res = await shipOrder(fd);
@@ -117,6 +137,11 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
     setManualTracking("");
     setSearch("");
     setSearchResults([]);
+    setShipName(consignee.name);
+    setShipStreet(consignee.street);
+    setShipZip(consignee.zip);
+    setShipCity(consignee.city);
+    setShipCountry(consignee.country);
   }
 
   return (
@@ -283,6 +308,57 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems }: Pr
                           </span>
                         </label>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Lieferadresse */}
+                  <div>
+                    <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
+                      Lieferadresse
+                    </div>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={shipName}
+                        onChange={(e) => setShipName(e.target.value)}
+                        placeholder="Name"
+                        required
+                        className={inputClass}
+                      />
+                      <input
+                        type="text"
+                        value={shipStreet}
+                        onChange={(e) => setShipStreet(e.target.value)}
+                        placeholder="Straße + Hausnummer"
+                        required
+                        className={inputClass}
+                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={shipZip}
+                          onChange={(e) => setShipZip(e.target.value)}
+                          placeholder="PLZ"
+                          required
+                          className={`${inputClass} w-28 flex-shrink-0`}
+                        />
+                        <input
+                          type="text"
+                          value={shipCity}
+                          onChange={(e) => setShipCity(e.target.value)}
+                          placeholder="Stadt"
+                          required
+                          className={inputClass}
+                        />
+                        <input
+                          type="text"
+                          value={shipCountry}
+                          onChange={(e) => setShipCountry(e.target.value)}
+                          placeholder="Land"
+                          required
+                          className={`${inputClass} w-16 flex-shrink-0`}
+                        />
+                      </div>
                     </div>
                   </div>
 
