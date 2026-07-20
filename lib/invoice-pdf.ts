@@ -1,5 +1,5 @@
-import { PDFDocument, StandardFonts, rgb, degrees, AFRelationship, PDFName } from "pdf-lib";
-import { generateZugferdXml, generateZugferdXmp } from "./invoice-zugferd";
+import { PDFDocument, StandardFonts, rgb, degrees, AFRelationship } from "pdf-lib";
+import { generateZugferdXml } from "./invoice-zugferd";
 import type { Invoice, InvoiceItem, InvoiceItemSku } from "@prisma/client";
 
 export type InvWithItems = Invoice & {
@@ -291,23 +291,14 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
 
   const pdfBytes = await doc.save();
 
-  // Embed ZUGFeRD 2.1 XML (EN 16931) and XMP metadata
+  // Embed ZUGFeRD 2.1 XML (EN 16931)
   const reloaded = await PDFDocument.load(pdfBytes);
-
   const xmlString = generateZugferdXml(inv);
   await reloaded.attach(Buffer.from(xmlString, "utf-8"), "factur-x.xml", {
     mimeType: "application/xml",
     description: "ZUGFeRD 2.1 EN16931",
     afRelationship: AFRelationship.Alternative,
   });
-
-  const xmpBytes = Buffer.from(generateZugferdXmp(), "utf-8");
-  const xmpStream = reloaded.context.stream(xmpBytes, {
-    Type: "Metadata",
-    Subtype: "XML",
-    Length: xmpBytes.length,
-  });
-  reloaded.catalog.set(PDFName.of("Metadata"), reloaded.context.register(xmpStream));
 
   return reloaded.save();
 }
