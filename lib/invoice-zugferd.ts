@@ -249,6 +249,12 @@ export function generateZugferdXmp(): string {
 <x:xmpmeta xmlns:x="adobe:ns:meta/">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description
+      xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"
+      rdf:about="">
+      <pdfaid:part>3</pdfaid:part>
+      <pdfaid:conformance>B</pdfaid:conformance>
+    </rdf:Description>
+    <rdf:Description
       xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
       xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"
       xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#"

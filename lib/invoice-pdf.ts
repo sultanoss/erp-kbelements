@@ -295,12 +295,11 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
 
     // Inject XMP metadata into PDF catalog (needed for Factur-X validators)
     try {
+      // XMP metadata must NOT be compressed (ISO 19005-3 §6.7.2) — use ctx.stream, never flateStream
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ctx = (doc as any).context;
       const xmpBytes = new TextEncoder().encode(generateZugferdXmp());
-      const xmpStream = ctx.flateStream
-        ? ctx.flateStream(xmpBytes, { Type: "Metadata", Subtype: "XML" })
-        : ctx.stream(xmpBytes, { Type: "Metadata", Subtype: "XML" });
+      const xmpStream = ctx.stream(xmpBytes, { Type: "Metadata", Subtype: "XML" });
       doc.catalog.set(PDFName.of("Metadata"), ctx.register(xmpStream));
     } catch (xmpErr) {
       console.error("[ZUGFeRD] XMP inject failed:", xmpErr);
