@@ -55,12 +55,17 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   if (carrier !== "DHL" && carrier !== "GEL") return { ok: false, error: "Ungültiger Carrier" };
 
   let items: { internalSku: string; quantity: number; warehouse: "neuware" | "ns" }[];
+  let manualItems: { description: string; quantity: number; warehouse: string }[] = [];
   try {
     items = JSON.parse(itemsJson);
-    if (!items?.length) return { ok: false, error: "Keine Artikel ausgewählt" };
   } catch {
     return { ok: false, error: "Ungültige Artikel-Daten" };
   }
+  try {
+    const manualJson = formData.get("manualItems") as string | null;
+    if (manualJson) manualItems = JSON.parse(manualJson);
+  } catch { /* ignore */ }
+  if (!items?.length && !manualItems?.length) return { ok: false, error: "Keine Artikel ausgewählt" };
 
   // Load order
   const order = await prisma.order.findUnique({

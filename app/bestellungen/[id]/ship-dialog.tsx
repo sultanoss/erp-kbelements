@@ -16,6 +16,13 @@ interface SelectedItem {
   warehouse: "neuware" | "ns";
 }
 
+interface ManualItem {
+  id: string;
+  description: string;
+  quantity: number;
+  warehouse: "neuware" | "ns";
+}
+
 interface OrderItemSummary {
   marketplaceSku: string;
   quantity: number;
@@ -56,12 +63,14 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const [weight, setWeight] = useState("");
   const [manualTracking, setManualTracking] = useState("");
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
+  const [manualItems, setManualItems] = useState<ManualItem[]>([]);
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<StockItem[]>([]);
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState<ShipOrderResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const manualIdRef = useRef(0);
 
   const [shipName, setShipName] = useState(consignee.name);
   const [shipStreet, setShipStreet] = useState(consignee.street);
@@ -108,6 +117,19 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     );
   }
 
+  function addManualItem() {
+    const id = String(++manualIdRef.current);
+    setManualItems((prev) => [...prev, { id, description: "", quantity: 1, warehouse: "neuware" }]);
+  }
+
+  function removeManualItem(id: string) {
+    setManualItems((prev) => prev.filter((i) => i.id !== id));
+  }
+
+  function updateManualItem(id: string, patch: Partial<ManualItem>) {
+    setManualItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData();
@@ -116,6 +138,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     if (carrier === "DHL") fd.set("weight", weight);
     if (carrier === "GEL") fd.set("trackingNumber", manualTracking);
     fd.set("items", JSON.stringify(selectedItems));
+    fd.set("manualItems", JSON.stringify(manualItems));
     fd.set("shipName", shipName.trim());
     fd.set("shipStreet", shipStreet.trim());
     fd.set("shipZip", shipZip.trim());
@@ -132,6 +155,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setOpen(false);
     setResult(null);
     setSelectedItems([]);
+    setManualItems([]);
     setCarrier("DHL");
     setWeight("");
     setManualTracking("");
@@ -402,7 +426,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                       )}
                     </div>
 
-                    {/* Selected items */}
+                    {/* Selected ERP items */}
                     {selectedItems.length > 0 && (
                       <div className="mt-3 space-y-2">
                         {selectedItems.map((item) => (
@@ -415,6 +439,33 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                         ))}
                       </div>
                     )}
+
+                    {/* Manual items */}
+                    {manualItems.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {manualItems.map((item) => (
+                          <ManualItemRow
+                            key={item.id}
+                            item={item}
+                            onUpdate={(patch) => updateManualItem(item.id, patch)}
+                            onRemove={() => removeManualItem(item.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add manual item button */}
+                    <button
+                      type="button"
+                      onClick={addManualItem}
+                      className="mt-3 flex items-center gap-1.5 rounded-lg border border-dashed border-grey-border px-3 py-2 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
+                    >
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                      Manuell hinzufügen
+                    </button>
                   </div>
 
                   {/* Carrier-specific fields */}
@@ -469,7 +520,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                   </button>
                   <button
                     type="submit"
-                    disabled={isPending || selectedItems.length === 0}
+                    disabled={isPending || (selectedItems.length === 0 && manualItems.length === 0)}
                     className="inline-flex items-center gap-2 rounded-xl bg-brand-red px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-red-dark disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isPending ? (
@@ -497,6 +548,53 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
         </div>
       )}
     </>
+  );
+}
+
+function ManualItemRow({
+  item,
+  onUpdate,
+  onRemove,
+}: {
+  item: ManualItem;
+  onUpdate: (patch: Partial<ManualItem>) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-dashed border-grey-border bg-amber-50/40 p-2.5">
+      <input
+        type="text"
+        value={item.description}
+        onChange={(e) => onUpdate({ description: e.target.value })}
+        placeholder="Artikelbezeichnung (z.B. Filter)"
+        className="h-7 flex-1 min-w-0 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+      />
+      <input
+        type="number"
+        min="1"
+        value={item.quantity}
+        onChange={(e) => onUpdate({ quantity: parseInt(e.target.value) || 1 })}
+        className="h-7 w-16 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark text-center focus:border-brand-red focus:outline-none"
+      />
+      <select
+        value={item.warehouse}
+        onChange={(e) => onUpdate({ warehouse: e.target.value as "neuware" | "ns" })}
+        className="h-7 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+      >
+        <option value="neuware">Neuware</option>
+        <option value="ns">NS-Lager</option>
+      </select>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-grey-mid hover:bg-red-50 hover:text-red-600 transition-colors"
+      >
+        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
   );
 }
 
