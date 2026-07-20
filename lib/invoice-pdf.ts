@@ -291,16 +291,18 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
 
   const pdfBytes = await doc.save();
 
-  // Embed ZUGFeRD 2.1 XML (EN 16931)
-  const reloaded = await PDFDocument.load(pdfBytes);
-  const xmlString = generateZugferdXml(inv);
-  // afRelationship "Alternative" — AFRelationship enum not re-exported from pdf-lib main index
-  await reloaded.attach(Buffer.from(xmlString, "utf-8"), "factur-x.xml", {
-    mimeType: "application/xml",
-    description: "ZUGFeRD 2.1 EN16931",
+  // Embed ZUGFeRD 2.1 XML (EN 16931) — non-fatal fallback to plain PDF on error
+  try {
+    const reloaded = await PDFDocument.load(pdfBytes);
+    const xmlString = generateZugferdXml(inv);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    afRelationship: "Alternative" as any,
-  });
-
-  return reloaded.save();
+    await (reloaded.attach as any)(Buffer.from(xmlString, "utf-8"), "factur-x.xml", {
+      mimeType: "application/xml",
+      description: "ZUGFeRD 2.1 EN16931",
+      afRelationship: "Alternative",
+    });
+    return reloaded.save();
+  } catch {
+    return pdfBytes;
+  }
 }
