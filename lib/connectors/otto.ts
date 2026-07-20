@@ -170,7 +170,7 @@ export async function sendOttoShipmentNotification(params: {
   shipDate: string; // YYYY-MM-DD
 }): Promise<void> {
   const token = await getToken("shipments");
-  const ottoCarrier = params.carrier === "DHL" ? "DHL" : "GLS";
+  const ottoCarrier = params.carrier === "DHL" ? "DHL" : "GEL";
 
   const body = {
     trackingKey: {
