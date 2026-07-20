@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb, degrees, AFRelationship } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 import { generateZugferdXml } from "./invoice-zugferd";
 import type { Invoice, InvoiceItem, InvoiceItemSku } from "@prisma/client";
 
@@ -294,10 +294,12 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
   // Embed ZUGFeRD 2.1 XML (EN 16931)
   const reloaded = await PDFDocument.load(pdfBytes);
   const xmlString = generateZugferdXml(inv);
+  // afRelationship "Alternative" — AFRelationship enum not re-exported from pdf-lib main index
   await reloaded.attach(Buffer.from(xmlString, "utf-8"), "factur-x.xml", {
     mimeType: "application/xml",
     description: "ZUGFeRD 2.1 EN16931",
-    afRelationship: AFRelationship.Alternative,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afRelationship: "Alternative" as any,
   });
 
   return reloaded.save();
