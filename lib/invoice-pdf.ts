@@ -306,9 +306,9 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
       console.error("[ZUGFeRD] XMP inject failed:", xmpErr);
     }
 
-    // Attach factur-x.xml — pass as string so pdf-lib stores UTF-8 without flate issues
+    // Attach factur-x.xml as Uint8Array (string causes BOM prefix in pdf-lib)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (doc.attach as any)(xmlString, "factur-x.xml", {
+    await (doc.attach as any)(new TextEncoder().encode(xmlString), "factur-x.xml", {
       mimeType: "application/xml",
       description: "ZUGFeRD 2.1 EN16931",
       afRelationship: "Alternative",
