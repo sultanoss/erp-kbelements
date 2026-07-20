@@ -1,5 +1,5 @@
-import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
-import { generateZugferdXml } from "./invoice-zugferd";
+import { PDFDocument, StandardFonts, rgb, degrees, PDFName } from "pdf-lib";
+import { generateZugferdXml, generateZugferdXmp } from "./invoice-zugferd";
 import type { Invoice, InvoiceItem, InvoiceItemSku } from "@prisma/client";
 
 export type InvWithItems = Invoice & {
@@ -289,18 +289,33 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
   const pgTxt = "Seite: 1";
   page.drawText(pgTxt, { x: W - MR - R.widthOfTextAtSize(pgTxt, 7) - 4, y: 17, size: 7, font: R, color: rgb(0.7, 0.7, 0.7) });
 
-  // Embed ZUGFeRD 2.1 XML (EN 16931) before saving — non-fatal on error
+  // Embed ZUGFeRD 2.1 XML + XMP metadata (EN 16931) — non-fatal on error
   try {
     const xmlString = generateZugferdXml(inv);
+
+    // Inject XMP metadata into PDF catalog (needed for Factur-X validators)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ctx = (doc as any).context;
+      const xmpBytes = new TextEncoder().encode(generateZugferdXmp());
+      const xmpStream = ctx.flateStream
+        ? ctx.flateStream(xmpBytes, { Type: "Metadata", Subtype: "XML" })
+        : ctx.stream(xmpBytes, { Type: "Metadata", Subtype: "XML" });
+      doc.catalog.set(PDFName.of("Metadata"), ctx.register(xmpStream));
+    } catch (xmpErr) {
+      console.error("[ZUGFeRD] XMP inject failed:", xmpErr);
+    }
+
+    // Attach factur-x.xml — pass as string so pdf-lib stores UTF-8 without flate issues
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (doc.attach as any)(new TextEncoder().encode(xmlString), "factur-x.xml", {
+    await (doc.attach as any)(xmlString, "factur-x.xml", {
       mimeType: "application/xml",
       description: "ZUGFeRD 2.1 EN16931",
       afRelationship: "Alternative",
     });
   } catch (err) {
-    console.error("[ZUGFeRD] XML attach failed:", err);
+    console.error("[ZUGFeRD] embed failed:", err);
   }
 
-  return doc.save();
+  return doc.save({ useObjectStreams: false });
 }
