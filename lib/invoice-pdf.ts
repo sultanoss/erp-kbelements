@@ -289,20 +289,18 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
   const pgTxt = "Seite: 1";
   page.drawText(pgTxt, { x: W - MR - R.widthOfTextAtSize(pgTxt, 7) - 4, y: 17, size: 7, font: R, color: rgb(0.7, 0.7, 0.7) });
 
-  const pdfBytes = await doc.save();
-
-  // Embed ZUGFeRD 2.1 XML (EN 16931) — non-fatal fallback to plain PDF on error
+  // Embed ZUGFeRD 2.1 XML (EN 16931) before saving — non-fatal on error
   try {
-    const reloaded = await PDFDocument.load(pdfBytes);
     const xmlString = generateZugferdXml(inv);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (reloaded.attach as any)(Buffer.from(xmlString, "utf-8"), "factur-x.xml", {
+    await (doc.attach as any)(new TextEncoder().encode(xmlString), "factur-x.xml", {
       mimeType: "application/xml",
       description: "ZUGFeRD 2.1 EN16931",
       afRelationship: "Alternative",
     });
-    return reloaded.save();
-  } catch {
-    return pdfBytes;
+  } catch (err) {
+    console.error("[ZUGFeRD] XML attach failed:", err);
   }
+
+  return doc.save();
 }
