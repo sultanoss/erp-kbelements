@@ -166,8 +166,8 @@ export function generateZugferdXml(inv: InvWithItems): string {
 
   const buyerAddrXml = (buyerStreet || buyerZip || buyerCity)
     ? `<ram:PostalTradeAddress>
-          ${buyerStreet ? `<ram:LineOne>${esc(buyerStreet)}</ram:LineOne>` : ""}
           ${buyerZip ? `<ram:PostcodeCode>${esc(buyerZip)}</ram:PostcodeCode>` : ""}
+          ${buyerStreet ? `<ram:LineOne>${esc(buyerStreet)}</ram:LineOne>` : ""}
           ${buyerCity ? `<ram:CityName>${esc(buyerCity)}</ram:CityName>` : ""}
           <ram:CountryID>${esc(buyerCountry)}</ram:CountryID>
         </ram:PostalTradeAddress>`
@@ -201,8 +201,8 @@ export function generateZugferdXml(inv: InvWithItems): string {
       <ram:SellerTradeParty>
         <ram:Name>${esc(SELLER_NAME)}</ram:Name>
         <ram:PostalTradeAddress>
-          <ram:LineOne>${esc(SELLER_STREET)}</ram:LineOne>
           <ram:PostcodeCode>${esc(SELLER_ZIP)}</ram:PostcodeCode>
+          <ram:LineOne>${esc(SELLER_STREET)}</ram:LineOne>
           <ram:CityName>${esc(SELLER_CITY)}</ram:CityName>
           <ram:CountryID>${SELLER_COUNTRY}</ram:CountryID>
         </ram:PostalTradeAddress>
