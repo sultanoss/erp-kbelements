@@ -10,6 +10,7 @@ import { RetryKauflandButton } from "./retry-kaufland-button";
 import { RetryMediaMarktButton } from "./retry-mediamarkt-button";
 import { RetryShopifyButton } from "./retry-shopify-button";
 import { RetryEbayButton } from "./retry-ebay-button";
+import { RetryOttoButton } from "./retry-otto-button";
 import { StorniereButton } from "./stornieren-button";
 
 export const dynamic = "force-dynamic";
@@ -252,6 +253,30 @@ export default async function BestellungDetailPage({
                 <div className="flex justify-between px-5 py-3">
                   <dt className="font-mono text-xs text-grey-mid">Retourennummer</dt>
                   <dd className="font-mono text-xs font-bold text-grey-dark">{order.shipments[0].returnTrackingNumber}</dd>
+                </div>
+              )}
+              {order.marketplace === "OTTO" && order.shipments?.[0] && (
+                <div className="flex items-center justify-between px-5 py-3">
+                  <dt className="font-mono text-xs text-grey-mid">Otto-Meldung</dt>
+                  <dd>
+                    {order.shipments[0].status === "PORTAL_NOTIFIED" ? (
+                      <span className="inline-flex items-center rounded border border-green-200 bg-green-50 px-2 py-0.5 font-mono text-[10px] font-bold text-green-700">
+                        Gemeldet
+                      </span>
+                    ) : order.shipments[0].status === "NOTIFY_FAILED" ? (
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 font-mono text-[10px] font-bold text-red-700">
+                          Fehlgeschlagen
+                        </span>
+                        <RetryOttoButton orderId={order.id} />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-grey-mid">Nicht gemeldet</span>
+                        <RetryOttoButton orderId={order.id} />
+                      </div>
+                    )}
+                  </dd>
                 </div>
               )}
               {order.marketplace === "MEDIAMARKT" && order.shipments?.[0] && (
