@@ -1,4 +1,6 @@
-import { PDFDocument, StandardFonts, rgb, degrees, PDFName } from "pdf-lib";
+import { PDFDocument, rgb, degrees, PDFName, PDFHexString } from "pdf-lib";
+import * as fs from "fs";
+import * as path from "path";
 import { generateZugferdXml, generateZugferdXmp } from "./invoice-zugferd";
 import type { Invoice, InvoiceItem, InvoiceItemSku } from "@prisma/client";
 
@@ -42,8 +44,13 @@ function truncate(text: string, maxWidth: number, font: Awaited<ReturnType<PDFDo
 
 export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const R = await doc.embedFont(StandardFonts.Helvetica);
-  const B = await doc.embedFont(StandardFonts.HelveticaBold);
+
+  // Fix 3: Embed open-source fonts (PDF/A-3 requires all fonts to be embedded)
+  const assetsDir = path.join(process.cwd(), "assets");
+  const regularTtf = fs.readFileSync(path.join(assetsDir, "fonts", "NotoSans-Regular.ttf"));
+  const boldTtf = fs.readFileSync(path.join(assetsDir, "fonts", "NotoSans-Bold.ttf"));
+  const R = await doc.embedFont(regularTtf);
+  const B = await doc.embedFont(boldTtf);
 
   const BLACK = rgb(0, 0, 0);
   const GREY = rgb(0.5, 0.5, 0.5);
@@ -314,6 +321,38 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
     });
   } catch (err) {
     console.error("[ZUGFeRD] embed failed:", err);
+  }
+
+  // Fix 1: Trailer /ID (ISO 19005-3 §6.1.3 — required for PDF/A-3)
+  try {
+    const ctx = (doc as any).context;
+    const idBytes = new Uint8Array(16);
+    crypto.getRandomValues(idBytes);
+    const idHex = Array.from(idBytes).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+    const pdfId = PDFHexString.of(idHex);
+    ctx.trailerInfo.ID = [pdfId, pdfId];
+  } catch (e) {
+    console.error("[PDF/A] Trailer ID failed:", e);
+  }
+
+  // Fix 2: RGB OutputIntent (ISO 19005-3 §6.2.4.3 — required when DeviceRGB is used)
+  try {
+    const ctx = (doc as any).context;
+    const iccBytes = fs.readFileSync(path.join(assetsDir, "srgb.icc"));
+    const iccStream = ctx.stream(iccBytes, { N: 3 });
+    const iccRef = ctx.register(iccStream);
+    const outputIntent = ctx.obj({
+      Type: "OutputIntent",
+      S: "GTS_PDFA1",
+      OutputConditionIdentifier: "sRGB IEC61966-2.1",
+      Info: "sRGB IEC61966-2.1",
+      DestOutputProfile: iccRef,
+    });
+    const intentRef = ctx.register(outputIntent);
+    const intentsArray = ctx.obj([intentRef]);
+    doc.catalog.set(PDFName.of("OutputIntents"), intentsArray);
+  } catch (e) {
+    console.error("[PDF/A] OutputIntent failed:", e);
   }
 
   return doc.save({ useObjectStreams: false });
