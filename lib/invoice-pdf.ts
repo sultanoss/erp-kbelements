@@ -1,6 +1,5 @@
 import { PDFDocument, rgb, degrees, PDFName, PDFHexString } from "pdf-lib";
-import * as fs from "fs";
-import * as path from "path";
+import { srgbIcc, notoSansRegular, notoSansBold } from "./pdf-assets";
 import { generateZugferdXml, generateZugferdXmp } from "./invoice-zugferd";
 import type { Invoice, InvoiceItem, InvoiceItemSku } from "@prisma/client";
 
@@ -45,12 +44,9 @@ function truncate(text: string, maxWidth: number, font: Awaited<ReturnType<PDFDo
 export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
 
-  // Fix 3: Embed open-source fonts (PDF/A-3 requires all fonts to be embedded)
-  const assetsDir = path.join(process.cwd(), "assets");
-  const regularTtf = fs.readFileSync(path.join(assetsDir, "fonts", "NotoSans-Regular.ttf"));
-  const boldTtf = fs.readFileSync(path.join(assetsDir, "fonts", "NotoSans-Bold.ttf"));
-  const R = await doc.embedFont(regularTtf);
-  const B = await doc.embedFont(boldTtf);
+  // Fix 3: Embed open-source fonts (PDF/A-3 §6.2.11.4.1 — all fonts must be embedded)
+  const R = await doc.embedFont(notoSansRegular);
+  const B = await doc.embedFont(notoSansBold);
 
   const BLACK = rgb(0, 0, 0);
   const GREY = rgb(0.5, 0.5, 0.5);
@@ -338,7 +334,7 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
   // Fix 2: RGB OutputIntent (ISO 19005-3 §6.2.4.3 — required when DeviceRGB is used)
   try {
     const ctx = (doc as any).context;
-    const iccBytes = fs.readFileSync(path.join(assetsDir, "srgb.icc"));
+    const iccBytes = srgbIcc;
     const iccStream = ctx.stream(iccBytes, { N: 3 });
     const iccRef = ctx.register(iccStream);
     const outputIntent = ctx.obj({
