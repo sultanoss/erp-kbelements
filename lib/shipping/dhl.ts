@@ -40,7 +40,7 @@ function toIso3(c: string): string {
 function splitStreetAndHouse(street: string): { street: string; house: string } {
   // "Musterstraße 12a" → street: "Musterstraße", house: "12a"
   const match = street.match(/^(.+?)\s+(\d+\S*)$/);
-  if (match) return { street: match[1], house: match[2] };
+  if (match) return { street: match[1], house: match[2].slice(0, 10) };
   return { street, house: "" };
 }
 
@@ -55,6 +55,11 @@ export class DHLShippingProvider implements ShippingProvider {
     const { street: consigneeStreet, house: consigneeHouse } = splitStreetAndHouse(
       input.consignee.street
     );
+    if (!consigneeHouse) {
+      throw new Error(
+        `DHL: Hausnummer konnte nicht aus der Adresse "${input.consignee.street}" ermittelt werden. Bitte Adresse in der Bestellung prüfen (Straße muss eine Hausnummer enthalten, z.B. "Musterstraße 12").`
+      );
+    }
 
     const consigneeCountryIso3 = toIso3(input.consignee.country);
     const isDomestic = consigneeCountryIso3 === "DEU";
