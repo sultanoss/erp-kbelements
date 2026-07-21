@@ -38,8 +38,8 @@ function toIso3(c: string): string {
 }
 
 function splitStreetAndHouse(street: string): { street: string; house: string } {
-  // "Musterstraße 12a" → street: "Musterstraße", house: "12a"
-  const match = street.match(/^(.+?)\s+(\d+\S*)$/);
+  // "Musterstraße 12a" oder "Hegermühlenstr.50g" → street, house
+  const match = street.match(/^(.+?)[\s.]+(\d+\S*)$/);
   if (match) return { street: match[1], house: match[2].slice(0, 10) };
   return { street, house: "" };
 }
