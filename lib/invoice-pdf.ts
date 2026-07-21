@@ -1,5 +1,5 @@
-import { PDFDocument, rgb, degrees, PDFName, PDFHexString } from "pdf-lib";
-import { srgbIcc, notoSansRegular, notoSansBold } from "./pdf-assets";
+import { PDFDocument, StandardFonts, rgb, degrees, PDFName, PDFHexString } from "pdf-lib";
+import { srgbIcc } from "./srgb-icc";
 import { generateZugferdXml, generateZugferdXmp } from "./invoice-zugferd";
 import type { Invoice, InvoiceItem, InvoiceItemSku } from "@prisma/client";
 
@@ -44,9 +44,8 @@ function truncate(text: string, maxWidth: number, font: Awaited<ReturnType<PDFDo
 export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
 
-  // Fix 3: Embed open-source fonts (PDF/A-3 §6.2.11.4.1 — all fonts must be embedded)
-  const R = await doc.embedFont(notoSansRegular);
-  const B = await doc.embedFont(notoSansBold);
+  const R = await doc.embedFont(StandardFonts.Helvetica);
+  const B = await doc.embedFont(StandardFonts.HelveticaBold);
 
   const BLACK = rgb(0, 0, 0);
   const GREY = rgb(0.5, 0.5, 0.5);
