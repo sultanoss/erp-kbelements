@@ -1,4 +1,6 @@
-import { PDFDocument, StandardFonts, rgb, degrees, PDFName, PDFHexString } from "pdf-lib";
+import { PDFDocument, rgb, degrees, PDFName, PDFHexString } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import { robotoRegular, robotoBold } from "./pdf-fonts";
 import { srgbIcc } from "./srgb-icc";
 import { generateZugferdXml, generateZugferdXmp } from "./invoice-zugferd";
 import type { Invoice, InvoiceItem, InvoiceItemSku } from "@prisma/client";
@@ -43,9 +45,11 @@ function truncate(text: string, maxWidth: number, font: Awaited<ReturnType<PDFDo
 
 export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
 
-  const R = await doc.embedFont(StandardFonts.Helvetica);
-  const B = await doc.embedFont(StandardFonts.HelveticaBold);
+  // PDF/A-3 §6.2.11.4.1: all fonts must be embedded — Roboto Latin (Apache 2.0)
+  const R = await doc.embedFont(robotoRegular);
+  const B = await doc.embedFont(robotoBold);
 
   const BLACK = rgb(0, 0, 0);
   const GREY = rgb(0.5, 0.5, 0.5);
