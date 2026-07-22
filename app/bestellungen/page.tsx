@@ -57,6 +57,14 @@ export default async function BestellungenPage({
 
   const hasFilter = !!(status || marketplace || q || datFrom || datTo);
 
+  const filterParams = new URLSearchParams();
+  if (status) filterParams.set("status", status);
+  if (marketplace) filterParams.set("marketplace", marketplace);
+  if (q) filterParams.set("q", q);
+  if (datFrom) filterParams.set("datFrom", datFrom);
+  if (datTo) filterParams.set("datTo", datTo);
+  const backParam = hasFilter ? `?back=${encodeURIComponent(`/bestellungen?${filterParams.toString()}`)}` : "";
+
   return (
     <AppShell>
       <PageHeader title="Bestellungen" eyebrow="Alle Marktplatz-Bestellungen" />
@@ -130,7 +138,7 @@ export default async function BestellungenPage({
             {orders.map((order) => (
               <tr key={order.id} className="cursor-pointer transition-colors hover:bg-grey-light/60">
                 <td className="px-4 py-3 font-mono text-xs text-grey-mid">
-                  <a href={`/bestellungen/${order.id}`} className="block w-full h-full">
+                  <a href={`/bestellungen/${order.id}${backParam}`} className="block w-full h-full">
                     {new Date(order.orderDate).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
                     <div className="text-[10px] text-grey-mid/70">
                       {new Date(order.orderDate).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" })} Uhr
@@ -138,7 +146,7 @@ export default async function BestellungenPage({
                   </a>
                 </td>
                 <td className="px-4 py-3">
-                  <a href={`/bestellungen/${order.id}`} className="block">
+                  <a href={`/bestellungen/${order.id}${backParam}`} className="block">
                     <span className="font-mono text-xs font-semibold text-brand-red">{order.marketplace}</span>
                     {order.marketplace === "KAUFLAND" && order.country && order.country !== "DE" && (
                       <span className="ml-1.5 inline-flex items-center rounded bg-grey-light border border-grey-border px-1.5 py-0.5 font-mono text-[9px] font-bold text-grey-dark">
@@ -148,7 +156,7 @@ export default async function BestellungenPage({
                   </a>
                 </td>
                 <td className="px-4 py-3 text-grey-dark">
-                  <a href={`/bestellungen/${order.id}`} className="block">
+                  <a href={`/bestellungen/${order.id}${backParam}`} className="block">
                     <div className="font-semibold">{order.billingName ?? order.customerName}</div>
                     <div className="font-mono text-xs text-grey-mid">{order.zip} {order.city}</div>
                     {order.billingName && order.billingName !== order.customerName && (
@@ -157,7 +165,7 @@ export default async function BestellungenPage({
                   </a>
                 </td>
                 <td className="px-4 py-3">
-                  <a href={`/bestellungen/${order.id}`} className="block">
+                  <a href={`/bestellungen/${order.id}${backParam}`} className="block">
                     {order.orderNumber && (
                       <div className="mb-1 font-mono text-[11px] text-grey-mid">{order.orderNumber}</div>
                     )}
@@ -177,7 +185,7 @@ export default async function BestellungenPage({
                   </a>
                 </td>
                 <td className="px-4 py-3">
-                  <a href={`/bestellungen/${order.id}`} className="block">
+                  <a href={`/bestellungen/${order.id}${backParam}`} className="block">
                     <span className={`inline-flex items-center rounded border px-2 py-0.5 font-mono text-[10px] font-semibold ${statusBadge[order.status] ?? statusBadge.NEU}`}>
                       {statusLabel[order.status] ?? order.status}
                     </span>

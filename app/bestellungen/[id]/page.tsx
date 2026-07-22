@@ -17,10 +17,13 @@ export const dynamic = "force-dynamic";
 
 export default async function BestellungDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ back?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, { back }] = await Promise.all([params, searchParams]);
+  const backHref = back ? decodeURIComponent(back) : "/bestellungen";
   const order = await prisma.order.findUnique({
     where: { id },
     include: { items: true, shipments: true },
@@ -37,7 +40,7 @@ export default async function BestellungDetailPage({
       <PageHeader
         title={order.orderNumber ? `Bestellung ${order.orderNumber}` : `Bestellung #${order.externalId.slice(-8).toUpperCase()}`}
         eyebrow={order.marketplace}
-        backHref="/bestellungen"
+        backHref={backHref}
         backLabel="Alle Bestellungen"
       />
 
