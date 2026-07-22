@@ -9,27 +9,43 @@ interface Props {
   returnId: string;
   currentStatus: string;
   userName: string;
+  initialValues: {
+    order_number: string | null;
+    description: string | null;
+    resolution: string | null;
+    resolution_notes: string | null;
+    tracking_number: string | null;
+    refund_status: string | null;
+    refund_note: string | null;
+  };
 }
 
-export default function StatusChangeModal({ returnId, currentStatus, userName }: Props) {
+export default function EditReturnModal({ returnId, currentStatus, userName, initialValues }: Props) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<"in_bearbeitung" | "erledigt">("erledigt");
-  const [resolutionNotes, setResolutionNotes] = useState("");
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [resolution, setResolution] = useState("neu");
-  const [refundStatus, setRefundStatus] = useState<"ja" | "nein" | "">("");
-  const [refundReason, setRefundReason] = useState("");
+  const [orderNumber, setOrderNumber] = useState(initialValues.order_number ?? "");
+  const [description, setDescription] = useState(initialValues.description ?? "");
+  const [resolution, setResolution] = useState(initialValues.resolution ?? "neu");
+  const [resolutionNotes, setResolutionNotes] = useState(initialValues.resolution_notes ?? "");
+  const [trackingNumber, setTrackingNumber] = useState(initialValues.tracking_number ?? "");
+  const [refundStatus, setRefundStatus] = useState<"ja" | "nein" | "">(
+    (initialValues.refund_status as "ja" | "nein" | "") ?? ""
+  );
+  const [refundNote, setRefundNote] = useState(initialValues.refund_note ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const supabase = createClient();
 
-  function openModal(m: typeof mode) {
-    setMode(m);
-    setOpen(true);
+  function openModal() {
+    setOrderNumber(initialValues.order_number ?? "");
+    setDescription(initialValues.description ?? "");
+    setResolution(initialValues.resolution ?? "neu");
+    setResolutionNotes(initialValues.resolution_notes ?? "");
+    setTrackingNumber(initialValues.tracking_number ?? "");
+    setRefundStatus((initialValues.refund_status as "ja" | "nein" | "") ?? "");
+    setRefundNote(initialValues.refund_note ?? "");
     setError("");
-    setRefundStatus("");
-    setRefundReason("");
+    setOpen(true);
   }
 
   async function handleSave() {
@@ -37,61 +53,39 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
     setError("");
 
     const now = new Date().toISOString();
+    const updates: Record<string, string | null> = {
+      order_number: orderNumber.trim() || null,
+      description: description.trim() || null,
+      updated_at: now,
+    };
 
-    if (mode === "in_bearbeitung") {
-      const { error: e } = await supabase
-        .from("returns")
-        .update({ status: "in_bearbeitung", updated_at: now })
-        .eq("id", returnId);
-
-      if (e) { setError(e.message); setSaving(false); return; }
-
-      await supabase.from("return_events").insert({
-        return_id: returnId,
-        event_type: "status_geaendert",
-        note: "Status geändert: In Bearbeitung",
-        author: userName,
-      });
-    } else {
-      if (!refundStatus) {
-        setError("Bitte angeben ob Geld zurückerstattet wurde.");
-        setSaving(false);
-        return;
+    if (currentStatus === "erledigt") {
+      updates.resolution = resolution;
+      updates.resolution_notes = resolutionNotes.trim() || null;
+      updates.tracking_number = trackingNumber.trim() || null;
+      if (refundStatus) {
+        updates.refund_status = refundStatus;
+        updates.refund_note = refundNote.trim() || null;
       }
-      if (refundStatus === "nein" && !refundReason.trim()) {
-        setError("Bitte einen Grund angeben warum nicht erstattet wurde.");
-        setSaving(false);
-        return;
-      }
-
-      const { error: e } = await supabase
-        .from("returns")
-        .update({
-          status: "erledigt",
-          resolution,
-          resolved_by: userName,
-          resolved_at: now,
-          resolution_notes: resolutionNotes,
-          tracking_number: trackingNumber || null,
-          refund_status: refundStatus,
-          refund_reason: refundStatus === "nein" ? refundReason.trim() : null,
-          updated_at: now,
-        })
-        .eq("id", returnId);
-
-      if (e) { setError(e.message); setSaving(false); return; }
-
-      const refundNote = refundStatus === "ja"
-        ? "Geld erstattet: Ja"
-        : `Geld erstattet: Nein — ${refundReason.trim()}`;
-
-      await supabase.from("return_events").insert({
-        return_id: returnId,
-        event_type: "erledigt",
-        note: `${RESOLUTION_OPTIONS.find(o => o.value === resolution)?.label ?? resolution}${trackingNumber ? ` · Sendung: ${trackingNumber}` : ""}\n${refundNote}\n\n${resolutionNotes}`,
-        author: userName,
-      });
     }
+
+    const { error: e } = await supabase
+      .from("returns")
+      .update(updates)
+      .eq("id", returnId);
+
+    if (e) {
+      setError(e.message);
+      setSaving(false);
+      return;
+    }
+
+    await supabase.from("return_events").insert({
+      return_id: returnId,
+      event_type: "bearbeitet",
+      note: "Retoure bearbeitet / korrigiert",
+      author: userName,
+    });
 
     setOpen(false);
     setSaving(false);
@@ -100,24 +94,15 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
 
   return (
     <>
-      <div className="flex gap-2 flex-wrap">
-        {currentStatus === "eingegangen" && (
-          <button onClick={() => openModal("in_bearbeitung")} className="btn-secondary">
-            In Bearbeitung setzen
-          </button>
-        )}
-        <button onClick={() => openModal("erledigt")} className="btn-primary">
-          Erledigen
-        </button>
-      </div>
+      <button onClick={openModal} className="btn-secondary">
+        Bearbeiten
+      </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
-              <h2 className="font-semibold text-stone-900">
-                {mode === "in_bearbeitung" ? "In Bearbeitung setzen" : "Retoure erledigen"}
-              </h2>
+              <h2 className="font-semibold text-stone-900">Retoure bearbeiten</h2>
               <button onClick={() => setOpen(false)} className="text-stone-400 hover:text-stone-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -132,11 +117,41 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                 </div>
               )}
 
-              {mode === "erledigt" && (
+              <div>
+                <label className="label">
+                  Auftragsnummer <span className="text-stone-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  className="input font-mono"
+                  placeholder="z.B. 12345"
+                  value={orderNumber}
+                  onChange={(e) => setOrderNumber(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="label">
+                  Beschreibung <span className="text-stone-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  className="input resize-none"
+                  placeholder="Beschreibung des Problems..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              {currentStatus === "erledigt" && (
                 <>
                   <div>
                     <label className="label">Abschluss-Kategorie</label>
-                    <select className="input" value={resolution} onChange={(e) => setResolution(e.target.value)}>
+                    <select
+                      className="input"
+                      value={resolution}
+                      onChange={(e) => setResolution(e.target.value)}
+                    >
                       {RESOLUTION_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>{o.label}</option>
                       ))}
@@ -172,7 +187,7 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                   {/* Erstattung */}
                   <div className="rounded-lg border border-stone-200 p-4 space-y-3">
                     <label className="label mb-0">
-                      Geld zurückerstattet? <span className="text-brand-red">*</span>
+                      Erstattungsstatus <span className="text-stone-400 font-normal">(optional)</span>
                     </label>
                     <div className="flex gap-3">
                       <label className={`flex-1 flex items-center justify-center gap-2 rounded-lg border-2 py-2.5 cursor-pointer transition-colors ${
@@ -183,10 +198,10 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                         <input
                           type="radio"
                           className="sr-only"
-                          name="refund"
+                          name="edit-refund"
                           value="ja"
                           checked={refundStatus === "ja"}
-                          onChange={() => { setRefundStatus("ja"); setRefundReason(""); }}
+                          onChange={() => setRefundStatus("ja")}
                         />
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -201,7 +216,7 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                         <input
                           type="radio"
                           className="sr-only"
-                          name="refund"
+                          name="edit-refund"
                           value="nein"
                           checked={refundStatus === "nein"}
                           onChange={() => setRefundStatus("nein")}
@@ -211,30 +226,39 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                         </svg>
                         <span className="text-sm font-medium">Nein</span>
                       </label>
+                      <label className={`flex-1 flex items-center justify-center gap-2 rounded-lg border-2 py-2.5 cursor-pointer transition-colors ${
+                        refundStatus === ""
+                          ? "border-stone-400 bg-stone-50 text-stone-700"
+                          : "border-stone-200 text-stone-500 hover:border-stone-300"
+                      }`}>
+                        <input
+                          type="radio"
+                          className="sr-only"
+                          name="edit-refund"
+                          value=""
+                          checked={refundStatus === ""}
+                          onChange={() => setRefundStatus("")}
+                        />
+                        <span className="text-sm">—</span>
+                      </label>
                     </div>
 
-                    {refundStatus === "nein" && (
+                    {refundStatus !== "" && (
                       <div>
                         <label className="label">
-                          Grund <span className="text-brand-red">*</span>
+                          Notiz <span className="text-stone-400 font-normal">(optional)</span>
                         </label>
                         <input
                           type="text"
                           className="input"
-                          placeholder="z.B. Ware beschädigt, Garantiefall..."
-                          value={refundReason}
-                          onChange={(e) => setRefundReason(e.target.value)}
+                          placeholder="z.B. Teilrückerstattung 29,99 €..."
+                          value={refundNote}
+                          onChange={(e) => setRefundNote(e.target.value)}
                         />
                       </div>
                     )}
                   </div>
                 </>
-              )}
-
-              {mode === "in_bearbeitung" && (
-                <p className="text-stone-600 text-sm">
-                  Der Status wird auf <strong>In Bearbeitung</strong> gesetzt.
-                </p>
               )}
             </div>
 

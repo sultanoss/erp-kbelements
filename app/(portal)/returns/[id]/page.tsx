@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, RESOLUTION_LABELS, formatDate } from "@/lib/status";
 import StatusChangeModal from "./StatusChangeModal";
+import EditReturnModal from "./EditReturnModal";
 
 export default async function ReturnDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -57,10 +58,26 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
             </p>
           </div>
 
-          {/* Status-Aktionen */}
-          {ret.status !== "erledigt" && (
-            <StatusChangeModal returnId={id} currentStatus={ret.status} userName={userName} />
-          )}
+          {/* Aktionen */}
+          <div className="flex gap-2 flex-wrap items-start">
+            <EditReturnModal
+              returnId={id}
+              currentStatus={ret.status}
+              userName={userName}
+              initialValues={{
+                order_number: ret.order_number,
+                description: ret.description,
+                resolution: ret.resolution,
+                resolution_notes: ret.resolution_notes,
+                tracking_number: ret.tracking_number,
+                refund_status: ret.refund_status ?? null,
+                refund_note: ret.refund_note ?? null,
+              }}
+            />
+            {ret.status !== "erledigt" && (
+              <StatusChangeModal returnId={id} currentStatus={ret.status} userName={userName} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -134,6 +151,25 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
                   <div>
                     <div className="text-xs text-green-600 mb-0.5">Sendungsnummer</div>
                     <div className="text-sm font-mono font-medium text-green-900">{ret.tracking_number}</div>
+                  </div>
+                )}
+                {ret.refund_status && (
+                  <div>
+                    <div className="text-xs text-green-600 mb-0.5">Geld erstattet</div>
+                    <div className="flex items-center gap-2">
+                      {ret.refund_status === "ja" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-200 text-green-800">
+                          ✓ Ja
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">
+                          ✗ Nein
+                        </span>
+                      )}
+                    </div>
+                    {ret.refund_note && (
+                      <p className="text-xs text-green-800 mt-1">{ret.refund_note}</p>
+                    )}
                   </div>
                 )}
               </div>

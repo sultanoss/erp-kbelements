@@ -34,6 +34,8 @@ export default async function ReturnsPage({
 
   const { data: returns, error } = await query;
 
+  const cell = "block px-4 py-3";
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -88,7 +90,6 @@ export default async function ReturnsPage({
         </form>
       </div>
 
-      {/* Table */}
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
           Fehler beim Laden: {error.message}
@@ -106,8 +107,8 @@ export default async function ReturnsPage({
                 <th className="text-left px-4 py-3 font-medium text-stone-600 max-w-[200px]">Beschreibung</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Status</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Abschluss</th>
+                <th className="text-left px-4 py-3 font-medium text-stone-600">Erstattung</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Bearbeiter</th>
-                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -121,6 +122,7 @@ export default async function ReturnsPage({
                 </tr>
               ) : (
                 returns.map((r) => {
+                  const href = `/returns/${r.id}`;
                   const items = (r.return_items as Array<{ sku: string; quantity: number; is_manual: boolean }>) ?? [];
                   const skuList = items.map(i => `${i.sku}${i.quantity > 1 ? ` ×${i.quantity}` : ""}`).join(", ");
                   const status = STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-stone-100 text-stone-600" };
@@ -128,44 +130,74 @@ export default async function ReturnsPage({
                   const bearbeiter = r.status === "erledigt" ? r.resolved_by : r.received_by;
 
                   return (
-                    <tr key={r.id} className="hover:bg-stone-50 transition-colors">
-                      <td className="px-4 py-3 text-stone-500 whitespace-nowrap text-xs">
-                        {formatDate(r.created_at)}
+                    <tr key={r.id} className="hover:bg-stone-50 transition-colors cursor-pointer">
+                      <td className="p-0 text-stone-500 whitespace-nowrap text-xs">
+                        <Link href={href} className={cell}>{formatDate(r.created_at)}</Link>
                       </td>
-                      <td className="px-4 py-3 text-stone-700 font-mono text-xs whitespace-nowrap">
-                        {r.order_number || <span className="text-stone-300">—</span>}
+                      <td className="p-0 font-mono text-xs whitespace-nowrap">
+                        <Link href={href} className={`${cell} text-stone-700`}>
+                          {r.order_number || <span className="text-stone-300">—</span>}
+                        </Link>
                       </td>
+                      <td className="p-0">
+                        <Link href={href} className={cell}>
+                          <span className="text-xs text-stone-600 font-medium">
+                            {skuList || <span className="text-stone-300">—</span>}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="p-0 max-w-[200px]">
+                        <Link href={href} className={cell}>
+                          <span className="text-xs text-stone-600 line-clamp-2">
+                            {r.description || <span className="text-stone-300">—</span>}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className={cell}>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
+                            {status.label}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className={cell}>
+                          {resolution ? (
+                            <span className="text-xs text-stone-600 font-medium">{resolution}</span>
+                          ) : (
+                            <span className="text-stone-300 text-xs">—</span>
+                          )}
+                        </Link>
+                      </td>
+                      {/* Erstattung — not a link so tooltip works */}
                       <td className="px-4 py-3">
-                        <span className="text-xs text-stone-600 font-medium">
-                          {skuList || <span className="text-stone-300">—</span>}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 max-w-[200px]">
-                        <span className="text-xs text-stone-600 line-clamp-2">
-                          {r.description || <span className="text-stone-300">—</span>}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {resolution ? (
-                          <span className="text-xs text-stone-600 font-medium">{resolution}</span>
+                        {r.refund_status === "ja" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-700">
+                            ✓ Ja
+                          </span>
+                        ) : r.refund_status === "nein" ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">
+                              ✗ Nein
+                            </span>
+                            {r.refund_reason && (
+                              <span className="relative group cursor-default">
+                                <svg className="w-3.5 h-3.5 text-stone-400 hover:text-stone-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                </svg>
+                                <span className="absolute left-0 bottom-full mb-1.5 w-52 rounded-lg bg-stone-800 text-white text-xs px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 whitespace-normal shadow-lg">
+                                  {r.refund_reason}
+                                </span>
+                              </span>
+                            )}
+                          </span>
                         ) : (
                           <span className="text-stone-300 text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-xs text-stone-600 whitespace-nowrap">
-                        {bearbeiter || <span className="text-stone-300">—</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/returns/${r.id}`}
-                          className="text-brand-red text-xs font-medium hover:underline whitespace-nowrap"
-                        >
-                          Details →
+                      <td className="p-0 whitespace-nowrap">
+                        <Link href={href} className={`${cell} text-xs text-stone-600`}>
+                          {bearbeiter || <span className="text-stone-300">—</span>}
                         </Link>
                       </td>
                     </tr>
