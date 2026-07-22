@@ -74,13 +74,13 @@ export class DHLShippingProvider implements ShippingProvider {
         );
       }
       consignee = {
-        locker: {
-          lockerID: parsePackstationId(input.consignee.street),
-          postNumber: input.consignee.postNumber.replace(/\s/g, ""),
-          postalCode: input.consignee.zip,
-          city: input.consignee.city,
-          country: consigneeCountryIso3,
-        },
+        name1: input.consignee.name,
+        name2: input.consignee.postNumber.replace(/\s/g, ""),
+        addressStreet: "Packstation",
+        addressHouse: parsePackstationId(input.consignee.street),
+        postalCode: input.consignee.zip,
+        city: input.consignee.city,
+        country: consigneeCountryIso3,
       };
     } else {
       const { street: consigneeStreet, house: consigneeHouse } = splitStreetAndHouse(
