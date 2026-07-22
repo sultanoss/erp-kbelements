@@ -44,6 +44,15 @@ function splitStreetAndHouse(street: string): { street: string; house: string } 
   return { street, house: "" };
 }
 
+function isPackstation(street: string): boolean {
+  return /^packstation\s+\d+/i.test(street.trim());
+}
+
+function parsePackstationId(street: string): string {
+  const match = street.match(/\d+/);
+  return match ? match[0] : "";
+}
+
 export class DHLShippingProvider implements ShippingProvider {
   async createShipment(input: ShipmentInput): Promise<ShipmentResult> {
     if (!input.weight || input.weight <= 0) {
@@ -52,17 +61,46 @@ export class DHLShippingProvider implements ShippingProvider {
 
     const shipperStreet = process.env.DHL_SHIPPER_STREET ?? "";
     const shipperHouse = process.env.DHL_SHIPPER_HOUSE ?? "";
-    const { street: consigneeStreet, house: consigneeHouse } = splitStreetAndHouse(
-      input.consignee.street
-    );
-    if (!consigneeHouse) {
-      throw new Error(
-        `DHL: Hausnummer konnte nicht aus der Adresse "${input.consignee.street}" ermittelt werden. Bitte Adresse in der Bestellung prüfen (Straße muss eine Hausnummer enthalten, z.B. "Musterstraße 12").`
-      );
-    }
-
     const consigneeCountryIso3 = toIso3(input.consignee.country);
     const isDomestic = consigneeCountryIso3 === "DEU";
+
+    const isPS = isPackstation(input.consignee.street);
+
+    let consignee: Record<string, unknown>;
+    if (isPS) {
+      if (!input.consignee.postNumber?.trim()) {
+        throw new Error(
+          `DHL: Die Lieferadresse ist eine Packstation. Bitte die DHL Postnummer (persönliche DHL-Kundennummer) des Empfängers eingeben.`
+        );
+      }
+      consignee = {
+        name1: input.consignee.name,
+        locker: {
+          lockerID: parsePackstationId(input.consignee.street),
+          postNumber: input.consignee.postNumber.replace(/\s/g, ""),
+          postalCode: input.consignee.zip,
+          city: input.consignee.city,
+          country: consigneeCountryIso3,
+        },
+      };
+    } else {
+      const { street: consigneeStreet, house: consigneeHouse } = splitStreetAndHouse(
+        input.consignee.street
+      );
+      if (!consigneeHouse) {
+        throw new Error(
+          `DHL: Hausnummer konnte nicht aus der Adresse "${input.consignee.street}" ermittelt werden. Bitte Adresse in der Bestellung prüfen (Straße muss eine Hausnummer enthalten, z.B. "Musterstraße 12").`
+        );
+      }
+      consignee = {
+        name1: input.consignee.name,
+        addressStreet: consigneeStreet,
+        addressHouse: consigneeHouse,
+        postalCode: input.consignee.zip,
+        city: input.consignee.city,
+        country: consigneeCountryIso3,
+      };
+    }
 
     const body = {
       profile: "STANDARD_GRUPPENPROFIL",
@@ -79,14 +117,7 @@ export class DHLShippingProvider implements ShippingProvider {
             city: process.env.DHL_SHIPPER_CITY ?? "",
             country: "DEU",
           },
-          consignee: {
-            name1: input.consignee.name,
-            addressStreet: consigneeStreet,
-            addressHouse: consigneeHouse,
-            postalCode: input.consignee.zip,
-            city: input.consignee.city,
-            country: consigneeCountryIso3,
-          },
+          consignee,
           details: {
             weight: { uom: "kg", value: input.weight },
           },

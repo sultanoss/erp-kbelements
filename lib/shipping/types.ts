@@ -18,6 +18,7 @@ export interface ShipmentInput {
     zip: string;
     city: string;
     country: string;
+    postNumber?: string; // DHL Postnummer des Empfängers (nur für Packstation)
   };
   items: ShipmentItemInput[];
 }

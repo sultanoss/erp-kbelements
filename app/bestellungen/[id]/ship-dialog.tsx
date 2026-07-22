@@ -77,6 +77,9 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const [shipZip, setShipZip] = useState(consignee.zip);
   const [shipCity, setShipCity] = useState(consignee.city);
   const [shipCountry, setShipCountry] = useState(consignee.country);
+  const [shipPostNumber, setShipPostNumber] = useState("");
+
+  const isPackstation = /^packstation\s+\d+/i.test(shipStreet.trim());
 
   function handlePrint(url: string, crop: boolean) {
     const proxyUrl = `/api/shipping/label-page1?url=${encodeURIComponent(url)}${crop ? "&crop=1" : ""}`;
@@ -144,6 +147,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     fd.set("shipZip", shipZip.trim());
     fd.set("shipCity", shipCity.trim());
     fd.set("shipCountry", shipCountry.trim());
+    if (shipPostNumber.trim()) fd.set("shipPostNumber", shipPostNumber.trim());
 
     startTransition(async () => {
       const res = await shipOrder(fd);
@@ -166,6 +170,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setShipZip(consignee.zip);
     setShipCity(consignee.city);
     setShipCountry(consignee.country);
+    setShipPostNumber("");
   }
 
   return (
@@ -383,6 +388,25 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                           className={`${inputClass} w-16 flex-shrink-0`}
                         />
                       </div>
+
+                      {isPackstation && carrier === "DHL" && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
+                          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-700">
+                            Packstation erkannt — DHL Postnummer erforderlich
+                          </div>
+                          <input
+                            type="text"
+                            value={shipPostNumber}
+                            onChange={(e) => setShipPostNumber(e.target.value)}
+                            placeholder="DHL Postnummer des Empfängers (z.B. 12345678)"
+                            required
+                            className={inputClass}
+                          />
+                          <p className="font-mono text-[10px] text-amber-600">
+                            Die persönliche DHL-Kundennummer des Empfängers (6–10 Ziffern, nicht die PLZ).
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
