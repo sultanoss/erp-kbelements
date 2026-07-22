@@ -74,7 +74,6 @@ export class DHLShippingProvider implements ShippingProvider {
         );
       }
       consignee = {
-        name1: input.consignee.name,
         locker: {
           lockerID: parsePackstationId(input.consignee.street),
           postNumber: input.consignee.postNumber.replace(/\s/g, ""),
