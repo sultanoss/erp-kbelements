@@ -7,6 +7,7 @@ interface SearchParams {
   from?: string;
   to?: string;
   status?: string;
+  resolution?: string;
 }
 
 export default async function ReturnsPage({
@@ -31,6 +32,7 @@ export default async function ReturnsPage({
   if (params.from) query = query.gte("created_at", params.from);
   if (params.to) query = query.lte("created_at", params.to + "T23:59:59");
   if (params.status) query = query.eq("status", params.status);
+  if (params.resolution) query = query.eq("resolution", params.resolution);
 
   const { data: returns, error } = await query;
 
@@ -76,6 +78,16 @@ export default async function ReturnsPage({
             </select>
           </div>
           <div>
+            <label className="label">Abschluss</label>
+            <select name="resolution" className="input" defaultValue={params.resolution ?? ""}>
+              <option value="">Alle</option>
+              <option value="neu">Neu</option>
+              <option value="ns">NS</option>
+              <option value="garantie">Garantie</option>
+              <option value="bware">B-Ware</option>
+            </select>
+          </div>
+          <div>
             <label className="label">Von</label>
             <input type="date" name="from" className="input" defaultValue={params.from ?? ""} />
           </div>
@@ -115,7 +127,7 @@ export default async function ReturnsPage({
               {!returns?.length ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-12 text-center text-stone-400">
-                    {params.q || params.status || params.from || params.to
+                    {params.q || params.status || params.resolution || params.from || params.to
                       ? "Keine Retouren für diese Filterkriterien gefunden."
                       : "Noch keine Retouren vorhanden. Erstelle die erste Retoure."}
                   </td>
