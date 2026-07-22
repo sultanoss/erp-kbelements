@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, RESOLUTION_LABELS, formatDate } from "@/lib/status";
+import ReturnsFilterBar from "./ReturnsFilterBar";
 
 interface SearchParams {
   q?: string;
@@ -56,51 +57,13 @@ export default async function ReturnsPage({
         </Link>
       </div>
 
-      {/* Filter */}
-      <div className="card p-4 mb-5">
-        <form method="GET" className="flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[200px]">
-            <label className="label">Suche (Name, Auftrag, Text)</label>
-            <input
-              name="q"
-              className="input"
-              placeholder="Suchen..."
-              defaultValue={params.q ?? ""}
-            />
-          </div>
-          <div>
-            <label className="label">Status</label>
-            <select name="status" className="input" defaultValue={params.status ?? ""}>
-              <option value="">Alle</option>
-              <option value="eingegangen">Eingegangen</option>
-              <option value="in_bearbeitung">In Bearbeitung</option>
-              <option value="erledigt">Erledigt</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Abschluss</label>
-            <select name="resolution" className="input" defaultValue={params.resolution ?? ""}>
-              <option value="">Alle</option>
-              <option value="neu">Neu</option>
-              <option value="ns">NS</option>
-              <option value="garantie">Garantie</option>
-              <option value="bware">B-Ware</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Von</label>
-            <input type="date" name="from" className="input" defaultValue={params.from ?? ""} />
-          </div>
-          <div>
-            <label className="label">Bis</label>
-            <input type="date" name="to" className="input" defaultValue={params.to ?? ""} />
-          </div>
-          <div className="flex gap-2">
-            <button type="submit" className="btn-primary">Filtern</button>
-            <Link href="/returns" className="btn-secondary">Zurücksetzen</Link>
-          </div>
-        </form>
-      </div>
+      <ReturnsFilterBar defaults={{
+        q: params.q ?? "",
+        status: params.status ?? "",
+        resolution: params.resolution ?? "",
+        from: params.from ?? "",
+        to: params.to ?? "",
+      }} />
 
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
