@@ -142,7 +142,7 @@ export async function sendMediaMarktShipmentNotification(params: {
   const carrierName = params.carrier === "DHL" ? "DHL" : "GEL Express";
   const carrierUrl = params.carrier === "DHL"
     ? `https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode=${params.trackingNumber}`
-    : `https://gls-group.eu/DE/de/paketverfolgung?match=${params.trackingNumber}`;
+    : `https://www.gel-express.de/de/sendungsverfolgung`;
 
   // OR23: Tracking-Daten übermitteln (PUT /tracking)
   const or23Res = await fetch(`${BASE}/orders/${params.orderId}/tracking`, {
