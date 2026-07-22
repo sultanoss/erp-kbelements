@@ -9,10 +9,11 @@ export default async function PortalLayout({ children }: { children: React.React
   if (!user) redirect("/login");
 
   const userName = user.user_metadata?.full_name ?? user.email ?? "Mitarbeiter";
+  const isAdmin = user.app_metadata?.role === "admin";
 
   return (
     <div className="flex h-screen overflow-hidden bg-stone-100">
-      <Sidebar userName={userName} userEmail={user.email ?? ""} />
+      <Sidebar userName={userName} userEmail={user.email ?? ""} isAdmin={isAdmin} />
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>

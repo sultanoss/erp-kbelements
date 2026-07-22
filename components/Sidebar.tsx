@@ -20,9 +20,10 @@ const navItems = [
 interface Props {
   userName: string;
   userEmail: string;
+  isAdmin: boolean;
 }
 
-export default function Sidebar({ userName, userEmail }: Props) {
+export default function Sidebar({ userName, userEmail, isAdmin }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -50,7 +51,16 @@ export default function Sidebar({ userName, userEmail }: Props) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {[...navItems, ...(isAdmin ? [{
+          href: "/admin/users",
+          label: "Benutzerverwaltung",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ),
+        }] : [])].map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
