@@ -4,12 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, RESOLUTION_LABELS, formatDate } from "@/lib/status";
 import StatusChangeModal from "./StatusChangeModal";
 import EditReturnModal from "./EditReturnModal";
+import ReturnImages from "./ReturnImages";
 
 export default async function ReturnDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: { user } }, { data: ret }, { data: events }] = await Promise.all([
+  const [{ data: { user } }, { data: ret }, { data: events }, { data: images }] = await Promise.all([
     supabase.auth.getUser(),
     supabase
       .from("returns")
@@ -21,6 +22,11 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
       .select("*")
       .eq("return_id", id)
       .order("created_at", { ascending: true }),
+    supabase
+      .from("return_images")
+      .select("id, storage_path, filename")
+      .eq("return_id", id)
+      .order("created_at"),
   ]);
 
   if (!ret) notFound();
@@ -123,6 +129,13 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
               <p className="text-stone-700 text-sm whitespace-pre-wrap">{ret.description}</p>
             </div>
           )}
+
+          {/* Bilder */}
+          <ReturnImages
+            returnId={id}
+            userName={userName}
+            initialImages={images ?? []}
+          />
 
           {/* Abschluss-Details */}
           {ret.status === "erledigt" && (
