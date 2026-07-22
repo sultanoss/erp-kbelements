@@ -120,7 +120,7 @@ export class DHLShippingProvider implements ShippingProvider {
           details: {
             weight: { uom: "kg", value: input.weight },
           },
-          ...(isDomestic ? {
+          ...(isDomestic && !isPS ? {
             services: {
               dhlRetoure: {
                 billingNumber: process.env.DHL_BILLING_NUMBER_RETURN ?? "",
@@ -164,8 +164,7 @@ export class DHLShippingProvider implements ShippingProvider {
     };
 
     if (!res.ok) {
-      const detail = json.detail ?? json.title ?? JSON.stringify(json);
-      throw new Error(`DHL API Fehler ${res.status}: ${detail}`);
+      throw new Error(`DHL API Fehler ${res.status}: ${JSON.stringify(json)}`);
     }
 
     const item = json.items?.[0];
