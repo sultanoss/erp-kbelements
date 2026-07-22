@@ -24,7 +24,8 @@ export default async function BestellungenPage({
 }: {
   searchParams: Promise<{ status?: string; marketplace?: string; q?: string; datFrom?: string; datTo?: string }>;
 }) {
-  const { status, marketplace, q, datFrom, datTo } = await searchParams;
+  const { status: statusParam, marketplace, q, datFrom, datTo } = await searchParams;
+  const status = statusParam === undefined ? "NEU" : statusParam;
 
   // Convert Berlin date strings (YYYY-MM-DD) to UTC boundaries
   const dateFilter = datFrom || datTo ? {
@@ -94,7 +95,7 @@ export default async function BestellungenPage({
         </label>
         <label className="grid gap-1.5">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</span>
-          <select name="status" defaultValue={status ?? ""} className={inputClass}>
+          <select name="status" defaultValue={status} className={inputClass}>
             <option value="">Alle</option>
             <option value="NEU">Offen</option>
             <option value="ABGESCHLOSSEN">Abgeschlossen</option>

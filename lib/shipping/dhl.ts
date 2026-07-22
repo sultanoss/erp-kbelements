@@ -68,14 +68,15 @@ export class DHLShippingProvider implements ShippingProvider {
 
     let consignee: Record<string, unknown>;
     if (isPS) {
-      if (!input.consignee.postNumber?.trim()) {
+      const postNum = (input.consignee.postNumber ?? "").replace(/\D/g, "");
+      if (!postNum) {
         throw new Error(
           `DHL: Die Lieferadresse ist eine Packstation. Bitte die DHL Postnummer (persönliche DHL-Kundennummer) des Empfängers eingeben.`
         );
       }
       consignee = {
         name1: input.consignee.name,
-        name2: input.consignee.postNumber.replace(/\s/g, ""),
+        name2: postNum,
         addressStreet: "Packstation",
         addressHouse: parsePackstationId(input.consignee.street),
         postalCode: input.consignee.zip,
