@@ -108,6 +108,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             currentAssignedTo={assignedTo}
             currentIsUrgent={isUrgent}
             currentSendungsnummer={task.sendungsnummer ?? null}
+            currentStatus={task.status}
             users={userList}
           />
           {task.status !== "erledigt" && (

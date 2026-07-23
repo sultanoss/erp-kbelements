@@ -12,6 +12,7 @@ interface Props {
   currentAssignedTo: string[] | null;
   currentIsUrgent: boolean;
   currentSendungsnummer: string | null;
+  currentStatus: string;
   users: Array<{ id: string; email: string; full_name: string }>;
 }
 
@@ -22,6 +23,7 @@ export default function TaskEditModal({
   currentAssignedTo,
   currentIsUrgent,
   currentSendungsnummer,
+  currentStatus,
   users,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -30,6 +32,7 @@ export default function TaskEditModal({
   const [assignedTo, setAssignedTo] = useState<string[]>(currentAssignedTo ?? []);
   const [isUrgent, setIsUrgent] = useState(currentIsUrgent);
   const [sendungsnummer, setSendungsnummer] = useState(currentSendungsnummer ?? "");
+  const [status, setStatus] = useState(currentStatus);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -41,6 +44,7 @@ export default function TaskEditModal({
     setAssignedTo(currentAssignedTo ?? []);
     setIsUrgent(currentIsUrgent);
     setSendungsnummer(currentSendungsnummer ?? "");
+    setStatus(currentStatus);
     setError("");
     setOpen(true);
   }
@@ -68,6 +72,7 @@ export default function TaskEditModal({
         assigned_to: assignedTo,
         is_urgent: isUrgent,
         sendungsnummer: sendungsnummer.trim() || null,
+        status,
         updated_at: new Date().toISOString(),
       })
       .eq("id", taskId);
@@ -122,6 +127,31 @@ export default function TaskEditModal({
                   </svg>
                   Dringend
                 </button>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="label">Status</label>
+                <div className="flex gap-2 flex-wrap mt-1">
+                  {[
+                    { value: "eingegangen",    label: "Eingegangen",    cls: "border-blue-400 bg-blue-50 text-blue-700" },
+                    { value: "in_bearbeitung", label: "In Bearbeitung", cls: "border-amber-400 bg-amber-50 text-amber-700" },
+                    { value: "erledigt",       label: "Erledigt",       cls: "border-green-500 bg-green-50 text-green-700" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setStatus(opt.value)}
+                      className={`rounded-full px-4 py-1.5 text-sm font-medium border-2 transition-colors ${
+                        status === opt.value
+                          ? opt.cls
+                          : "border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Tag */}
