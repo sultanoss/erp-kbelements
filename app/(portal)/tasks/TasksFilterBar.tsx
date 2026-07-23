@@ -12,6 +12,7 @@ interface Props {
     from: string;
     to: string;
     assigned_to: string;
+    created_by: string;
     urgent: string;
   };
   users: Array<{ id: string; email: string; full_name: string }>;
@@ -24,11 +25,12 @@ export default function TasksFilterBar({ defaults, users }: Props) {
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
   const [assignedTo, setAssignedTo] = useState(defaults.assigned_to);
+  const [createdBy, setCreatedBy] = useState(defaults.created_by);
   const [urgent, setUrgent] = useState(defaults.urgent === "1");
   const router = useRouter();
 
-  const hasActiveFilter = !!(defaults.q || defaults.status || defaults.type || defaults.from || defaults.to || defaults.assigned_to || defaults.urgent);
-  const hasFormValues = !!(q || status || type || from || to || assignedTo || urgent);
+  const hasActiveFilter = !!(defaults.q || defaults.status || defaults.type || defaults.from || defaults.to || defaults.assigned_to || defaults.created_by || defaults.urgent);
+  const hasFormValues = !!(q || status || type || from || to || assignedTo || createdBy || urgent);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,12 +41,13 @@ export default function TasksFilterBar({ defaults, users }: Props) {
     if (from) p.set("from", from);
     if (to) p.set("to", to);
     if (assignedTo) p.set("assigned_to", assignedTo);
+    if (createdBy) p.set("created_by", createdBy);
     if (urgent) p.set("urgent", "1");
     router.push(`/tasks${p.toString() ? `?${p.toString()}` : ""}`);
   }
 
   function handleReset() {
-    setQ(""); setStatus(""); setType(""); setFrom(""); setTo(""); setAssignedTo(""); setUrgent(false);
+    setQ(""); setStatus(""); setType(""); setFrom(""); setTo(""); setAssignedTo(""); setCreatedBy(""); setUrgent(false);
     router.push("/tasks");
   }
 
@@ -84,6 +87,15 @@ export default function TasksFilterBar({ defaults, users }: Props) {
             <option value="">Alle</option>
             {users.map((u) => (
               <option key={u.id} value={u.email}>{u.full_name || u.email}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="label">Erstellt von</label>
+          <select className="input" value={createdBy} onChange={(e) => setCreatedBy(e.target.value)}>
+            <option value="">Alle</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.full_name || u.email}>{u.full_name || u.email}</option>
             ))}
           </select>
         </div>

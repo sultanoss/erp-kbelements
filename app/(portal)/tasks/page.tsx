@@ -11,6 +11,7 @@ interface SearchParams {
   from?: string;
   to?: string;
   assigned_to?: string;
+  created_by?: string;
   urgent?: string;
 }
 
@@ -36,6 +37,7 @@ export default async function TasksPage({
   if (params.from) query = query.gte("created_at", params.from);
   if (params.to) query = query.lte("created_at", params.to + "T23:59:59");
   if (params.assigned_to) query = query.contains("assigned_to", [params.assigned_to]);
+  if (params.created_by) query = query.ilike("created_by", `%${params.created_by}%`);
   if (params.urgent === "1") query = query.eq("is_urgent", true);
 
   const [{ data: tasks, error }, { data: { users } }] = await Promise.all([
@@ -80,6 +82,7 @@ export default async function TasksPage({
           from: params.from ?? "",
           to: params.to ?? "",
           assigned_to: params.assigned_to ?? "",
+          created_by: params.created_by ?? "",
           urgent: params.urgent ?? "",
         }}
         users={userList}
