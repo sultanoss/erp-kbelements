@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
@@ -15,6 +16,26 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    href: "/tasks",
+    label: "Aufgaben",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    href: "/schadenmeldungen",
+    label: "Schadenmeldungen",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      </svg>
+    ),
+  },
 ];
 
 interface Props {
@@ -23,10 +44,16 @@ interface Props {
   isAdmin: boolean;
 }
 
+const chinaSubItems = [
+  { href: "/china/bestellungen", label: "Bestellungen" },
+  { href: "/china/ware", label: "Ware in China" },
+];
+
 export default function Sidebar({ userName, userEmail, isAdmin }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [chinaOpen, setChinaOpen] = useState(pathname.startsWith("/china"));
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -51,16 +78,7 @@ export default function Sidebar({ userName, userEmail, isAdmin }: Props) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {[...navItems, ...(isAdmin ? [{
-          href: "/admin/users",
-          label: "Benutzerverwaltung",
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          ),
-        }] : [])].map((item) => {
+        {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
@@ -77,6 +95,68 @@ export default function Sidebar({ userName, userEmail, isAdmin }: Props) {
             </Link>
           );
         })}
+
+        {/* China-Bestellungen Gruppe */}
+        <div>
+          <button
+            onClick={() => setChinaOpen((o) => !o)}
+            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              pathname.startsWith("/china")
+                ? "bg-brand-red text-white"
+                : "text-stone-300 hover:text-white hover:bg-stone-700"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              China-Bestellungen
+            </div>
+            <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${chinaOpen ? "rotate-180" : ""}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {chinaOpen && (
+            <div className="mt-1 space-y-0.5">
+              {chinaSubItems.map((sub) => {
+                const isActive = pathname === sub.href || pathname.startsWith(sub.href + "/");
+                return (
+                  <Link
+                    key={sub.href}
+                    href={sub.href}
+                    className={`flex items-center gap-2 pl-10 pr-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      isActive
+                        ? "bg-stone-700 text-white"
+                        : "text-stone-400 hover:text-white hover:bg-stone-700"
+                    }`}
+                  >
+                    <span className="w-1 h-1 rounded-full bg-current flex-shrink-0" />
+                    {sub.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {isAdmin && (
+          <Link
+            href="/admin/users"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              pathname.startsWith("/admin/users")
+                ? "bg-brand-red text-white"
+                : "text-stone-300 hover:text-white hover:bg-stone-700"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Benutzerverwaltung
+          </Link>
+        )}
       </nav>
 
       {/* User + Logout */}

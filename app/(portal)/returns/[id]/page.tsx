@@ -24,7 +24,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
       .order("created_at", { ascending: true }),
     supabase
       .from("return_images")
-      .select("id, storage_path, filename")
+      .select("id, storage_path, filename, media_type")
       .eq("return_id", id)
       .order("created_at"),
   ]);
@@ -80,7 +80,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
                 refund_note: ret.refund_note ?? null,
               }}
             />
-            {ret.status !== "erledigt" && (
+            {ret.status !== "erledigt" && ret.status !== "wieder_an_kunde" && (
               <StatusChangeModal returnId={id} currentStatus={ret.status} userName={userName} />
             )}
           </div>
@@ -134,8 +134,26 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
           <ReturnImages
             returnId={id}
             userName={userName}
-            initialImages={images ?? []}
+            initialMedia={(images ?? []).map((img) => ({
+              ...img,
+              media_type: (img as { media_type?: string }).media_type ?? "image",
+            }))}
           />
+
+          {/* Wieder-an-Kunde Info */}
+          {ret.status === "wieder_an_kunde" && (
+            <div className="card p-4 border-purple-200 bg-purple-50">
+              <div className="text-xs font-medium text-purple-700 uppercase tracking-wide mb-3">Wieder an Kunde gesendet</div>
+              {ret.tracking_number ? (
+                <div>
+                  <div className="text-xs text-purple-600 mb-0.5">Sendungsnummer</div>
+                  <div className="text-sm font-mono font-medium text-purple-900">{ret.tracking_number}</div>
+                </div>
+              ) : (
+                <p className="text-sm text-purple-700">Keine Sendungsnummer eingetragen.</p>
+              )}
+            </div>
+          )}
 
           {/* Abschluss-Details */}
           {ret.status === "erledigt" && (

@@ -11,9 +11,11 @@ interface Props {
   userName: string;
 }
 
+type Mode = "in_bearbeitung" | "erledigt" | "nicht_zustellbar" | "wieder_an_kunde" | "klaeren_mit_kunde";
+
 export default function StatusChangeModal({ returnId, currentStatus, userName }: Props) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<"in_bearbeitung" | "erledigt">("erledigt");
+  const [mode, setMode] = useState<Mode>("erledigt");
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [resolution, setResolution] = useState("neu");
@@ -24,12 +26,14 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
   const router = useRouter();
   const supabase = createClient();
 
-  function openModal(m: typeof mode) {
+  function openModal(m: Mode) {
     setMode(m);
     setOpen(true);
     setError("");
     setRefundStatus("");
     setRefundReason("");
+    setTrackingNumber("");
+    setResolutionNotes("");
   }
 
   async function handleSave() {
@@ -52,6 +56,58 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
         note: "Status geändert: In Bearbeitung",
         author: userName,
       });
+
+    } else if (mode === "klaeren_mit_kunde") {
+      const { error: e } = await supabase
+        .from("returns")
+        .update({ status: "klaeren_mit_kunde", updated_at: now })
+        .eq("id", returnId);
+
+      if (e) { setError(e.message); setSaving(false); return; }
+
+      await supabase.from("return_events").insert({
+        return_id: returnId,
+        event_type: "status_geaendert",
+        note: "Status geändert: Klären mit Kunde",
+        author: userName,
+      });
+
+    } else if (mode === "nicht_zustellbar") {
+      const { error: e } = await supabase
+        .from("returns")
+        .update({ status: "nicht_zustellbar", updated_at: now })
+        .eq("id", returnId);
+
+      if (e) { setError(e.message); setSaving(false); return; }
+
+      await supabase.from("return_events").insert({
+        return_id: returnId,
+        event_type: "status_geaendert",
+        note: "Status geändert: Nicht zustellbar",
+        author: userName,
+      });
+
+    } else if (mode === "wieder_an_kunde") {
+      if (!trackingNumber.trim()) {
+        setError("Bitte eine neue Sendungsnummer eingeben.");
+        setSaving(false);
+        return;
+      }
+
+      const { error: e } = await supabase
+        .from("returns")
+        .update({ status: "wieder_an_kunde", tracking_number: trackingNumber.trim(), updated_at: now })
+        .eq("id", returnId);
+
+      if (e) { setError(e.message); setSaving(false); return; }
+
+      await supabase.from("return_events").insert({
+        return_id: returnId,
+        event_type: "status_geaendert",
+        note: `Status geändert: Wieder an Kunde · Sendung: ${trackingNumber.trim()}`,
+        author: userName,
+      });
+
     } else {
       if (!refundStatus) {
         setError("Bitte angeben ob Geld zurückerstattet wurde.");
@@ -98,12 +154,35 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
     router.refresh();
   }
 
+  const modalTitle: Record<Mode, string> = {
+    in_bearbeitung:   "In Bearbeitung setzen",
+    erledigt:         "Retoure erledigen",
+    nicht_zustellbar: "Nicht zustellbar markieren",
+    wieder_an_kunde:  "Wieder an Kunde senden",
+    klaeren_mit_kunde:"Klären mit Kunde",
+  };
+
   return (
     <>
       <div className="flex gap-2 flex-wrap">
-        {currentStatus === "eingegangen" && (
+        {(currentStatus === "eingegangen" || currentStatus === "klaeren_mit_kunde") && (
           <button onClick={() => openModal("in_bearbeitung")} className="btn-secondary">
             In Bearbeitung setzen
+          </button>
+        )}
+        {(currentStatus === "eingegangen" || currentStatus === "in_bearbeitung" || currentStatus === "klaeren_mit_kunde") && (
+          <button onClick={() => openModal("nicht_zustellbar")} className="btn-secondary">
+            Nicht zustellbar
+          </button>
+        )}
+        {(currentStatus === "eingegangen" || currentStatus === "in_bearbeitung") && (
+          <button onClick={() => openModal("klaeren_mit_kunde")} className="btn-secondary">
+            Klären mit Kunde
+          </button>
+        )}
+        {currentStatus === "nicht_zustellbar" && (
+          <button onClick={() => openModal("wieder_an_kunde")} className="btn-secondary">
+            Wieder an Kunde
           </button>
         )}
         <button onClick={() => openModal("erledigt")} className="btn-primary">
@@ -115,9 +194,7 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
-              <h2 className="font-semibold text-stone-900">
-                {mode === "in_bearbeitung" ? "In Bearbeitung setzen" : "Retoure erledigen"}
-              </h2>
+              <h2 className="font-semibold text-stone-900">{modalTitle[mode]}</h2>
               <button onClick={() => setOpen(false)} className="text-stone-400 hover:text-stone-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -129,6 +206,45 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
               {error && (
                 <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
                   {error}
+                </div>
+              )}
+
+              {mode === "in_bearbeitung" && (
+                <p className="text-stone-600 text-sm">
+                  Der Status wird auf <strong>In Bearbeitung</strong> gesetzt.
+                </p>
+              )}
+
+              {mode === "klaeren_mit_kunde" && (
+                <p className="text-stone-600 text-sm">
+                  Der Status wird auf <strong>Klären mit Kunde</strong> gesetzt. Der Kunde wird kontaktiert um die Situation zu klären.
+                </p>
+              )}
+
+              {mode === "nicht_zustellbar" && (
+                <p className="text-stone-600 text-sm">
+                  Das Paket konnte nicht zugestellt werden. Der Status wird auf <strong>Nicht zustellbar</strong> gesetzt. Der Kunde wird kontaktiert.
+                </p>
+              )}
+
+              {mode === "wieder_an_kunde" && (
+                <div className="space-y-3">
+                  <p className="text-stone-600 text-sm">
+                    Das Paket wird erneut an den Kunden gesendet. Bitte die neue Sendungsnummer eingeben.
+                  </p>
+                  <div>
+                    <label className="label">
+                      Neue Sendungsnummer <span className="text-brand-red">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input font-mono"
+                      placeholder="z.B. 1234 5678 9012"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
                 </div>
               )}
 
@@ -169,7 +285,6 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                     />
                   </div>
 
-                  {/* Erstattung */}
                   <div className="rounded-lg border border-stone-200 p-4 space-y-3">
                     <label className="label mb-0">
                       Geld zurückerstattet? <span className="text-brand-red">*</span>
@@ -229,12 +344,6 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                     )}
                   </div>
                 </>
-              )}
-
-              {mode === "in_bearbeitung" && (
-                <p className="text-stone-600 text-sm">
-                  Der Status wird auf <strong>In Bearbeitung</strong> gesetzt.
-                </p>
               )}
             </div>
 

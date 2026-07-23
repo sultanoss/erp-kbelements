@@ -12,16 +12,17 @@ interface MediaRecord {
 }
 
 interface Props {
-  returnId: string;
+  taskId: string;
   userName: string;
-  initialMedia: Array<{ id: string; storage_path: string; filename: string; media_type: string }>;
+  initialMedia: Array<{ id: string; storage_path: string; filename: string; media_type: "image" | "video" }>;
 }
 
 const MAX_PX = 1200;
 const WEBP_QUALITY = 0.75;
-const MAX_FILES = 10;
+const MAX_MEDIA = 10;
 const MAX_DOC_BYTES = 20 * 1024 * 1024;
-const BUCKET = "return-images";
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+const BUCKET = "task-media";
 
 async function compressImage(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
@@ -44,6 +45,7 @@ async function compressImage(file: File): Promise<Blob> {
 
 function getMediaType(file: File): string {
   if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
   if (file.type === "application/pdf") return "pdf";
   if (file.name.match(/\.xlsx?$/i)) return "excel";
   if (file.name.match(/\.docx?$/i)) return "word";
@@ -73,7 +75,7 @@ function DocBadge({ type, filename }: { type: string; filename: string }) {
   );
 }
 
-export default function ReturnImages({ returnId, userName, initialMedia }: Props) {
+export default function TaskMedia({ taskId, userName, initialMedia }: Props) {
   const supabase = createClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [media, setMedia] = useState<MediaRecord[]>(initialMedia);
@@ -99,8 +101,8 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
   async function handleFiles(files: FileList | null) {
     if (!files || !files.length) return;
     setError("");
-    const remaining = MAX_FILES - media.length;
-    if (remaining <= 0) { setError(`Maximal ${MAX_FILES} Dateien pro Retoure.`); return; }
+    const remaining = MAX_MEDIA - media.length;
+    if (remaining <= 0) { setError(`Maximal ${MAX_MEDIA} Dateien pro Aufgabe.`); return; }
 
     const toUpload = Array.from(files).slice(0, remaining);
     setUploading(true);
@@ -108,9 +110,14 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
 
     for (const file of toUpload) {
       const mediaType = getMediaType(file);
-      if (mediaType !== "image" && file.size > MAX_DOC_BYTES) {
+
+      if (mediaType === "video" && file.size > MAX_VIDEO_BYTES) {
+        setError(`Video "${file.name}" ist zu groß (max. 100 MB).`); continue;
+      }
+      if (mediaType !== "image" && mediaType !== "video" && file.size > MAX_DOC_BYTES) {
         setError(`"${file.name}" ist zu groß (max. 20 MB).`); continue;
       }
+
       try {
         let uploadBlob: Blob = file;
         let contentType = file.type;
@@ -122,20 +129,21 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
           ext = "webp";
         }
 
-        const path = `${returnId}/${randomId()}.${ext}`;
+        const path = `${taskId}/${randomId()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from(BUCKET).upload(path, uploadBlob, { contentType, upsert: false });
         if (uploadError) throw uploadError;
 
         const { data: row, error: dbError } = await supabase
-          .from("return_images")
-          .insert({ return_id: returnId, storage_path: path, filename: file.name, uploaded_by: userName, media_type: mediaType })
+          .from("task_media")
+          .insert({ task_id: taskId, storage_path: path, filename: file.name, media_type: mediaType, uploaded_by: userName })
           .select("id, storage_path, filename, media_type")
           .single();
         if (dbError) throw dbError;
 
         const url = await getSignedUrl(supabase, path);
-        newMedia.push({ ...row, url });
+        const record: MediaRecord = { ...row, url };
+        newMedia.push(record);
         setLoadedUrls((prev) => ({ ...prev, [row.id]: url }));
       } catch (e) {
         setError(`Fehler bei "${file.name}": ${(e as Error).message}`);
@@ -152,7 +160,7 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
     setError("");
     const { error: storageError } = await supabase.storage.from(BUCKET).remove([item.storage_path]);
     if (storageError) { setError(`Löschen fehlgeschlagen: ${storageError.message}`); setDeletingId(null); return; }
-    await supabase.from("return_images").delete().eq("id", item.id);
+    await supabase.from("task_media").delete().eq("id", item.id);
     setMedia((prev) => prev.filter((m) => m.id !== item.id));
     setLoadedUrls((prev) => { const n = { ...prev }; delete n[item.id]; return n; });
     setDeletingId(null);
@@ -162,11 +170,11 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-xs font-medium text-stone-500 uppercase tracking-wide">
-          Dateien ({media.length}/{MAX_FILES})
+          Medien ({media.length}/{MAX_MEDIA})
         </div>
         <button
           onClick={() => inputRef.current?.click()}
-          disabled={uploading || media.length >= MAX_FILES}
+          disabled={uploading || media.length >= MAX_MEDIA}
           className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:border-stone-300 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {uploading ? (
@@ -177,10 +185,10 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
           ) : (
             <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>Datei hinzufügen</>
+            </svg>Medien hinzufügen</>
           )}
         </button>
-        <input ref={inputRef} type="file" accept="image/*,.pdf,.xlsx,.xls,.doc,.docx"
+        <input ref={inputRef} type="file" accept="image/*,video/*,.pdf,.xlsx,.xls,.doc,.docx"
           multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
       </div>
 
@@ -195,7 +203,7 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
-          Bilder, PDFs, Excel oder Word hochladen
+          Bilder, Videos, PDFs, Excel oder Word hochladen
         </button>
       ) : (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -205,10 +213,11 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
             return (
               <div key={item.id} className="relative group aspect-square">
                 {url ? (
-                  item.media_type === "image" ? (
+                  item.media_type === "video" ? (
+                    <video src={url} controls className="w-full h-full object-cover rounded-lg border border-stone-200" />
+                  ) : item.media_type === "image" ? (
                     <a href={url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                      <img src={url} alt={item.filename}
-                        className="w-full h-full object-cover rounded-lg border border-stone-200" />
+                      <img src={url} alt={item.filename} className="w-full h-full object-cover rounded-lg border border-stone-200" />
                     </a>
                   ) : (
                     <a href={url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">

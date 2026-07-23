@@ -81,6 +81,7 @@ export default async function ReturnsPage({
                 <th className="text-left px-4 py-3 font-medium text-stone-600">SKUs</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600 max-w-[200px]">Beschreibung</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Status</th>
+                <th className="text-left px-4 py-3 font-medium text-stone-600">Sendungsnummer</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Abschluss</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Erstattung</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Bearbeiter</th>
@@ -89,7 +90,7 @@ export default async function ReturnsPage({
             <tbody className="divide-y divide-stone-100">
               {!returns?.length ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-stone-400">
+                  <td colSpan={9} className="px-4 py-12 text-center text-stone-400">
                     {params.q || params.status || params.resolution || params.from || params.to
                       ? "Keine Retouren für diese Filterkriterien gefunden."
                       : "Noch keine Retouren vorhanden. Erstelle die erste Retoure."}
@@ -133,6 +134,11 @@ export default async function ReturnsPage({
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
                             {status.label}
                           </span>
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className={`${cell} font-mono text-xs text-stone-600`}>
+                          {r.tracking_number || <span className="text-stone-300">—</span>}
                         </Link>
                       </td>
                       <td className="p-0">

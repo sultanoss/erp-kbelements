@@ -1,0 +1,172 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+interface ArtikelRow { id: string; artikel: string; anzahl: number; isNew?: boolean; }
+
+interface Props {
+  ware: {
+    id: string;
+    fabrik: string | null;
+    order_pi_nummer: string | null;
+    notiz: string | null;
+  };
+  initialArtikel: Array<{ id: string; artikel: string; anzahl: number }>;
+}
+
+function newRow(): ArtikelRow {
+  return { id: "new_" + Math.random().toString(36).slice(2), artikel: "", anzahl: 1, isNew: true };
+}
+
+export default function WareEditModal({ ware, initialArtikel }: Props) {
+  const [open, setOpen] = useState(false);
+  const [fabrik, setFabrik] = useState(ware.fabrik ?? "");
+  const [orderPiNummer, setOrderPiNummer] = useState(ware.order_pi_nummer ?? "");
+  const [notiz, setNotiz] = useState(ware.notiz ?? "");
+  const [artikel, setArtikel] = useState<ArtikelRow[]>(
+    initialArtikel.length > 0 ? initialArtikel : [newRow()]
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const supabase = createClient();
+
+  function addRow() { setArtikel((prev) => [...prev, newRow()]); }
+  function removeRow(id: string) { setArtikel((prev) => prev.filter((r) => r.id !== id)); }
+  function updateRow(id: string, field: "artikel" | "anzahl", value: string | number) {
+    setArtikel((prev) => prev.map((r) => r.id === id ? { ...r, [field]: value } : r));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setError("");
+
+    const { error: dbError } = await supabase
+      .from("ware_in_china")
+      .update({
+        fabrik: fabrik.trim() || null,
+        order_pi_nummer: orderPiNummer.trim() || null,
+        notiz: notiz.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", ware.id);
+
+    if (dbError) { setError(dbError.message); setSaving(false); return; }
+
+    await supabase.from("ware_in_china_artikel").delete().eq("ware_id", ware.id);
+
+    const validArtikel = artikel.filter((a) => a.artikel.trim());
+    if (validArtikel.length > 0) {
+      const { error: artError } = await supabase
+        .from("ware_in_china_artikel")
+        .insert(validArtikel.map((a) => ({ ware_id: ware.id, artikel: a.artikel.trim(), anzahl: a.anzahl })));
+      if (artError) { setError(artError.message); setSaving(false); return; }
+    }
+
+    setOpen(false);
+    router.refresh();
+    setSaving(false);
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="btn-secondary">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Bearbeiten
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+          <h2 className="text-base font-semibold text-stone-900">Eintrag bearbeiten</h2>
+          <button onClick={() => setOpen(false)} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-stone-100 transition-colors text-stone-500">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>
+          )}
+
+          <div className="space-y-3">
+            <div>
+              <label className="label">Fabrik</label>
+              <input className="input" placeholder="z.B. Guangzhou Electronics Co." value={fabrik} onChange={(e) => setFabrik(e.target.value)} />
+            </div>
+            <div>
+              <label className="label">Order / PI Nummer</label>
+              <input className="input font-mono" placeholder="z.B. PI-2025-001" value={orderPiNummer} onChange={(e) => setOrderPiNummer(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="label mb-0">Artikel</label>
+              <button type="button" onClick={addRow}
+                className="inline-flex items-center gap-1 text-xs text-brand-red hover:text-red-700 font-medium transition-colors">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Hinzufügen
+              </button>
+            </div>
+            <div className="space-y-2">
+              {artikel.map((row, i) => (
+                <div key={row.id} className="flex gap-2 items-center">
+                  <input
+                    className="input flex-1"
+                    placeholder={`Artikel ${i + 1}`}
+                    value={row.artikel}
+                    onChange={(e) => updateRow(row.id, "artikel", e.target.value)}
+                  />
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className="text-xs text-stone-400">×</span>
+                    <input
+                      type="number"
+                      min={1}
+                      className="input w-16 text-center"
+                      value={row.anzahl}
+                      onChange={(e) => updateRow(row.id, "anzahl", Math.max(1, parseInt(e.target.value) || 1))}
+                    />
+                  </div>
+                  {artikel.length > 1 && (
+                    <button type="button" onClick={() => removeRow(row.id)}
+                      className="w-6 h-6 flex items-center justify-center rounded-full text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors flex-shrink-0">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Notiz</label>
+            <textarea rows={3} className="input resize-none" value={notiz} onChange={(e) => setNotiz(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 px-5 py-4 border-t border-stone-100">
+          <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Abbrechen</button>
+          <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? "Speichern..." : "Speichern"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

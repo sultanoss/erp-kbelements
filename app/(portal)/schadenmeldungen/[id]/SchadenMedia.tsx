@@ -12,7 +12,7 @@ interface MediaRecord {
 }
 
 interface Props {
-  returnId: string;
+  schadenId: string;
   userName: string;
   initialMedia: Array<{ id: string; storage_path: string; filename: string; media_type: string }>;
 }
@@ -21,7 +21,7 @@ const MAX_PX = 1200;
 const WEBP_QUALITY = 0.75;
 const MAX_FILES = 10;
 const MAX_DOC_BYTES = 20 * 1024 * 1024;
-const BUCKET = "return-images";
+const BUCKET = "schaden-media";
 
 async function compressImage(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
@@ -29,15 +29,13 @@ async function compressImage(file: File): Promise<Blob> {
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
   const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = w; canvas.height = h;
   canvas.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
   return new Promise((resolve, reject) =>
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Komprimierung fehlgeschlagen"))),
-      "image/webp",
-      WEBP_QUALITY
+      "image/webp", WEBP_QUALITY
     )
   );
 }
@@ -73,7 +71,7 @@ function DocBadge({ type, filename }: { type: string; filename: string }) {
   );
 }
 
-export default function ReturnImages({ returnId, userName, initialMedia }: Props) {
+export default function SchadenMedia({ schadenId, userName, initialMedia }: Props) {
   const supabase = createClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [media, setMedia] = useState<MediaRecord[]>(initialMedia);
@@ -100,7 +98,7 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
     if (!files || !files.length) return;
     setError("");
     const remaining = MAX_FILES - media.length;
-    if (remaining <= 0) { setError(`Maximal ${MAX_FILES} Dateien pro Retoure.`); return; }
+    if (remaining <= 0) { setError(`Maximal ${MAX_FILES} Dateien.`); return; }
 
     const toUpload = Array.from(files).slice(0, remaining);
     setUploading(true);
@@ -108,9 +106,8 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
 
     for (const file of toUpload) {
       const mediaType = getMediaType(file);
-      if (mediaType !== "image" && file.size > MAX_DOC_BYTES) {
-        setError(`"${file.name}" ist zu groß (max. 20 MB).`); continue;
-      }
+      if (file.size > MAX_DOC_BYTES) { setError(`"${file.name}" ist zu groß (max. 20 MB).`); continue; }
+
       try {
         let uploadBlob: Blob = file;
         let contentType = file.type;
@@ -122,16 +119,15 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
           ext = "webp";
         }
 
-        const path = `${returnId}/${randomId()}.${ext}`;
+        const path = `${schadenId}/${randomId()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from(BUCKET).upload(path, uploadBlob, { contentType, upsert: false });
         if (uploadError) throw uploadError;
 
         const { data: row, error: dbError } = await supabase
-          .from("return_images")
-          .insert({ return_id: returnId, storage_path: path, filename: file.name, uploaded_by: userName, media_type: mediaType })
-          .select("id, storage_path, filename, media_type")
-          .single();
+          .from("schaden_media")
+          .insert({ schaden_id: schadenId, storage_path: path, filename: file.name, media_type: mediaType, uploaded_by: userName })
+          .select("id, storage_path, filename, media_type").single();
         if (dbError) throw dbError;
 
         const url = await getSignedUrl(supabase, path);
@@ -152,7 +148,7 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
     setError("");
     const { error: storageError } = await supabase.storage.from(BUCKET).remove([item.storage_path]);
     if (storageError) { setError(`Löschen fehlgeschlagen: ${storageError.message}`); setDeletingId(null); return; }
-    await supabase.from("return_images").delete().eq("id", item.id);
+    await supabase.from("schaden_media").delete().eq("id", item.id);
     setMedia((prev) => prev.filter((m) => m.id !== item.id));
     setLoadedUrls((prev) => { const n = { ...prev }; delete n[item.id]; return n; });
     setDeletingId(null);
@@ -164,11 +160,8 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
         <div className="text-xs font-medium text-stone-500 uppercase tracking-wide">
           Dateien ({media.length}/{MAX_FILES})
         </div>
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading || media.length >= MAX_FILES}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:border-stone-300 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
+        <button onClick={() => inputRef.current?.click()} disabled={uploading || media.length >= MAX_FILES}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:border-stone-300 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
           {uploading ? (
             <><svg className="w-3.5 h-3.5 animate-spin text-stone-400" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -207,8 +200,7 @@ export default function ReturnImages({ returnId, userName, initialMedia }: Props
                 {url ? (
                   item.media_type === "image" ? (
                     <a href={url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                      <img src={url} alt={item.filename}
-                        className="w-full h-full object-cover rounded-lg border border-stone-200" />
+                      <img src={url} alt={item.filename} className="w-full h-full object-cover rounded-lg border border-stone-200" />
                     </a>
                   ) : (
                     <a href={url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">

@@ -23,6 +23,7 @@ interface Props {
 export default function NewReturnForm({ skus, userName }: Props) {
   const [orderNumber, setOrderNumber] = useState("");
   const [description, setDescription] = useState("");
+  const [initialStatus, setInitialStatus] = useState("eingegangen");
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [skuSearch, setSkuSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -73,7 +74,7 @@ export default function NewReturnForm({ skus, userName }: Props) {
         received_by: userName,
         order_number: orderNumber || null,
         description: description || null,
-        status: "eingegangen",
+        status: initialStatus,
       })
       .select("id")
       .single();
@@ -99,10 +100,16 @@ export default function NewReturnForm({ skus, userName }: Props) {
       return;
     }
 
+    const statusNotes: Record<string, string> = {
+      eingegangen: "Retoure eingegangen",
+      nicht_zustellbar: "Status: Nicht zustellbar",
+      klaeren_mit_kunde: "Status: Klären mit Kunde",
+    };
+
     await supabase.from("return_events").insert({
       return_id: ret.id,
       event_type: "eingegangen",
-      note: description || "Retoure eingegangen",
+      note: description || statusNotes[initialStatus] || "Retoure erfasst",
       author: userName,
     });
 
@@ -143,6 +150,31 @@ export default function NewReturnForm({ skus, userName }: Props) {
           value={orderNumber}
           onChange={(e) => setOrderNumber(e.target.value)}
         />
+      </div>
+
+      {/* Status */}
+      <div className="card p-4">
+        <label className="label" htmlFor="initialStatus">Status beim Erfassen</label>
+        <div className="flex gap-2 flex-wrap mt-1">
+          {[
+            { value: "eingegangen",      label: "Eingegangen",      cls: "border-blue-400 bg-blue-50 text-blue-700" },
+            { value: "nicht_zustellbar", label: "Nicht zustellbar", cls: "border-orange-400 bg-orange-50 text-orange-700" },
+            { value: "klaeren_mit_kunde",label: "Klären mit Kunde", cls: "border-sky-400 bg-sky-50 text-sky-700" },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setInitialStatus(opt.value)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium border-2 transition-colors ${
+                initialStatus === opt.value
+                  ? opt.cls
+                  : "border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* SKU-Auswahl */}

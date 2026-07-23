@@ -69,6 +69,10 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
       }
     }
 
+    if (currentStatus === "wieder_an_kunde") {
+      updates.tracking_number = trackingNumber.trim() || null;
+    }
+
     const { error: e } = await supabase
       .from("returns")
       .update(updates)
@@ -142,6 +146,21 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
+
+              {currentStatus === "wieder_an_kunde" && (
+                <div>
+                  <label className="label">
+                    Sendungsnummer <span className="text-stone-400 font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="input font-mono"
+                    placeholder="z.B. 1234 5678 9012"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                  />
+                </div>
+              )}
 
               {currentStatus === "erledigt" && (
                 <>
