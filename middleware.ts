@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname.startsWith("/admin")) {
+  if (user && (pathname.startsWith("/admin") || pathname.startsWith("/china"))) {
     if (user.app_metadata?.role !== "admin") {
       const url = request.nextUrl.clone();
       url.pathname = "/returns";
