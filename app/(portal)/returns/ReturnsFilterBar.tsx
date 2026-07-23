@@ -61,6 +61,7 @@ export default function ReturnsFilterBar({ defaults }: Props) {
             <option value="nicht_zustellbar">Nicht zustellbar</option>
             <option value="klaeren_mit_kunde">Klären mit Kunde</option>
             <option value="wieder_an_kunde">Wieder an Kunde</option>
+            <option value="garantie">Garantie</option>
             <option value="erledigt">Erledigt</option>
           </select>
         </div>
