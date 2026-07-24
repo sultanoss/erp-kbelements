@@ -1,21 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { deleteBestellung } from "./actions";
 
 export default function DeleteBestellungButton({ id }: { id: string }) {
   const [confirm, setConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
+  const [error, setError] = useState("");
 
   async function handleDelete() {
     setDeleting(true);
-    await supabase.from("china_media").delete().eq("bestellung_id", id);
-    await supabase.from("china_bestellungen").delete().eq("id", id);
-    router.refresh();
-    router.push("/china/bestellungen");
+    setError("");
+    try {
+      await deleteBestellung(id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Fehler beim Löschen");
+      setDeleting(false);
+    }
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-red-600">{error}</span>
+        <button onClick={() => { setError(""); setConfirm(false); }} className="btn-secondary text-sm">
+          Schließen
+        </button>
+      </div>
+    );
   }
 
   if (confirm) {
