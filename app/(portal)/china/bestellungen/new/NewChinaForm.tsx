@@ -93,6 +93,7 @@ export default function NewChinaForm({ userName }: Props) {
   const [verschifft, setVerschifft] = useState(false);
   const [trackingNummer, setTrackingNummer] = useState("");
   const [lagerAnkunft, setLagerAnkunft] = useState("");
+  const [lagerAnkunftUhrzeit, setLagerAnkunftUhrzeit] = useState("");
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -144,6 +145,7 @@ export default function NewChinaForm({ userName }: Props) {
         verschifft,
         tracking_nummer: trackingNummer.trim() || null,
         lager_ankunft: lagerAnkunft || null,
+        lager_ankunft_uhrzeit: lagerAnkunftUhrzeit || null,
         created_by: userName,
       })
       .select("id")
@@ -249,7 +251,10 @@ export default function NewChinaForm({ userName }: Props) {
         )}
         <div>
           <label className="label">Lager Ankunft <span className="text-stone-400 font-normal">(optional)</span></label>
-          <input type="date" className="input" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
+          <div className="flex gap-2">
+            <input type="date" className="input flex-1" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
+            <input type="time" className="input w-32" value={lagerAnkunftUhrzeit} onChange={(e) => setLagerAnkunftUhrzeit(e.target.value)} />
+          </div>
         </div>
       </div>
 

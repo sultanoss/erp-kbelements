@@ -19,6 +19,7 @@ interface Props {
     verschifft: boolean;
     tracking_nummer: string | null;
     lager_ankunft: string | null;
+    lager_ankunft_uhrzeit: string | null;
   };
 }
 
@@ -50,6 +51,7 @@ export default function ChinaEditModal({ bestellung }: Props) {
   const [verschifft, setVerschifft] = useState(bestellung.verschifft);
   const [trackingNummer, setTrackingNummer] = useState(bestellung.tracking_nummer ?? "");
   const [lagerAnkunft, setLagerAnkunft] = useState(bestellung.lager_ankunft ?? "");
+  const [lagerAnkunftUhrzeit, setLagerAnkunftUhrzeit] = useState(bestellung.lager_ankunft_uhrzeit ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -73,6 +75,7 @@ export default function ChinaEditModal({ bestellung }: Props) {
         verschifft,
         tracking_nummer: trackingNummer.trim() || null,
         lager_ankunft: lagerAnkunft || null,
+        lager_ankunft_uhrzeit: lagerAnkunftUhrzeit || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", bestellung.id);
@@ -161,7 +164,10 @@ export default function ChinaEditModal({ bestellung }: Props) {
 
           <div>
             <label className="label">Lager Ankunft</label>
-            <input type="date" className="input" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
+            <div className="flex gap-2">
+              <input type="date" className="input flex-1" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
+              <input type="time" className="input w-32" value={lagerAnkunftUhrzeit} onChange={(e) => setLagerAnkunftUhrzeit(e.target.value)} placeholder="Uhrzeit" />
+            </div>
           </div>
 
           <div>
