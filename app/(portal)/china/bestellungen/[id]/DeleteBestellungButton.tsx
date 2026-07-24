@@ -14,6 +14,7 @@ export default function DeleteBestellungButton({ id }: { id: string }) {
     setDeleting(true);
     await supabase.from("china_media").delete().eq("bestellung_id", id);
     await supabase.from("china_bestellungen").delete().eq("id", id);
+    router.refresh();
     router.push("/china/bestellungen");
   }
 
