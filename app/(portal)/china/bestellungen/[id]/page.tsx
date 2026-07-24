@@ -5,7 +5,6 @@ import { formatDate } from "@/lib/status";
 import ChinaEditModal from "./ChinaEditModal";
 import ChinaMedia from "./ChinaMedia";
 import PacklisteUpload from "./PacklisteUpload";
-import DeleteBestellungButton from "./DeleteBestellungButton";
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -103,10 +102,7 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
           {b.fabrik && <p className="text-stone-500 text-sm mt-1">{b.fabrik}</p>}
           <p className="text-stone-400 text-xs mt-1">Erstellt von <strong className="text-stone-600">{b.created_by}</strong> · {formatDate(b.created_at)}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <DeleteBestellungButton id={id} />
-          <ChinaEditModal bestellung={b} />
-        </div>
+        <ChinaEditModal bestellung={b} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

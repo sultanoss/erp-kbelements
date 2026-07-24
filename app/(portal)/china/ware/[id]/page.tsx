@@ -3,7 +3,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
 import WareEditModal from "./WareEditModal";
-import DeleteWareButton from "./DeleteWareButton";
 
 export default async function WareDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -44,13 +43,10 @@ export default async function WareDetailPage({ params }: { params: Promise<{ id:
             Erstellt von <strong className="text-stone-600">{ware.created_by}</strong> · {formatDate(ware.created_at)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <DeleteWareButton id={id} />
-          <WareEditModal
-            ware={{ id: ware.id, fabrik: ware.fabrik, order_pi_nummer: ware.order_pi_nummer, notiz: ware.notiz }}
-            initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
-          />
-        </div>
+        <WareEditModal
+          ware={{ id: ware.id, fabrik: ware.fabrik, order_pi_nummer: ware.order_pi_nummer, notiz: ware.notiz }}
+          initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
+        />
       </div>
 
       <div className="space-y-5">
