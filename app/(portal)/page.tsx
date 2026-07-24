@@ -7,7 +7,6 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const isAdmin = user.app_metadata?.role === "admin";
   const userName = user.user_metadata?.full_name ?? user.email ?? "";
 
   const now = new Date();
@@ -64,43 +63,23 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ankuenfte.map((b) => {
-              const cardContent = (
-                <div className="card p-5 hover:shadow-md transition-shadow h-full">
-                  <div className="text-sm font-semibold text-stone-800 truncate">
-                    {b.fabrik ?? b.order_pi_nummer ?? "—"}
+            {ankuenfte.map((b) => (
+              <Link key={b.id} href={`/china/bestellungen/${b.id}`} className="block h-full">
+                <div className="card p-5 hover:shadow-md transition-shadow h-full cursor-pointer">
+                  <div className="text-xs text-stone-500 uppercase tracking-wide mb-3">Waren Ankunft</div>
+                  <div className="text-2xl font-bold text-stone-900">
+                    {new Date(b.lager_ankunft!).toLocaleDateString("de-DE")}
                   </div>
-                  <div className="mt-4">
-                    <div className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Waren Ankunft</div>
-                    <div className="text-2xl font-bold text-stone-900">
-                      {new Date(b.lager_ankunft!).toLocaleDateString("de-DE")}
+                  {b.lager_ankunft_uhrzeit ? (
+                    <div className="text-2xl font-bold text-red-600 mt-1">
+                      {(b.lager_ankunft_uhrzeit as string).slice(0, 5)} Uhr
                     </div>
-                    {b.lager_ankunft_uhrzeit && (
-                      <div className="text-sm text-stone-500 mt-0.5">
-                        {(b.lager_ankunft_uhrzeit as string).slice(0, 5)} Uhr
-                      </div>
-                    )}
-                  </div>
-                  {isAdmin && (
-                    <div className="mt-4 text-xs text-stone-400 flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                      </svg>
-                      Packliste hochladen
-                    </div>
+                  ) : (
+                    <div className="text-sm text-stone-400 mt-1">Uhrzeit nicht angegeben</div>
                   )}
                 </div>
-              );
-
-              return isAdmin ? (
-                <Link key={b.id} href={`/china/bestellungen/${b.id}`} className="block h-full">
-                  {cardContent}
-                </Link>
-              ) : (
-                <div key={b.id}>{cardContent}</div>
-              );
-            })}
+              </Link>
+            ))}
           </div>
         )}
       </div>

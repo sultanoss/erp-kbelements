@@ -44,8 +44,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Non-admins may view a specific bestellung detail (read-only) but not list/new/ware
+  const isChinaBestellungDetail = /^\/china\/bestellungen\/[^/]+$/.test(pathname);
+
   if (user && (pathname.startsWith("/admin") || pathname.startsWith("/china"))) {
-    if (user.app_metadata?.role !== "admin") {
+    if (user.app_metadata?.role !== "admin" && !isChinaBestellungDetail) {
       const url = request.nextUrl.clone();
       url.pathname = "/returns";
       return NextResponse.redirect(url);

@@ -37,7 +37,42 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
 
   if (!b) notFound();
 
+  const isAdmin = user.app_metadata?.role === "admin";
   const userName = user.user_metadata?.full_name ?? user.email ?? "";
+
+  // Non-admin: simplified read-only view
+  if (!isAdmin) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto">
+        <div className="mb-6">
+          <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">Waren Ankunft</div>
+          <div className="text-4xl font-bold text-stone-900">
+            {b.lager_ankunft
+              ? new Date(b.lager_ankunft).toLocaleDateString("de-DE")
+              : <span className="text-stone-300">—</span>}
+          </div>
+          {b.lager_ankunft_uhrzeit && (
+            <div className="text-3xl font-bold text-red-600 mt-1">
+              {(b.lager_ankunft_uhrzeit as string).slice(0, 5)} Uhr
+            </div>
+          )}
+          {b.fabrik && (
+            <p className="text-stone-500 text-sm mt-3">{b.fabrik}</p>
+          )}
+        </div>
+        <PacklisteUpload
+          bestellungId={id}
+          userName={userName}
+          initialFiles={(packlisteRows ?? []).map((m) => ({
+            id: m.id,
+            storage_path: m.storage_path,
+            filename: m.filename,
+          }))}
+          canUpload={false}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-5xl mx-auto">

@@ -14,6 +14,7 @@ interface Props {
   bestellungId: string;
   userName: string;
   initialFiles: Array<{ id: string; storage_path: string; filename: string }>;
+  canUpload?: boolean;
 }
 
 const BUCKET = "china-media";
@@ -35,7 +36,7 @@ function fileLabel(filename: string) {
   return map[ext] ?? { label: ext.toUpperCase() || "FILE", bg: "bg-stone-100", text: "text-stone-700" };
 }
 
-export default function PacklisteUpload({ bestellungId, userName, initialFiles }: Props) {
+export default function PacklisteUpload({ bestellungId, userName, initialFiles, canUpload = true }: Props) {
   const supabase = createClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<PacklisteFile[]>(initialFiles);
@@ -108,29 +109,33 @@ export default function PacklisteUpload({ bestellungId, userName, initialFiles }
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-xs font-medium text-stone-500 uppercase tracking-wide">Packliste</div>
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:border-stone-300 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {uploading ? (
-            <><svg className="w-3.5 h-3.5 animate-spin text-stone-400" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-            </svg>Hochladen...</>
-          ) : (
-            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>Packliste hochladen</>
-          )}
-        </button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*,.pdf,.xlsx,.xls,.doc,.docx,.csv,.txt,video/*"
-          className="hidden"
-          onChange={handleFile}
-        />
+        {canUpload && (
+          <>
+            <button
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:border-stone-300 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {uploading ? (
+                <><svg className="w-3.5 h-3.5 animate-spin text-stone-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>Hochladen...</>
+              ) : (
+                <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>Packliste hochladen</>
+              )}
+            </button>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*,.pdf,.xlsx,.xls,.doc,.docx,.csv,.txt,video/*"
+              className="hidden"
+              onChange={handleFile}
+            />
+          </>
+        )}
       </div>
 
       {error && (
@@ -138,17 +143,21 @@ export default function PacklisteUpload({ bestellungId, userName, initialFiles }
       )}
 
       {files.length === 0 ? (
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-          className="w-full rounded-lg border-2 border-dashed border-stone-200 py-6 text-center text-xs text-stone-400 hover:border-stone-300 hover:text-stone-500 transition-colors disabled:opacity-40"
-        >
-          <svg className="w-7 h-7 mx-auto mb-1.5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Packliste hochladen (PDF, Excel, Word, ...)
-        </button>
+        canUpload ? (
+          <button
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="w-full rounded-lg border-2 border-dashed border-stone-200 py-6 text-center text-xs text-stone-400 hover:border-stone-300 hover:text-stone-500 transition-colors disabled:opacity-40"
+          >
+            <svg className="w-7 h-7 mx-auto mb-1.5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Packliste hochladen (PDF, Excel, Word, ...)
+          </button>
+        ) : (
+          <p className="text-xs text-stone-400 text-center py-4">Keine Packliste vorhanden.</p>
+        )
       ) : (
         <div className="space-y-2">
           {files.map((f) => {
@@ -163,26 +172,28 @@ export default function PacklisteUpload({ bestellungId, userName, initialFiles }
                   {url && (
                     <a href={url} target="_blank" rel="noopener noreferrer"
                       className="text-xs text-blue-600 hover:text-blue-800 transition-colors">
-                      Öffnen
+                      Herunterladen
                     </a>
                   )}
-                  <button
-                    onClick={() => handleDelete(f)}
-                    disabled={isDeleting}
-                    className="text-stone-300 hover:text-red-500 transition-colors disabled:opacity-50"
-                    title="Löschen"
-                  >
-                    {isDeleting ? (
-                      <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    )}
-                  </button>
+                  {canUpload && (
+                    <button
+                      onClick={() => handleDelete(f)}
+                      disabled={isDeleting}
+                      className="text-stone-300 hover:text-red-500 transition-colors disabled:opacity-50"
+                      title="Löschen"
+                    >
+                      {isDeleting ? (
+                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             );
