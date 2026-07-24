@@ -21,11 +21,25 @@ export default async function DashboardPage() {
     supabase.from("returns").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("schadenmeldungen").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("china_bestellungen")
-      .select("id, fabrik, order_pi_nummer, lager_ankunft, lager_ankunft_uhrzeit")
+      .select("id, lager_ankunft, lager_ankunft_uhrzeiten")
       .not("lager_ankunft", "is", null)
-      .order("lager_ankunft", { ascending: true })
-      .order("lager_ankunft_uhrzeit", { ascending: true, nullsFirst: false }),
+      .order("lager_ankunft", { ascending: true }),
   ]);
+
+  // Packliste-Dateien für alle Ankünfte laden
+  const ids = ankuenfte?.map((b) => b.id) ?? [];
+  const packlisteByBestellung: Record<string, Array<{ id: string; filename: string }>> = {};
+  if (ids.length > 0) {
+    const { data: packlisteFiles } = await supabase
+      .from("china_media")
+      .select("id, bestellung_id, filename")
+      .in("bestellung_id", ids)
+      .eq("media_type", "packliste");
+    for (const f of packlisteFiles ?? []) {
+      if (!packlisteByBestellung[f.bestellung_id]) packlisteByBestellung[f.bestellung_id] = [];
+      packlisteByBestellung[f.bestellung_id].push({ id: f.id, filename: f.filename });
+    }
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -47,10 +61,10 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Ankünfte */}
+      {/* Waren Ankünfte */}
       <div>
         <h2 className="text-sm font-semibold text-stone-700 uppercase tracking-wide mb-4">
-          Waren Ankünfte {ankuenfte && ankuenfte.length > 0 ? `(${ankuenfte.length})` : ""}
+          Waren Ankünfte{ankuenfte && ankuenfte.length > 0 ? ` (${ankuenfte.length})` : ""}
         </h2>
 
         {!ankuenfte || ankuenfte.length === 0 ? (
@@ -63,23 +77,48 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ankuenfte.map((b) => (
-              <Link key={b.id} href={`/china/bestellungen/${b.id}`} className="block h-full">
-                <div className="card p-5 hover:shadow-md transition-shadow h-full cursor-pointer">
-                  <div className="text-xs text-stone-500 uppercase tracking-wide mb-3">Waren Ankunft</div>
+            {ankuenfte.map((b) => {
+              const uhrzeiten = [...((b.lager_ankunft_uhrzeiten as string[] | null) ?? [])].sort();
+              const files = packlisteByBestellung[b.id] ?? [];
+              return (
+                <div key={b.id} className="card p-5">
+                  <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">Waren Ankunft</div>
                   <div className="text-2xl font-bold text-stone-900">
                     {new Date(b.lager_ankunft!).toLocaleDateString("de-DE")}
                   </div>
-                  {b.lager_ankunft_uhrzeit ? (
-                    <div className="text-2xl font-bold text-red-600 mt-1">
-                      {(b.lager_ankunft_uhrzeit as string).slice(0, 5)} Uhr
-                    </div>
+
+                  {uhrzeiten.length > 0 ? (
+                    uhrzeiten.map((t) => (
+                      <div key={t} className="text-2xl font-bold text-red-600 mt-1">
+                        {(t as string).slice(0, 5)} Uhr
+                      </div>
+                    ))
                   ) : (
                     <div className="text-sm text-stone-400 mt-1">Uhrzeit nicht angegeben</div>
                   )}
+
+                  {files.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-stone-100 space-y-1.5">
+                      {files.map((f) => (
+                        <a
+                          key={f.id}
+                          href={`/api/china-media-download/${f.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          {f.filename}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

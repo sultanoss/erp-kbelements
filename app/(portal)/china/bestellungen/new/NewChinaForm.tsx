@@ -93,7 +93,7 @@ export default function NewChinaForm({ userName }: Props) {
   const [verschifft, setVerschifft] = useState(false);
   const [trackingNummer, setTrackingNummer] = useState("");
   const [lagerAnkunft, setLagerAnkunft] = useState("");
-  const [lagerAnkunftUhrzeit, setLagerAnkunftUhrzeit] = useState("");
+  const [uhrzeiten, setUhrzeiten] = useState<string[]>([]);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -145,7 +145,7 @@ export default function NewChinaForm({ userName }: Props) {
         verschifft,
         tracking_nummer: trackingNummer.trim() || null,
         lager_ankunft: lagerAnkunft || null,
-        lager_ankunft_uhrzeit: lagerAnkunftUhrzeit || null,
+        lager_ankunft_uhrzeiten: uhrzeiten.filter(Boolean),
         created_by: userName,
       })
       .select("id")
@@ -251,10 +251,41 @@ export default function NewChinaForm({ userName }: Props) {
         )}
         <div>
           <label className="label">Lager Ankunft <span className="text-stone-400 font-normal">(optional)</span></label>
-          <div className="flex gap-2">
-            <input type="date" className="input flex-1" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
-            <input type="time" className="input w-32" value={lagerAnkunftUhrzeit} onChange={(e) => setLagerAnkunftUhrzeit(e.target.value)} />
-          </div>
+          <input type="date" className="input" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
+        </div>
+
+        <div>
+          <label className="label">Uhrzeiten <span className="text-stone-400 font-normal">(optional)</span></label>
+          {uhrzeiten.map((t, i) => (
+            <div key={i} className="flex gap-2 mt-1">
+              <input
+                type="time"
+                className="input flex-1"
+                value={t}
+                onChange={(e) => setUhrzeiten((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))}
+              />
+              <button
+                type="button"
+                onClick={() => setUhrzeiten((prev) => prev.filter((_, j) => j !== i))}
+                className="px-3 text-stone-400 hover:text-red-500 transition-colors"
+                title="Entfernen"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setUhrzeiten((prev) => [...prev, ""])}
+            className="mt-2 inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-800 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Uhrzeit hinzufügen
+          </button>
         </div>
       </div>
 

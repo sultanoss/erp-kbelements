@@ -152,7 +152,11 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
               <InfoRow
                 label="Lager Ankunft"
                 value={b.lager_ankunft
-                  ? `${new Date(b.lager_ankunft).toLocaleDateString("de-DE")}${b.lager_ankunft_uhrzeit ? ` · ${(b.lager_ankunft_uhrzeit as string).slice(0, 5)} Uhr` : ""}`
+                  ? `${new Date(b.lager_ankunft).toLocaleDateString("de-DE")}${
+                      (b.lager_ankunft_uhrzeiten as string[] | null)?.length
+                        ? ` · ${[...(b.lager_ankunft_uhrzeiten as string[])].sort().map((t) => t.slice(0, 5)).join(", ")} Uhr`
+                        : ""
+                    }`
                   : <span className="text-stone-300">—</span>}
               />
             </div>

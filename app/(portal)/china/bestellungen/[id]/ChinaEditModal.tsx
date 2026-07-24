@@ -19,7 +19,7 @@ interface Props {
     verschifft: boolean;
     tracking_nummer: string | null;
     lager_ankunft: string | null;
-    lager_ankunft_uhrzeit: string | null;
+    lager_ankunft_uhrzeiten: string[] | null;
   };
 }
 
@@ -51,7 +51,7 @@ export default function ChinaEditModal({ bestellung }: Props) {
   const [verschifft, setVerschifft] = useState(bestellung.verschifft);
   const [trackingNummer, setTrackingNummer] = useState(bestellung.tracking_nummer ?? "");
   const [lagerAnkunft, setLagerAnkunft] = useState(bestellung.lager_ankunft ?? "");
-  const [lagerAnkunftUhrzeit, setLagerAnkunftUhrzeit] = useState(bestellung.lager_ankunft_uhrzeit ?? "");
+  const [uhrzeiten, setUhrzeiten] = useState<string[]>(bestellung.lager_ankunft_uhrzeiten ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -75,7 +75,7 @@ export default function ChinaEditModal({ bestellung }: Props) {
         verschifft,
         tracking_nummer: trackingNummer.trim() || null,
         lager_ankunft: lagerAnkunft || null,
-        lager_ankunft_uhrzeit: lagerAnkunftUhrzeit || null,
+        lager_ankunft_uhrzeiten: uhrzeiten.filter(Boolean),
         updated_at: new Date().toISOString(),
       })
       .eq("id", bestellung.id);
@@ -163,11 +163,42 @@ export default function ChinaEditModal({ bestellung }: Props) {
           </div>
 
           <div>
-            <label className="label">Lager Ankunft</label>
-            <div className="flex gap-2">
-              <input type="date" className="input flex-1" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
-              <input type="time" className="input w-32" value={lagerAnkunftUhrzeit} onChange={(e) => setLagerAnkunftUhrzeit(e.target.value)} placeholder="Uhrzeit" />
-            </div>
+            <label className="label">Lager Ankunft (Datum)</label>
+            <input type="date" className="input" value={lagerAnkunft} onChange={(e) => setLagerAnkunft(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="label">Uhrzeiten</label>
+            {uhrzeiten.map((t, i) => (
+              <div key={i} className="flex gap-2 mt-1">
+                <input
+                  type="time"
+                  className="input flex-1"
+                  value={t}
+                  onChange={(e) => setUhrzeiten((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))}
+                />
+                <button
+                  type="button"
+                  onClick={() => setUhrzeiten((prev) => prev.filter((_, j) => j !== i))}
+                  className="px-3 text-stone-400 hover:text-red-500 transition-colors"
+                  title="Entfernen"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setUhrzeiten((prev) => [...prev, ""])}
+              className="mt-2 inline-flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-800 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Uhrzeit hinzufügen
+            </button>
           </div>
 
           <div>
