@@ -105,6 +105,7 @@ export default function NewReturnForm({ skus, userName }: Props) {
       nicht_zustellbar: "Status: Nicht zustellbar",
       klaeren_mit_kunde: "Status: Klären mit Kunde",
       garantie: "Status: Garantie",
+      austausch: "Status: Austausch",
     };
 
     await supabase.from("return_events").insert({
@@ -162,6 +163,7 @@ export default function NewReturnForm({ skus, userName }: Props) {
             { value: "nicht_zustellbar", label: "Nicht zustellbar", cls: "border-orange-400 bg-orange-50 text-orange-700" },
             { value: "klaeren_mit_kunde",label: "Klären mit Kunde", cls: "border-sky-400 bg-sky-50 text-sky-700" },
             { value: "garantie",         label: "Garantie",         cls: "border-teal-400 bg-teal-50 text-teal-700" },
+            { value: "austausch",        label: "Austausch",        cls: "border-indigo-400 bg-indigo-50 text-indigo-700" },
           ].map((opt) => (
             <button
               key={opt.value}

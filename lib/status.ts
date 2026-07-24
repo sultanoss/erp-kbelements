@@ -6,6 +6,7 @@ export const STATUS_LABELS: Record<string, { label: string; className: string }>
   wieder_an_kunde:   { label: "Wieder an Kunde",    className: "bg-purple-100 text-purple-700" },
   klaeren_mit_kunde: { label: "Klären mit Kunde",   className: "bg-sky-100 text-sky-700" },
   garantie:          { label: "Garantie",            className: "bg-teal-100 text-teal-700" },
+  austausch:         { label: "Austausch",           className: "bg-indigo-100 text-indigo-700" },
 };
 
 export const RESOLUTION_LABELS: Record<string, string> = {
