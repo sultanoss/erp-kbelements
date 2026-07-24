@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/status";
 
@@ -18,12 +17,42 @@ interface Props {
   initialReplies: Reply[];
 }
 
+const AVATAR_COLORS = [
+  "bg-blue-500", "bg-emerald-500", "bg-violet-500", "bg-amber-500",
+  "bg-rose-500", "bg-cyan-500", "bg-orange-500", "bg-pink-500",
+];
+
+function getAvatarColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
 export default function TaskReplies({ taskId, userName, initialReplies }: Props) {
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [replies, setReplies] = useState<Reply[]>(initialReplies);
   const supabase = createClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`task-replies-${taskId}`)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "task_replies",
+        filter: `task_id=eq.${taskId}`,
+      }, (payload) => {
+        setReplies((prev) => {
+          if (prev.some((r) => r.id === (payload.new as Reply).id)) return prev;
+          return [...prev, payload.new as Reply];
+        });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,36 +60,36 @@ export default function TaskReplies({ taskId, userName, initialReplies }: Props)
     setSaving(true);
     setError("");
 
-    const { error: dbErr } = await supabase.from("task_replies").insert({
-      task_id: taskId,
-      content: content.trim(),
-      author: userName,
-    });
+    const { data, error: dbErr } = await supabase
+      .from("task_replies")
+      .insert({ task_id: taskId, content: content.trim(), author: userName })
+      .select("id, created_at")
+      .single();
 
-    if (dbErr) { setError(dbErr.message); setSaving(false); return; }
+    if (dbErr || !data) { setError(dbErr?.message ?? "Fehler beim Senden"); setSaving(false); return; }
 
+    setReplies((prev) => [...prev, { id: data.id, content: content.trim(), author: userName, created_at: data.created_at }]);
     setContent("");
     setSaving(false);
-    router.refresh();
   }
 
   return (
     <div className="card p-4 space-y-4">
       <div className="text-xs font-medium text-stone-500 uppercase tracking-wide">
-        Verlauf ({initialReplies.length})
+        Verlauf ({replies.length})
       </div>
 
-      {initialReplies.length === 0 ? (
+      {replies.length === 0 ? (
         <p className="text-sm text-stone-400">Noch keine Einträge vorhanden.</p>
       ) : (
         <div className="space-y-3">
-          {initialReplies.map((reply) => {
+          {replies.map((reply) => {
             const initials = reply.author
               ? reply.author.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
               : "?";
             return (
               <div key={reply.id} className="flex gap-3">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-red flex items-center justify-center">
+                <div className={`flex-shrink-0 w-7 h-7 rounded-full ${getAvatarColor(reply.author ?? "")} flex items-center justify-center`}>
                   <span className="text-white text-xs font-semibold">{initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">

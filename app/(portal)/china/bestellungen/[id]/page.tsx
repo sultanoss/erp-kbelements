@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
 import ChinaEditModal from "./ChinaEditModal";
 import ChinaMedia from "./ChinaMedia";
+import PacklisteUpload from "./PacklisteUpload";
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -28,9 +29,10 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: b }, { data: mediaRows }] = await Promise.all([
+  const [{ data: b }, { data: mediaRows }, { data: packlisteRows }] = await Promise.all([
     supabase.from("china_bestellungen").select("*").eq("id", id).single(),
-    supabase.from("china_media").select("*").eq("bestellung_id", id).order("created_at", { ascending: true }),
+    supabase.from("china_media").select("*").eq("bestellung_id", id).neq("media_type", "packliste").order("created_at", { ascending: true }),
+    supabase.from("china_media").select("*").eq("bestellung_id", id).eq("media_type", "packliste").order("created_at", { ascending: true }),
   ]);
 
   if (!b) notFound();
@@ -130,8 +132,17 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
           )}
         </div>
 
-        {/* Right — Dateien */}
-        <div>
+        {/* Right — Packliste + Dateien */}
+        <div className="space-y-4">
+          <PacklisteUpload
+            bestellungId={id}
+            userName={userName}
+            initialFiles={(packlisteRows ?? []).map((m) => ({
+              id: m.id,
+              storage_path: m.storage_path,
+              filename: m.filename,
+            }))}
+          />
           <ChinaMedia
             bestellungId={id}
             userName={userName}

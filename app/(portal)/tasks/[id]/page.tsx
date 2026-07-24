@@ -7,6 +7,7 @@ import TaskStatusModal from "./TaskStatusModal";
 import TaskEditModal from "./TaskEditModal";
 import TaskReplies from "./TaskReplies";
 import TaskMedia from "./TaskMedia";
+import TaskRealtimeRefresher from "./TaskRealtimeRefresher";
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -47,6 +48,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
+      <TaskRealtimeRefresher taskId={task.id} />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-stone-500 mb-5">
         <Link href="/tasks" className="hover:text-stone-700 transition-colors">Aufgaben</Link>
