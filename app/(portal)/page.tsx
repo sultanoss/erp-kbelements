@@ -51,14 +51,14 @@ export default async function DashboardPage() {
 
       {/* Statistiken heute */}
       <div className="grid grid-cols-2 gap-4 mb-8 max-w-md">
-        <Link href="/returns" className="card p-5 hover:shadow-md transition-shadow block">
+        <div className="card p-5">
           <div className="text-3xl font-bold text-stone-900">{retourenHeute ?? 0}</div>
           <div className="text-xs text-stone-500 mt-1 uppercase tracking-wide">Retouren heute</div>
-        </Link>
-        <Link href="/schadenmeldungen" className="card p-5 hover:shadow-md transition-shadow block">
+        </div>
+        <div className="card p-5">
           <div className="text-3xl font-bold text-stone-900">{schadenHeute ?? 0}</div>
           <div className="text-xs text-stone-500 mt-1 uppercase tracking-wide">Schadenmeldungen heute</div>
-        </Link>
+        </div>
       </div>
 
       {/* Waren Ankünfte */}

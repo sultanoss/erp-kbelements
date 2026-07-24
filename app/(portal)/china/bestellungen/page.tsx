@@ -83,12 +83,13 @@ export default async function ChinaBestellungenPage({
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Bezahlt</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Verschifft</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Lager Ankunft</th>
+                <th className="text-left px-4 py-3 font-medium text-stone-600">Abgeladen</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {!bestellungen?.length ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-stone-400">
+                  <td colSpan={8} className="px-4 py-12 text-center text-stone-400">
                     {Object.values(params).some(Boolean)
                       ? "Keine Bestellungen für diese Filterkriterien."
                       : "Noch keine Bestellungen. Erstelle die erste Bestellung."}
@@ -138,6 +139,13 @@ export default async function ChinaBestellungenPage({
                           {b.lager_ankunft
                             ? new Date(b.lager_ankunft).toLocaleDateString("de-DE")
                             : <span className="text-stone-300">—</span>}
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className={cell}>
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${b.abgeladen ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-500"}`}>
+                            {b.abgeladen ? "Ja" : "Nein"}
+                          </span>
                         </Link>
                       </td>
                     </tr>
