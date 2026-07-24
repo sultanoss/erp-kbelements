@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import RetourenChart from "./RetourenChart";
 
@@ -40,19 +39,15 @@ export default async function DashboardPage({
 
   const now = new Date();
   const todayStr = toDateString(now);
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
 
   const params = await searchParams;
   const von = params.von ?? todayStr;
   const bis = params.bis ?? todayStr;
 
   const [
-    { count: schadenHeute },
     { data: ankuenfte },
     { data: retourenRaw },
   ] = await Promise.all([
-    supabase.from("schadenmeldungen").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("china_bestellungen")
       .select("id, lager_ankunft, lager_ankunft_uhrzeiten, abgeladen")
       .not("lager_ankunft", "is", null)
@@ -87,19 +82,6 @@ export default async function DashboardPage({
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-stone-900">Willkommen bei KB ELEMENTS Portal</h1>
         <p className="text-stone-500 text-sm mt-1">Hallo, {userName}</p>
-      </div>
-
-      {/* Statistiken heute */}
-      <div className="mb-6 max-w-xs">
-        <div className="card p-5">
-          <div className="text-3xl font-bold text-stone-900">{schadenHeute ?? 0}</div>
-          <div className="text-xs text-stone-500 mt-1 uppercase tracking-wide">Schadenmeldungen heute</div>
-        </div>
-      </div>
-
-      {/* Retouren Chart */}
-      <div className="mb-8">
-        <RetourenChart data={chartData} von={von} bis={bis} />
       </div>
 
       {/* Waren Ankünfte */}
@@ -170,6 +152,11 @@ export default async function DashboardPage({
             })}
           </div>
         )}
+      </div>
+
+      {/* Retouren Chart */}
+      <div className="mt-8">
+        <RetourenChart data={chartData} von={von} bis={bis} />
       </div>
     </div>
   );
