@@ -1,22 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { deleteBestellung } from "./actions";
 
 export default function DeleteBestellungButton({ id }: { id: string }) {
   const [confirm, setConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   async function handleDelete() {
     setDeleting(true);
     setError("");
-    try {
-      await deleteBestellung(id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Fehler beim Löschen");
+    const result = await deleteBestellung(id);
+    if (result.error) {
+      setError(result.error);
       setDeleting(false);
+      return;
     }
+    router.push("/china/bestellungen");
+    router.refresh();
   }
 
   if (error) {
