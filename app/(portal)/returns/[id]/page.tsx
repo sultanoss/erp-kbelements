@@ -78,6 +78,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
                 tracking_number: ret.tracking_number,
                 refund_status: ret.refund_status ?? null,
                 refund_note: ret.refund_note ?? null,
+                altgeraet: ret.altgeraet ?? null,
               }}
             />
             {ret.status !== "erledigt" && ret.status !== "wieder_an_kunde" && (
@@ -170,6 +171,12 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
                   <div>
                     <div className="text-xs text-green-600 mb-0.5">Datum</div>
                     <div className="text-sm text-green-900">{formatDate(ret.resolved_at)}</div>
+                  </div>
+                )}
+                {ret.altgeraet && (
+                  <div>
+                    <div className="text-xs text-green-600 mb-0.5">Altgerät</div>
+                    <div className="text-sm text-green-900">{ret.altgeraet}</div>
                   </div>
                 )}
                 {ret.resolution_notes && (

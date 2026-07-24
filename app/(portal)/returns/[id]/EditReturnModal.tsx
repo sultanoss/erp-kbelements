@@ -17,6 +17,7 @@ interface Props {
     tracking_number: string | null;
     refund_status: string | null;
     refund_note: string | null;
+    altgeraet: string | null;
   };
 }
 
@@ -31,6 +32,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
     (initialValues.refund_status as "ja" | "nein" | "") ?? ""
   );
   const [refundNote, setRefundNote] = useState(initialValues.refund_note ?? "");
+  const [altgeraet, setAltgeraet] = useState(initialValues.altgeraet ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -44,6 +46,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
     setTrackingNumber(initialValues.tracking_number ?? "");
     setRefundStatus((initialValues.refund_status as "ja" | "nein" | "") ?? "");
     setRefundNote(initialValues.refund_note ?? "");
+    setAltgeraet(initialValues.altgeraet ?? "");
     setError("");
     setOpen(true);
   }
@@ -63,6 +66,9 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
       updates.resolution = resolution;
       updates.resolution_notes = resolutionNotes.trim() || null;
       updates.tracking_number = trackingNumber.trim() || null;
+      if (resolution === "austausch") {
+        updates.altgeraet = altgeraet.trim() || null;
+      }
       if (refundStatus) {
         updates.refund_status = refundStatus;
         updates.refund_note = refundNote.trim() || null;
@@ -176,6 +182,21 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
                       ))}
                     </select>
                   </div>
+
+                  {resolution === "austausch" && (
+                    <div>
+                      <label className="label">
+                        Altgerät <span className="text-stone-400 font-normal">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="input"
+                        placeholder="z.B. Modell / Seriennummer des Altgeräts..."
+                        value={altgeraet}
+                        onChange={(e) => setAltgeraet(e.target.value)}
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="label">

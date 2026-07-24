@@ -51,11 +51,13 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
               ? new Date(b.lager_ankunft).toLocaleDateString("de-DE")
               : <span className="text-stone-300">—</span>}
           </div>
-          {b.lager_ankunft_uhrzeit && (
-            <div className="text-3xl font-bold text-red-600 mt-1">
-              {(b.lager_ankunft_uhrzeit as string).slice(0, 5)} Uhr
-            </div>
-          )}
+          {(b.lager_ankunft_uhrzeiten as string[] | null)?.length
+            ? [...(b.lager_ankunft_uhrzeiten as string[])].sort().map((t) => (
+                <div key={t} className="text-3xl font-bold text-red-600 mt-1">
+                  {t.slice(0, 5)} Uhr
+                </div>
+              ))
+            : null}
           {b.fabrik && (
             <p className="text-stone-500 text-sm mt-3">{b.fabrik}</p>
           )}

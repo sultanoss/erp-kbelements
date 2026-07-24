@@ -48,12 +48,10 @@ export default async function DashboardPage({
   const bis = params.bis ?? todayStr;
 
   const [
-    { count: retourenHeute },
     { count: schadenHeute },
     { data: ankuenfte },
     { data: retourenRaw },
   ] = await Promise.all([
-    supabase.from("returns").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("schadenmeldungen").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("china_bestellungen")
       .select("id, lager_ankunft, lager_ankunft_uhrzeiten, abgeladen")
@@ -92,11 +90,7 @@ export default async function DashboardPage({
       </div>
 
       {/* Statistiken heute */}
-      <div className="grid grid-cols-2 gap-4 mb-6 max-w-md">
-        <div className="card p-5">
-          <div className="text-3xl font-bold text-stone-900">{retourenHeute ?? 0}</div>
-          <div className="text-xs text-stone-500 mt-1 uppercase tracking-wide">Retouren heute</div>
-        </div>
+      <div className="mb-6 max-w-xs">
         <div className="card p-5">
           <div className="text-3xl font-bold text-stone-900">{schadenHeute ?? 0}</div>
           <div className="text-xs text-stone-500 mt-1 uppercase tracking-wide">Schadenmeldungen heute</div>
