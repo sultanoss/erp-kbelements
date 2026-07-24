@@ -23,6 +23,7 @@ export default async function DashboardPage() {
     supabase.from("china_bestellungen")
       .select("id, lager_ankunft, lager_ankunft_uhrzeiten, abgeladen")
       .not("lager_ankunft", "is", null)
+      .eq("abgeladen", false)
       .order("lager_ankunft", { ascending: true }),
   ]);
 
