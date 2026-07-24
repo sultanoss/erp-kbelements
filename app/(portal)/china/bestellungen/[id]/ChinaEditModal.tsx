@@ -20,6 +20,7 @@ interface Props {
     tracking_nummer: string | null;
     lager_ankunft: string | null;
     lager_ankunft_uhrzeiten: string[] | null;
+    abgeladen: boolean;
   };
 }
 
@@ -52,6 +53,7 @@ export default function ChinaEditModal({ bestellung }: Props) {
   const [trackingNummer, setTrackingNummer] = useState(bestellung.tracking_nummer ?? "");
   const [lagerAnkunft, setLagerAnkunft] = useState(bestellung.lager_ankunft ?? "");
   const [uhrzeiten, setUhrzeiten] = useState<string[]>(bestellung.lager_ankunft_uhrzeiten ?? []);
+  const [abgeladen, setAbgeladen] = useState(bestellung.abgeladen);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -76,6 +78,7 @@ export default function ChinaEditModal({ bestellung }: Props) {
         tracking_nummer: trackingNummer.trim() || null,
         lager_ankunft: lagerAnkunft || null,
         lager_ankunft_uhrzeiten: uhrzeiten.filter(Boolean),
+        abgeladen,
         updated_at: new Date().toISOString(),
       })
       .eq("id", bestellung.id);
@@ -199,6 +202,11 @@ export default function ChinaEditModal({ bestellung }: Props) {
               </svg>
               Uhrzeit hinzufügen
             </button>
+          </div>
+
+          <div className="space-y-2">
+            <label className="label">Ware abgeladen</label>
+            <BoolToggle value={abgeladen} onChange={setAbgeladen} />
           </div>
 
           <div>

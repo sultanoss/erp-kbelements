@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     supabase.from("returns").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("schadenmeldungen").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("china_bestellungen")
-      .select("id, lager_ankunft, lager_ankunft_uhrzeiten")
+      .select("id, lager_ankunft, lager_ankunft_uhrzeiten, abgeladen")
       .not("lager_ankunft", "is", null)
       .order("lager_ankunft", { ascending: true }),
   ]);
@@ -97,8 +97,16 @@ export default async function DashboardPage() {
                     <div className="text-sm text-stone-400 mt-1">Uhrzeit nicht angegeben</div>
                   )}
 
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    {b.abgeladen && (
+                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700">
+                        Abgeladen
+                      </span>
+                    )}
+                  </div>
+
                   {files.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-stone-100 space-y-1.5">
+                    <div className="mt-3 pt-3 border-t border-stone-100 space-y-1.5">
                       {files.map((f) => (
                         <a
                           key={f.id}

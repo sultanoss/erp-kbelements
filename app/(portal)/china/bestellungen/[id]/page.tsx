@@ -109,7 +109,7 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
           {/* Status-Übersicht */}
           <div className="card p-4">
             <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-4">Status</div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center">
                 <StatusBadge active={b.angezahlt} labelYes="Angezahlt" labelNo="Nicht angezahlt" />
                 {b.angezahlt && b.angezahlt_notiz && (
@@ -129,6 +129,11 @@ export default async function ChinaBestellungDetailPage({ params }: { params: Pr
                 {b.verschifft && b.tracking_nummer && (
                   <p className="text-xs text-stone-500 font-mono mt-1.5">{b.tracking_nummer}</p>
                 )}
+              </div>
+              <div className="text-center">
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${b.abgeladen ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-500"}`}>
+                  {b.abgeladen ? "Abgeladen" : "Nicht abgeladen"}
+                </span>
               </div>
             </div>
           </div>
