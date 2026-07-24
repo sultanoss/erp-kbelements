@@ -1,8 +1,37 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import RetourenChart from "./RetourenChart";
 
-export default async function DashboardPage() {
+function toDateString(d: Date) {
+  return d.toISOString().split("T")[0];
+}
+
+function fillDays(von: string, bis: string, raw: { created_at: string }[]) {
+  const counts: Record<string, number> = {};
+  for (const r of raw) {
+    const day = r.created_at.split("T")[0];
+    counts[day] = (counts[day] ?? 0) + 1;
+  }
+  const result: { label: string; count: number }[] = [];
+  const d = new Date(von + "T12:00:00Z");
+  const end = new Date(bis + "T12:00:00Z");
+  while (d <= end) {
+    const key = toDateString(d);
+    result.push({
+      label: d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }),
+      count: counts[key] ?? 0,
+    });
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return result;
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -10,13 +39,19 @@ export default async function DashboardPage() {
   const userName = user.user_metadata?.full_name ?? user.email ?? "";
 
   const now = new Date();
+  const todayStr = toDateString(now);
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
+
+  const params = await searchParams;
+  const von = params.von ?? todayStr;
+  const bis = params.bis ?? todayStr;
 
   const [
     { count: retourenHeute },
     { count: schadenHeute },
     { data: ankuenfte },
+    { data: retourenRaw },
   ] = await Promise.all([
     supabase.from("returns").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
     supabase.from("schadenmeldungen").select("*", { count: "exact", head: true }).gte("created_at", todayStart).lte("created_at", todayEnd),
@@ -25,7 +60,13 @@ export default async function DashboardPage() {
       .not("lager_ankunft", "is", null)
       .eq("abgeladen", false)
       .order("lager_ankunft", { ascending: true }),
+    supabase.from("returns")
+      .select("created_at")
+      .gte("created_at", von + "T00:00:00")
+      .lte("created_at", bis + "T23:59:59"),
   ]);
+
+  const chartData = fillDays(von, bis, retourenRaw ?? []);
 
   // Packliste-Dateien für alle Ankünfte laden
   const ids = ankuenfte?.map((b) => b.id) ?? [];
@@ -51,7 +92,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Statistiken heute */}
-      <div className="grid grid-cols-2 gap-4 mb-8 max-w-md">
+      <div className="grid grid-cols-2 gap-4 mb-6 max-w-md">
         <div className="card p-5">
           <div className="text-3xl font-bold text-stone-900">{retourenHeute ?? 0}</div>
           <div className="text-xs text-stone-500 mt-1 uppercase tracking-wide">Retouren heute</div>
@@ -60,6 +101,11 @@ export default async function DashboardPage() {
           <div className="text-3xl font-bold text-stone-900">{schadenHeute ?? 0}</div>
           <div className="text-xs text-stone-500 mt-1 uppercase tracking-wide">Schadenmeldungen heute</div>
         </div>
+      </div>
+
+      {/* Retouren Chart */}
+      <div className="mb-8">
+        <RetourenChart data={chartData} von={von} bis={bis} />
       </div>
 
       {/* Waren Ankünfte */}
