@@ -34,24 +34,24 @@ export default function RetourenChart({ data, von, bis }: Props) {
 
   return (
     <div className="card p-5">
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
         <div>
           <div className="text-xs font-medium text-stone-500 uppercase tracking-wide">Retouren</div>
           <div className="text-2xl font-bold text-stone-900 mt-0.5">{total}</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
           <input
             type="date"
             value={von}
             onChange={(e) => update("von", e.target.value)}
-            className="input text-xs h-8 py-0 px-2 w-36"
+            className="input text-xs h-8 py-0 px-2 w-full sm:w-36"
           />
-          <span className="text-stone-400 text-xs">—</span>
+          <span className="text-stone-400 text-xs text-center hidden sm:block">—</span>
           <input
             type="date"
             value={bis}
             onChange={(e) => update("bis", e.target.value)}
-            className="input text-xs h-8 py-0 px-2 w-36"
+            className="input text-xs h-8 py-0 px-2 w-full sm:w-36"
           />
         </div>
       </div>
