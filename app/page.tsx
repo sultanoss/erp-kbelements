@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, salesTodayBySource] = await Promise.all([
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
@@ -33,11 +33,6 @@ export default async function DashboardPage() {
     prisma.sale.groupBy({
       by: ["date"],
       where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
-      _sum: { quantity: true },
-    }),
-    prisma.sale.groupBy({
-      by: ["source"],
-      where: { date: { gte: todayStart } },
       _sum: { quantity: true },
     }),
   ]);
@@ -62,7 +57,7 @@ export default async function DashboardPage() {
 
       {/* Zeile 1: 3 Metriken */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} breakdown={salesTodayBySource} />
+        <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} />
         <Metric label="Herdsets heute" value={herdsetToday._sum.quantity ?? 0} />
         <Metric label={`Verkäufe ${monthLabel}`} value={thisMonthQty} pct={pct} />
       </div>
@@ -130,7 +125,7 @@ export default async function DashboardPage() {
   );
 }
 
-function Metric({ label, value, pct, breakdown }: { label: string; value: number; pct?: number | null; breakdown?: { source: string; _sum: { quantity: number | null } }[] }) {
+function Metric({ label, value, pct }: { label: string; value: number; pct?: number | null }) {
   return (
     <Panel className="p-5">
       <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">{label}</div>
@@ -142,16 +137,6 @@ function Metric({ label, value, pct, breakdown }: { label: string; value: number
           </span>
         )}
       </div>
-      {breakdown && breakdown.length > 0 && (
-        <div className="mt-3 space-y-1 border-t border-grey-border pt-3">
-          {breakdown.map((b) => (
-            <div key={b.source} className="flex justify-between font-mono text-[10px] text-grey-mid">
-              <span>{b.source}</span>
-              <span className="font-semibold">{b._sum.quantity ?? 0}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </Panel>
   );
 }
