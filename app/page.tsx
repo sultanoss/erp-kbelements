@@ -19,21 +19,21 @@ export default async function DashboardPage() {
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
   const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales] = await Promise.all([
-    prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: "TAGESVERKAUF" }, _sum: { quantity: true } }),
-    prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: "TAGESVERKAUF" }, _sum: { quantity: true } }),
-    prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: "TAGESVERKAUF" }, _sum: { quantity: true } }),
+    prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
+    prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
+    prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
     prisma.herdsetSale.aggregate({ where: { date: { gte: todayStart } }, _sum: { quantity: true } }),
     prisma.item.findMany({ orderBy: { stock: "asc" }, select: { sku: true, stock: true, minStock: true } }),
     prisma.sale.groupBy({
       by: ["sku"],
-      where: { date: { gte: monthStart, lte: monthEnd }, source: "TAGESVERKAUF" },
+      where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: "desc" } },
       take: 10,
     }),
     prisma.sale.groupBy({
       by: ["date"],
-      where: { date: { gte: monthStart, lte: monthEnd }, source: "TAGESVERKAUF" },
+      where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
       _sum: { quantity: true },
     }),
   ]);
