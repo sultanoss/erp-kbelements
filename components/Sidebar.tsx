@@ -52,6 +52,8 @@ interface Props {
   userName: string;
   userEmail: string;
   isAdmin: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const chinaSubItems = [
@@ -59,7 +61,7 @@ const chinaSubItems = [
   { href: "/china/ware", label: "Ware in China" },
 ];
 
-export default function Sidebar({ userName, userEmail, isAdmin }: Props) {
+export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -71,121 +73,143 @@ export default function Sidebar({ userName, userEmail, isAdmin }: Props) {
     router.refresh();
   }
 
+  function close() {
+    onClose?.();
+  }
+
   return (
-    <aside className="w-60 flex-shrink-0 bg-brand-dark flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-4 py-5 border-b border-stone-700">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-brand-red rounded-md flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-xs">K</span>
-          </div>
-          <div>
-            <div className="text-white font-semibold text-sm leading-tight">KB Portal</div>
-            <div className="text-stone-400 text-xs leading-tight">Internes Tool</div>
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={close}
+        />
+      )}
+
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-60 flex-shrink-0 bg-brand-dark flex flex-col h-full
+        transition-transform duration-200 ease-in-out
+        md:relative md:translate-x-0
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        {/* Logo */}
+        <div className="px-4 py-5 border-b border-stone-700">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-brand-red rounded-md flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-xs">K</span>
+            </div>
+            <div>
+              <div className="text-white font-semibold text-sm leading-tight">KB Portal</div>
+              <div className="text-stone-400 text-xs leading-tight">Internes Tool</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={close}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-brand-red text-white"
+                    : "text-stone-300 hover:text-white hover:bg-stone-700"
+                }`}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            );
+          })}
+
+          {/* China-Bestellungen Gruppe — nur Admin */}
+          {isAdmin && <div>
+            <button
+              onClick={() => setChinaOpen((o) => !o)}
+              className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                pathname.startsWith("/china")
                   ? "bg-brand-red text-white"
                   : "text-stone-300 hover:text-white hover:bg-stone-700"
               }`}
             >
-              {item.icon}
-              {item.label}
-            </Link>
-          );
-        })}
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                China-Bestellungen
+              </div>
+              <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${chinaOpen ? "rotate-180" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {chinaOpen && (
+              <div className="mt-1 space-y-0.5">
+                {chinaSubItems.map((sub) => {
+                  const isActive = pathname === sub.href || pathname.startsWith(sub.href + "/");
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      onClick={close}
+                      className={`flex items-center gap-2 pl-10 pr-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? "bg-stone-700 text-white"
+                          : "text-stone-400 hover:text-white hover:bg-stone-700"
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-current flex-shrink-0" />
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>}
 
-        {/* China-Bestellungen Gruppe — nur Admin */}
-        {isAdmin && <div>
-          <button
-            onClick={() => setChinaOpen((o) => !o)}
-            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              pathname.startsWith("/china")
-                ? "bg-brand-red text-white"
-                : "text-stone-300 hover:text-white hover:bg-stone-700"
-            }`}
-          >
-            <div className="flex items-center gap-3">
+          {isAdmin && (
+            <Link
+              href="/admin/users"
+              onClick={close}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                pathname.startsWith("/admin/users")
+                  ? "bg-brand-red text-white"
+                  : "text-stone-300 hover:text-white hover:bg-stone-700"
+              }`}
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              China-Bestellungen
-            </div>
-            <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${chinaOpen ? "rotate-180" : ""}`}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          {chinaOpen && (
-            <div className="mt-1 space-y-0.5">
-              {chinaSubItems.map((sub) => {
-                const isActive = pathname === sub.href || pathname.startsWith(sub.href + "/");
-                return (
-                  <Link
-                    key={sub.href}
-                    href={sub.href}
-                    className={`flex items-center gap-2 pl-10 pr-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      isActive
-                        ? "bg-stone-700 text-white"
-                        : "text-stone-400 hover:text-white hover:bg-stone-700"
-                    }`}
-                  >
-                    <span className="w-1 h-1 rounded-full bg-current flex-shrink-0" />
-                    {sub.label}
-                  </Link>
-                );
-              })}
-            </div>
+              Benutzerverwaltung
+            </Link>
           )}
-        </div>}
+        </nav>
 
-        {isAdmin && (
-          <Link
-            href="/admin/users"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              pathname.startsWith("/admin/users")
-                ? "bg-brand-red text-white"
-                : "text-stone-300 hover:text-white hover:bg-stone-700"
-            }`}
+        {/* User + Logout */}
+        <div className="px-3 py-4 border-t border-stone-700">
+          <div className="px-3 py-2 mb-2">
+            <div className="text-white text-sm font-medium truncate">{userName}</div>
+            <div className="text-stone-400 text-xs truncate">{userEmail}</div>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-stone-400 hover:text-white hover:bg-stone-700 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Benutzerverwaltung
-          </Link>
-        )}
-      </nav>
-
-      {/* User + Logout */}
-      <div className="px-3 py-4 border-t border-stone-700">
-        <div className="px-3 py-2 mb-2">
-          <div className="text-white text-sm font-medium truncate">{userName}</div>
-          <div className="text-stone-400 text-xs truncate">{userEmail}</div>
+            Abmelden
+          </button>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-stone-400 hover:text-white hover:bg-stone-700 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Abmelden
-        </button>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

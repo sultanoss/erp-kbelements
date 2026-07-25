@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Sidebar from "@/components/Sidebar";
+import PortalShell from "@/components/PortalShell";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -12,11 +12,8 @@ export default async function PortalLayout({ children }: { children: React.React
   const isAdmin = user.app_metadata?.role === "admin";
 
   return (
-    <div className="flex h-screen overflow-hidden bg-stone-100">
-      <Sidebar userName={userName} userEmail={user.email ?? ""} isAdmin={isAdmin} />
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
-    </div>
+    <PortalShell userName={userName} userEmail={user.email ?? ""} isAdmin={isAdmin}>
+      {children}
+    </PortalShell>
   );
 }
