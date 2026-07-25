@@ -867,4 +867,54 @@ export async function goHome() {
   redirect("/");
 }
 
+export async function createSalesFromTodaysShipments(): Promise<{ created: number; error?: string }> {
+  const user = await requireUser();
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const shipments = await prisma.shipment.findMany({
+    where: {
+      createdAt: { gte: todayStart },
+      status: { not: "STORNIERT" },
+    },
+    include: {
+      items: true,
+      order: true,
+    },
+  });
+
+  const alreadyBooked = new Set(
+    (await prisma.sale.findMany({
+      where: { shipmentId: { not: null }, createdAt: { gte: todayStart } },
+      select: { shipmentId: true },
+    })).map((s) => s.shipmentId!)
+  );
+
+  let created = 0;
+  for (const shipment of shipments) {
+    for (const item of shipment.items) {
+      if (alreadyBooked.has(shipment.id)) continue;
+      if (!item.internalSku) continue;
+      const marketplace = (shipment.order.marketplace as Marketplace) ?? "DIREKT";
+      await prisma.sale.create({
+        data: {
+          date: todayStart,
+          marketplace,
+          sku: item.internalSku,
+          quantity: item.quantity,
+          source: "TAGESVERKAUF",
+          shipmentId: shipment.id,
+          userId: user.id,
+        },
+      });
+      alreadyBooked.add(shipment.id);
+      created++;
+    }
+  }
+
+  revalidatePath("/");
+  return { created };
+}
+
 

@@ -70,6 +70,7 @@ model Sale {
   sku         String
   quantity    Int
   source      String      @default("TAGESVERKAUF")
+  shipmentId  String?
   userId      String
   createdAt   DateTime    @default(now())
   item        Item        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
