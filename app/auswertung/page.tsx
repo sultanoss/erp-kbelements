@@ -37,7 +37,7 @@ export default async function AuswertungPage({
   // Reguläre Verkäufe
   const rows = await prisma.sale.groupBy({
     by: ["marketplace", "sku"],
-    where: { date: { gte: from, lte: to } },
+    where: { date: { gte: from, lte: to }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
     _sum: { quantity: true },
     orderBy: [{ marketplace: "asc" }, { sku: "asc" }],
   });
@@ -65,7 +65,7 @@ export default async function AuswertungPage({
   const [skuRows, allItems] = await Promise.all([
     prisma.sale.groupBy({
       by: ["sku"],
-      where: { date: { gte: from, lte: to } },
+      where: { date: { gte: from, lte: to }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
       _sum: { quantity: true },
     }),
     prisma.item.findMany({ orderBy: { createdAt: "asc" }, select: { sku: true } }),
