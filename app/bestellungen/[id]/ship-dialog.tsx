@@ -457,6 +457,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                           <SelectedItemRow
                             key={item.internalSku}
                             item={item}
+                            nsOnly={marketplace === "EBAY_OUTLET"}
                             onUpdate={(patch) => updateItem(item.internalSku, patch)}
                             onRemove={() => removeItem(item.internalSku)}
                           />
@@ -471,6 +472,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                           <ManualItemRow
                             key={item.id}
                             item={item}
+                            nsOnly={marketplace === "EBAY_OUTLET"}
                             onUpdate={(patch) => updateManualItem(item.id, patch)}
                             onRemove={() => removeManualItem(item.id)}
                           />
@@ -577,10 +579,12 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
 
 function ManualItemRow({
   item,
+  nsOnly,
   onUpdate,
   onRemove,
 }: {
   item: ManualItem;
+  nsOnly?: boolean;
   onUpdate: (patch: Partial<ManualItem>) => void;
   onRemove: () => void;
 }) {
@@ -600,14 +604,18 @@ function ManualItemRow({
         onChange={(e) => onUpdate({ quantity: parseInt(e.target.value) || 1 })}
         className="h-7 w-16 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark text-center focus:border-brand-red focus:outline-none"
       />
-      <select
-        value={item.warehouse}
-        onChange={(e) => onUpdate({ warehouse: e.target.value as "neuware" | "ns" })}
-        className="h-7 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-      >
-        <option value="neuware">Neuware</option>
-        <option value="ns">NS-Lager</option>
-      </select>
+      {nsOnly ? (
+        <span className="h-7 flex items-center px-2 font-mono text-xs font-semibold text-grey-mid">NS-Lager</span>
+      ) : (
+        <select
+          value={item.warehouse}
+          onChange={(e) => onUpdate({ warehouse: e.target.value as "neuware" | "ns" })}
+          className="h-7 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+        >
+          <option value="neuware">Neuware</option>
+          <option value="ns">NS-Lager</option>
+        </select>
+      )}
       <button
         type="button"
         onClick={onRemove}
@@ -624,10 +632,12 @@ function ManualItemRow({
 
 function SelectedItemRow({
   item,
+  nsOnly,
   onUpdate,
   onRemove,
 }: {
   item: SelectedItem;
+  nsOnly?: boolean;
   onUpdate: (patch: Partial<SelectedItem>) => void;
   onRemove: () => void;
 }) {
@@ -643,14 +653,18 @@ function SelectedItemRow({
         onChange={(e) => onUpdate({ quantity: parseInt(e.target.value) || 1 })}
         className="h-7 w-16 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark text-center focus:border-brand-red focus:outline-none"
       />
-      <select
-        value={item.warehouse}
-        onChange={(e) => onUpdate({ warehouse: e.target.value as "neuware" | "ns" })}
-        className="h-7 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-      >
-        <option value="neuware">Neuware</option>
-        <option value="ns">NS-Lager</option>
-      </select>
+      {nsOnly ? (
+        <span className="h-7 flex items-center px-2 font-mono text-xs font-semibold text-grey-mid">NS-Lager</span>
+      ) : (
+        <select
+          value={item.warehouse}
+          onChange={(e) => onUpdate({ warehouse: e.target.value as "neuware" | "ns" })}
+          className="h-7 rounded border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+        >
+          <option value="neuware">Neuware</option>
+          <option value="ns">NS-Lager</option>
+        </select>
+      )}
       <button
         type="button"
         onClick={onRemove}
