@@ -104,7 +104,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   function addItem(item: StockItem) {
     setSelectedItems((prev) => [
       ...prev,
-      { internalSku: item.sku, quantity: 1, warehouse: "neuware" },
+      { internalSku: item.sku, quantity: 1, warehouse: marketplace === "EBAY_OUTLET" ? "ns" : "neuware" },
     ]);
     setSearch("");
     setSearchResults([]);
@@ -122,7 +122,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
 
   function addManualItem() {
     const id = String(++manualIdRef.current);
-    setManualItems((prev) => [...prev, { id, description: "", quantity: 1, warehouse: "neuware" }]);
+    setManualItems((prev) => [...prev, { id, description: "", quantity: 1, warehouse: marketplace === "EBAY_OUTLET" ? "ns" : "neuware" }]);
   }
 
   function removeManualItem(id: string) {
