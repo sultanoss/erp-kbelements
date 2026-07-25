@@ -186,7 +186,7 @@ export async function createCorrection(formData: FormData) {
     const newStock = oldStock + quantity;
 
     await tx.correction.create({
-      data: { date: dateValue(formData, "date"), sku, quantity, reason, userId: user.id },
+      data: { date: dateValue(formData, "date"), sku, quantity, reason, lager: lager || "neuware", userId: user.id },
     });
     await tx.item.update({
       where: { sku },

@@ -44,6 +44,7 @@ export default async function CorrectionsPage() {
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Menge</th>
+            <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lager</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Grund</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Benutzer</th>
           </tr></thead>
@@ -54,6 +55,13 @@ export default async function CorrectionsPage() {
                 <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-red">{c.sku}</td>
                 <td className={`px-4 py-3 font-mono tabular-nums font-semibold ${c.quantity > 0 ? "text-green-700" : "text-brand-red"}`}>
                   {c.quantity > 0 ? "+" : ""}{c.quantity}
+                </td>
+                <td className="px-4 py-3">
+                  {c.lager === "ns" ? (
+                    <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-blue-700">NS-Lager</span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-grey-light px-2.5 py-0.5 font-mono text-xs font-semibold text-grey-mid">Neuware</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-grey-dark">{c.reason}</td>
                 <td className="px-4 py-3 text-grey-mid">{c.user.name}</td>
