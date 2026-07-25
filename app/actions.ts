@@ -909,7 +909,7 @@ export async function createSalesFromTodaysShipments(): Promise<{ created: numbe
       status: { not: "STORNIERT" },
     },
     include: {
-      items: true,
+      items: { include: { item: true } },
       order: true,
     },
   });
@@ -921,23 +921,50 @@ export async function createSalesFromTodaysShipments(): Promise<{ created: numbe
     })).map((s) => s.shipmentId!)
   );
 
+  const alreadyBookedHerdsets = new Set(
+    (await prisma.herdsetSale.findMany({
+      where: { shipmentId: { not: null }, createdAt: { gte: todayStart } },
+      select: { shipmentId: true },
+    })).map((h) => h.shipmentId!)
+  );
+
   let created = 0;
   for (const shipment of shipments) {
-    for (const item of shipment.items) {
+    const marketplace = (shipment.order.marketplace as Marketplace) ?? "DIREKT";
+
+    if (shipment.isHerdset) {
+      if (alreadyBookedHerdsets.has(shipment.id)) continue;
+      for (const item of shipment.items) {
+        if (!item.internalSku) continue;
+        await prisma.herdsetSale.create({
+          data: {
+            date: todayStart,
+            marketplace,
+            label: item.item.name || item.internalSku,
+            quantity: item.quantity,
+            shipmentId: shipment.id,
+            userId: user.id,
+          },
+        });
+      }
+      alreadyBookedHerdsets.add(shipment.id);
+      created++;
+    } else {
       if (alreadyBooked.has(shipment.id)) continue;
-      if (!item.internalSku) continue;
-      const marketplace = (shipment.order.marketplace as Marketplace) ?? "DIREKT";
-      await prisma.sale.create({
-        data: {
-          date: todayStart,
-          marketplace,
-          sku: item.internalSku,
-          quantity: item.quantity,
-          source: "TAGESVERKAUF",
-          shipmentId: shipment.id,
-          userId: user.id,
-        },
-      });
+      for (const item of shipment.items) {
+        if (!item.internalSku) continue;
+        await prisma.sale.create({
+          data: {
+            date: todayStart,
+            marketplace,
+            sku: item.internalSku,
+            quantity: item.quantity,
+            source: "TAGESVERKAUF",
+            shipmentId: shipment.id,
+            userId: user.id,
+          },
+        });
+      }
       alreadyBooked.add(shipment.id);
       created++;
     }
