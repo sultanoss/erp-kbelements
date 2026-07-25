@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { deleteSalesByDate } from "@/app/actions";
 
-const initial = { done: false, count: 0, error: undefined as string | undefined };
+const initial = { done: false, sales: 0, herdsets: 0, error: undefined as string | undefined };
 
 export function DeleteSalesByDate() {
   const [state, action, pending] = useActionState(deleteSalesByDate, initial);
@@ -32,7 +32,9 @@ export function DeleteSalesByDate() {
 
       {state.done && (
         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 font-mono text-sm text-green-700">
-          ✓ {state.count} Verkauf{state.count !== 1 ? "e" : ""} gelöscht, Bestand wiederhergestellt.
+          ✓ {state.sales} Verkauf{state.sales !== 1 ? "e" : ""} gelöscht
+          {state.herdsets > 0 ? `, ${state.herdsets} Herdset-Einträge gelöscht` : ""}
+          {state.sales > 0 ? " — Bestand wiederhergestellt" : ""}
         </div>
       )}
       {state.error && (
