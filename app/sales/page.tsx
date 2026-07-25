@@ -5,7 +5,6 @@ import { AppShell } from "@/components/shell";
 import { Field, Panel, SelectField, SubmitButton } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { HaendlerImport } from "@/components/haendler-import";
-import { DeleteSalesByDate } from "@/components/delete-sales-by-date";
 
 export const dynamic = "force-dynamic";
 
@@ -93,17 +92,6 @@ export default async function SalesPage() {
           <Field label="Menge" name="quantity" type="number" defaultValue={1} />
           <div className="flex items-end"><SubmitButton>Speichern</SubmitButton></div>
         </form>
-      </Panel>
-
-      {/* Verkäufe nach Datum löschen */}
-      <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          Verkäufe nach Datum löschen
-        </div>
-        <p className="mb-3 font-mono text-xs text-grey-mid">
-          Löscht alle importierten Tagesverkäufe (TAGESVERKAUF / Händler) für das gewählte Datum und stellt den Bestand wieder her.
-        </p>
-        <DeleteSalesByDate />
       </Panel>
 
       {/* NS-Lager Verkauf */}

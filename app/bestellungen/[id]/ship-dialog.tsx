@@ -72,8 +72,6 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const formRef = useRef<HTMLFormElement>(null);
   const manualIdRef = useRef(0);
 
-  const [isHerdset, setIsHerdset] = useState(false);
-
   const [shipName, setShipName] = useState(consignee.name);
   const [shipStreet, setShipStreet] = useState(consignee.street);
   const [shipZip, setShipZip] = useState(consignee.zip);
@@ -150,7 +148,6 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     fd.set("shipCity", shipCity.trim());
     fd.set("shipCountry", shipCountry.trim());
     if (shipPostNumber.trim()) fd.set("shipPostNumber", shipPostNumber.trim());
-    fd.set("isHerdset", isHerdset ? "1" : "0");
 
     startTransition(async () => {
       const res = await shipOrder(fd);
@@ -174,7 +171,6 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setShipCity(consignee.city);
     setShipCountry(consignee.country);
     setShipPostNumber("");
-    setIsHerdset(false);
   }
 
   return (
@@ -535,19 +531,6 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                       </label>
                     </div>
                   )}
-                </div>
-
-                {/* Herdset */}
-                <div className="px-6 pb-2">
-                  <label className="flex cursor-pointer items-center gap-2.5 select-none">
-                    <input
-                      type="checkbox"
-                      checked={isHerdset}
-                      onChange={(e) => setIsHerdset(e.target.checked)}
-                      className="h-4 w-4 rounded accent-brand-red"
-                    />
-                    <span className="font-mono text-sm font-semibold text-grey-dark">Als Herdset markieren</span>
-                  </label>
                 </div>
 
                 {/* Footer */}

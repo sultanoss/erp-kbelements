@@ -2,7 +2,6 @@ import { AppShell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
-import { TagesversandButton } from "@/components/tagesversand-button";
 
 export const dynamic = "force-dynamic";
 
@@ -55,10 +54,6 @@ export default async function DashboardPage() {
   return (
     <AppShell>
       <PageHeader title="Dashboard" eyebrow="Übersicht" />
-
-      <div className="mb-5">
-        <TagesversandButton />
-      </div>
 
       {/* Zeile 1: 3 Metriken */}
       <div className="grid gap-4 md:grid-cols-3">

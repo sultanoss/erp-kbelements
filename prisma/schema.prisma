@@ -70,7 +70,6 @@ model Sale {
   sku         String
   quantity    Int
   source      String      @default("TAGESVERKAUF")
-  shipmentId  String?
   userId      String
   createdAt   DateTime    @default(now())
   item        Item        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
@@ -116,7 +115,6 @@ model HerdsetSale {
   marketplace Marketplace
   label       String
   quantity    Int
-  shipmentId  String?
   userId      String
   createdAt   DateTime    @default(now())
   user        User        @relation(fields: [userId], references: [id])
@@ -232,7 +230,6 @@ model Shipment {
   weight          Float?
   carrierResponse Json?
   notifiedOttoAt  DateTime?
-  isHerdset       Boolean        @default(false)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   items           ShipmentItem[]

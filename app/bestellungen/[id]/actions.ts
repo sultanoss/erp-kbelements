@@ -51,7 +51,6 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const shipCity       = (formData.get("shipCity")       as string | null)?.trim() || null;
   const shipCountry    = (formData.get("shipCountry")    as string | null)?.trim() || null;
   const shipPostNumber = (formData.get("shipPostNumber") as string | null)?.trim() || undefined;
-  const isHerdset = formData.get("isHerdset") === "1";
 
   if (!id || !carrier) return { ok: false, error: "Fehlende Pflichtfelder" };
   if (carrier !== "DHL" && carrier !== "GEL") return { ok: false, error: "Ungültiger Carrier" };
@@ -144,7 +143,6 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           returnLabelUrl:       shipmentResult.returnLabelUrl,
           dhlShipmentId:        shipmentResult.dhlShipmentId,
           weight,
-          isHerdset,
           carrierResponse: shipmentResult.carrierResponse as never,
           items: {
             create: items.map((item) => ({
