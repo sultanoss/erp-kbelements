@@ -19,7 +19,12 @@ export default async function BuchhaltungPage({
     where: {
       status: "aktiv",
       docType: "rechnung",
-      ...(q && { customerName: { contains: q, mode: "insensitive" } }),
+      ...(q && {
+        OR: [
+          { customerName: { contains: q, mode: "insensitive" } },
+          { notes: { contains: q, mode: "insensitive" } },
+        ],
+      }),
       ...(num && { number: { contains: num, mode: "insensitive" } }),
       ...((from || to) && {
         date: {
@@ -44,12 +49,12 @@ export default async function BuchhaltungPage({
         {/* Suchformular */}
         <form method="GET" action="/buchhaltung" className="flex flex-wrap gap-2 items-end">
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kundenname</label>
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Suche (Name / Notiz)</label>
             <input
               type="text"
               name="q"
               defaultValue={q ?? ""}
-              placeholder="Name suchen…"
+              placeholder="Name oder Notiz…"
               className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-48"
             />
           </div>
