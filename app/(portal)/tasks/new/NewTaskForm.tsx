@@ -159,6 +159,7 @@ export default function NewTaskForm({ userName, users }: Props) {
       }
     }
 
+    router.refresh();
     router.push(`/tasks/${taskId}`);
   }
 
