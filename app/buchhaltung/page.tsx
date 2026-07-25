@@ -11,9 +11,9 @@ export const dynamic = "force-dynamic";
 export default async function BuchhaltungPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string; pm?: string }>;
+  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string; pm?: string; zahlung?: string }>;
 }) {
-  const { q, num, from, to, pm } = await searchParams;
+  const { q, num, from, to, pm, zahlung } = await searchParams;
 
   const invoices = await prisma.invoice.findMany({
     where: {
@@ -28,12 +28,13 @@ export default async function BuchhaltungPage({
         },
       }),
       ...(pm && { paymentMethod: pm }),
+      ...(zahlung === "offen" && { bezahlt: false }),
     },
     orderBy: [{ createdAt: "desc" }],
     include: { items: true },
   });
 
-  const hasFilter = !!(q || num || from || to || pm);
+  const hasFilter = !!(q || num || from || to || pm || zahlung);
 
   return (
     <AppShell>
@@ -81,7 +82,7 @@ export default async function BuchhaltungPage({
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlung</label>
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezahlart</label>
             <select
               name="pm"
               defaultValue={pm ?? ""}
@@ -90,6 +91,17 @@ export default async function BuchhaltungPage({
               <option value="">Alle</option>
               <option value="konto">Überweisung</option>
               <option value="bar">Bar</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</label>
+            <select
+              name="zahlung"
+              defaultValue={zahlung ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+            >
+              <option value="">Alle</option>
+              <option value="offen">Unbezahlt</option>
             </select>
           </div>
           <button
@@ -126,6 +138,7 @@ export default async function BuchhaltungPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunde</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">MwSt.</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Betrag</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlung</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>
             </tr>
           </thead>
@@ -141,6 +154,13 @@ export default async function BuchhaltungPage({
                   <td className="px-4 py-3 text-sm text-grey-dark">{inv.customerName}</td>
                   <td className="px-4 py-3 font-mono text-xs text-grey-mid">{inv.mwstRate} %</td>
                   <td className="px-4 py-3 font-mono tabular-nums text-sm font-bold text-grey-dark text-right">{brutto.toFixed(2)} €</td>
+                  <td className="px-4 py-3">
+                    {!inv.bezahlt && (
+                      <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-orange-700">
+                        Unbezahlt
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <Link href={`/buchhaltung/${inv.id}`}

@@ -6,6 +6,7 @@ import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 import { StornoButton } from "@/components/storno-button";
+import { MarkAsBezahltButton } from "@/components/mark-as-bezahlt-button";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,16 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           <span className="font-mono text-sm text-grey-mid">
             {inv.storniertAt ? formatDate(inv.storniertAt) : ""}
           </span>
+        </div>
+      )}
+
+      {!inv.bezahlt && inv.status === "aktiv" && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <span className="rounded bg-orange-500 px-2 py-0.5 font-mono text-xs font-bold text-white">UNBEZAHLT</span>
+            <span className="font-mono text-sm text-orange-700">Zahlung steht noch aus</span>
+          </div>
+          <MarkAsBezahltButton invoiceId={id} />
         </div>
       )}
 

@@ -136,6 +136,8 @@ model Invoice {
   paymentInfo     String?
   status             String        @default("aktiv")
   storniertAt        DateTime?
+  bezahlt            Boolean       @default(true)
+  bezahltAt          DateTime?
   docType            String        @default("rechnung")
   originalInvoiceId  String?
   originalInvoiceNum String?

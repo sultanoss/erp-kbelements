@@ -202,6 +202,16 @@ export async function createCorrection(formData: FormData) {
   revalidatePath("/inventory");
 }
 
+export async function markAsBezahlt(invoiceId: string) {
+  await requireUser();
+  await prisma.invoice.update({
+    where: { id: invoiceId },
+    data: { bezahlt: true, bezahltAt: new Date() },
+  });
+  revalidatePath("/buchhaltung");
+  revalidatePath(`/buchhaltung/${invoiceId}`);
+}
+
 export async function createInvoice(data: {
   date: string;
   customerName: string;
@@ -213,6 +223,7 @@ export async function createInvoice(data: {
   shippingCost: number | null;
   shippingMwst: number;
   paymentMethod: string;
+  bezahlt?: boolean;
   docType: "rechnung" | "angebot" | "gutschrift";
   originalInvoiceId?: string;
   originalInvoiceNum?: string;
@@ -244,6 +255,7 @@ export async function createInvoice(data: {
         paymentMethod: data.paymentMethod,
         notes: data.notes || null,
         paymentInfo: data.paymentInfo || null,
+        bezahlt: data.bezahlt ?? true,
         docType: data.docType,
         originalInvoiceId: data.originalInvoiceId ?? null,
         originalInvoiceNum: data.originalInvoiceNum ?? null,

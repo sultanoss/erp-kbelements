@@ -38,6 +38,7 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
   const [shippingCost, setShippingCost] = useState<string>(initialData?.shippingCost ?? "");
   const [shippingMwst, setShippingMwst] = useState<number>(initialData?.shippingMwst ?? 19);
   const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">(initialData?.paymentMethod ?? "konto");
+  const [zahlungAusstehend, setZahlungAusstehend] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -48,6 +49,7 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
     setShippingCost("");
     setShippingMwst(19);
     setPaymentMethod("konto");
+    setZahlungAusstehend(false);
     setError("");
     formRef.current?.reset();
   }
@@ -142,7 +144,7 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
       if (initialData?.invoiceId) {
         updateInvoice(initialData.invoiceId, payload);
       } else {
-        createInvoice(payload);
+        createInvoice({ ...payload, bezahlt: !zahlungAusstehend });
       }
     });
   }
@@ -407,6 +409,17 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
                   placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
                   className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
               </div>
+            )}
+            {!initialData?.invoiceId && (
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={zahlungAusstehend}
+                  onChange={(e) => setZahlungAusstehend(e.target.checked)}
+                  className="h-4 w-4 rounded accent-brand-red"
+                />
+                <span className="text-sm font-semibold text-grey-dark">Zahlung ausstehend (unbezahlt)</span>
+              </label>
             )}
           </div>
         )}
