@@ -863,6 +863,37 @@ export async function undoMonthSales(_prev: unknown, formData: FormData): Promis
   return { done: true, count: sales.length, month };
 }
 
+export async function deleteSalesByDate(
+  _prev: unknown,
+  formData: FormData
+): Promise<{ done: boolean; count: number }> {
+  await requireUser();
+  const dateStr = text(formData, "date");
+  const source = text(formData, "source");
+  if (!dateStr) return { done: false, count: 0 };
+
+  const from = new Date(`${dateStr}T00:00:00`);
+  const to = new Date(`${dateStr}T23:59:59`);
+  const where =
+    source && source !== "ALLE"
+      ? { date: { gte: from, lte: to }, source }
+      : { date: { gte: from, lte: to } };
+
+  const sales = await prisma.sale.findMany({ where });
+  if (!sales.length) return { done: true, count: 0 };
+
+  for (const s of sales) {
+    await prisma.item.update({ where: { sku: s.sku }, data: { stock: { increment: s.quantity } } });
+  }
+  await prisma.sale.deleteMany({ where: { id: { in: sales.map((s) => s.id) } } });
+
+  revalidatePath("/");
+  revalidatePath("/sales");
+  revalidatePath("/inventory");
+  revalidatePath("/auswertung");
+  return { done: true, count: sales.length };
+}
+
 export async function goHome() {
   redirect("/");
 }

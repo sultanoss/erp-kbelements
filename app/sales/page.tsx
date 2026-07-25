@@ -5,6 +5,7 @@ import { AppShell } from "@/components/shell";
 import { Field, Panel, SelectField, SubmitButton } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { HaendlerImport } from "@/components/haendler-import";
+import { DeleteSales } from "@/components/delete-sales";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +108,17 @@ export default async function SalesPage() {
           <Field label="Menge" name="quantity" type="number" defaultValue={1} />
           <div className="flex items-end"><SubmitButton>Speichern</SubmitButton></div>
         </form>
+      </Panel>
+
+      {/* Verkäufe löschen */}
+      <Panel className="mb-6 p-5">
+        <div className="mb-4 border-l-2 border-grey-mid pl-3 text-sm font-bold text-grey-dark">
+          Verkäufe löschen
+        </div>
+        <p className="mb-4 font-mono text-xs text-grey-mid">
+          Löscht alle Verkäufe eines Datums (nach Quelle filterbar) und stellt den Bestand wieder her.
+        </p>
+        <DeleteSales />
       </Panel>
     </AppShell>
   );
