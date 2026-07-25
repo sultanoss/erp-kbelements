@@ -867,6 +867,32 @@ export async function goHome() {
   redirect("/");
 }
 
+export async function deleteSalesByDate(_prev: unknown, formData: FormData): Promise<{ done: boolean; count: number; error?: string }> {
+  await requireAdmin();
+  const dateRaw = text(formData, "date");
+  if (!dateRaw) return { done: false, count: 0, error: "Kein Datum angegeben." };
+
+  const start = new Date(`${dateRaw}T00:00:00`);
+  const end = new Date(`${dateRaw}T23:59:59.999`);
+
+  const sales = await prisma.sale.findMany({
+    where: { date: { gte: start, lte: end }, source: { in: ["TAGESVERKAUF", "HAENDLER"] } },
+  });
+
+  for (const s of sales) {
+    await prisma.item.update({ where: { sku: s.sku }, data: { stock: { increment: s.quantity } } });
+  }
+  await prisma.sale.deleteMany({
+    where: { date: { gte: start, lte: end }, source: { in: ["TAGESVERKAUF", "HAENDLER"] } },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/sales");
+  revalidatePath("/inventory");
+
+  return { done: true, count: sales.length };
+}
+
 export async function createSalesFromTodaysShipments(): Promise<{ created: number; error?: string }> {
   const user = await requireUser();
 
