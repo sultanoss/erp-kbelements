@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { RESOLUTION_OPTIONS } from "@/lib/status";
+import { RESOLUTION_OPTIONS, STATUS_LABELS } from "@/lib/status";
 
 interface Props {
   returnId: string;
@@ -23,6 +23,7 @@ interface Props {
 
 export default function EditReturnModal({ returnId, currentStatus, userName, initialValues }: Props) {
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState(currentStatus);
   const [orderNumber, setOrderNumber] = useState(initialValues.order_number ?? "");
   const [description, setDescription] = useState(initialValues.description ?? "");
   const [resolution, setResolution] = useState(initialValues.resolution ?? "neu");
@@ -39,6 +40,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
   const supabase = createClient();
 
   function openModal() {
+    setStatus(currentStatus);
     setOrderNumber(initialValues.order_number ?? "");
     setDescription(initialValues.description ?? "");
     setResolution(initialValues.resolution ?? "neu");
@@ -57,12 +59,13 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
 
     const now = new Date().toISOString();
     const updates: Record<string, string | null> = {
+      status,
       order_number: orderNumber.trim() || null,
       description: description.trim() || null,
       updated_at: now,
     };
 
-    if (currentStatus === "erledigt") {
+    if (status === "erledigt") {
       updates.resolution = resolution;
       updates.resolution_notes = resolutionNotes.trim() || null;
       updates.tracking_number = trackingNumber.trim() || null;
@@ -75,7 +78,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
       }
     }
 
-    if (currentStatus === "wieder_an_kunde") {
+    if (status === "wieder_an_kunde") {
       updates.tracking_number = trackingNumber.trim() || null;
     }
 
@@ -90,10 +93,13 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
       return;
     }
 
+    const statusChanged = status !== currentStatus;
     await supabase.from("return_events").insert({
       return_id: returnId,
-      event_type: "bearbeitet",
-      note: "Retoure bearbeitet / korrigiert",
+      event_type: statusChanged ? "status_geaendert" : "bearbeitet",
+      note: statusChanged
+        ? `Status geändert: ${STATUS_LABELS[currentStatus]?.label ?? currentStatus} → ${STATUS_LABELS[status]?.label ?? status}`
+        : "Retoure bearbeitet / korrigiert",
       author: userName,
     });
 
@@ -153,7 +159,27 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
                 />
               </div>
 
-              {currentStatus === "wieder_an_kunde" && (
+              <div>
+                <label className="label">Status</label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(STATUS_LABELS).map(([value, { label, className }]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setStatus(value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                        status === value
+                          ? `${className} ring-2 ring-offset-1 ring-current`
+                          : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {status === "wieder_an_kunde" && (
                 <div>
                   <label className="label">
                     Sendungsnummer <span className="text-stone-400 font-normal">(optional)</span>
@@ -168,7 +194,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
                 </div>
               )}
 
-              {currentStatus === "erledigt" && (
+              {status === "erledigt" && (
                 <>
                   <div>
                     <label className="label">Abschluss-Kategorie</label>
