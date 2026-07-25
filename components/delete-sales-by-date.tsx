@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { deleteSalesByDate } from "@/app/actions";
 
-const initial = { done: false, count: 0 };
+const initial = { done: false, count: 0, error: undefined as string | undefined };
 
 export function DeleteSalesByDate() {
   const [state, action, pending] = useActionState(deleteSalesByDate, initial);
