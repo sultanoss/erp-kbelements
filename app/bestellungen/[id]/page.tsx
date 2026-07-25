@@ -324,7 +324,7 @@ export default async function BestellungDetailPage({
                   </dd>
                 </div>
               )}
-              {order.marketplace === "EBAY" && order.shipments?.[0] && (
+              {(order.marketplace === "EBAY" || order.marketplace === "EBAY_OUTLET") && order.shipments?.[0] && (
                 <div className="flex items-center justify-between px-5 py-3">
                   <dt className="font-mono text-xs text-grey-mid">eBay-Meldung</dt>
                   <dd>

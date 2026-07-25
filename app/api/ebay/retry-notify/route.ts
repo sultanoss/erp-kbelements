@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { sendEbayShipment } from "@/lib/connectors/ebay";
+import { sendEbayShipment, sendEbayOutletShipment } from "@/lib/connectors/ebay";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     include: { shipments: true, items: true },
   });
 
-  if (!order || order.marketplace !== "EBAY") {
+  if (!order || (order.marketplace !== "EBAY" && order.marketplace !== "EBAY_OUTLET")) {
     return Response.json({ error: "Bestellung nicht gefunden oder kein eBay-Auftrag" }, { status: 404 });
   }
 
@@ -29,7 +29,8 @@ export async function GET(request: Request) {
     .map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
 
   try {
-    await sendEbayShipment({
+    const sender = order.marketplace === "EBAY_OUTLET" ? sendEbayOutletShipment : sendEbayShipment;
+    await sender({
       orderId: order.externalId,
       trackingNumber: shipment.trackingNumber,
       carrier: shipment.carrier as "DHL" | "GEL",

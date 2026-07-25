@@ -6,6 +6,7 @@ import { Field, Panel, SelectField, SubmitButton } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { HaendlerImport } from "@/components/haendler-import";
 import { DeleteSales } from "@/components/delete-sales";
+import { EbayOutletImport } from "@/components/ebay-outlet-import";
 
 export const dynamic = "force-dynamic";
 
@@ -77,6 +78,15 @@ export default async function SalesPage() {
           Händler Verkäufe
         </div>
         <HaendlerImport />
+      </Panel>
+
+      {/* eBay Outlet Verkäufe (NS-Lager) */}
+      <Panel className="mb-6 p-5">
+        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
+          eBay Outlet Verkäufe
+        </div>
+        <p className="mb-4 font-mono text-xs text-grey-mid">Bucht aus NS-Lager. Format wie Tagesverkäufe-CSV.</p>
+        <EbayOutletImport />
       </Panel>
 
       {/* Lager Verkauf */}

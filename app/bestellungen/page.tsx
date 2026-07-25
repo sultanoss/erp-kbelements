@@ -112,6 +112,7 @@ export default async function BestellungenPage({
             <option value="SHOPIFY">Shopify</option>
             <option value="MEDIAMARKT">MediaMarkt</option>
             <option value="EBAY">eBay</option>
+            <option value="EBAY_OUTLET">eBay Outlet</option>
           </select>
         </label>
         <button type="submit" className="h-9 rounded-lg bg-brand-red px-4 text-sm font-semibold text-white hover:bg-brand-red-dark">

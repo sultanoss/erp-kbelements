@@ -4,16 +4,18 @@ const EBAY_API = "https://api.ebay.com";
 
 const clean = (v: string | undefined) => (v ?? "").replace(/^﻿/, "").trim();
 
-async function getAccessToken(): Promise<string> {
-  const clientId = clean(process.env.EBAY_CLIENT_ID);
-  const clientSecret = clean(process.env.EBAY_CLIENT_SECRET);
-  const refreshToken = clean(process.env.EBAY_REFRESH_TOKEN);
+interface EbayCreds {
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+}
 
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error("EBAY_CLIENT_ID, EBAY_CLIENT_SECRET oder EBAY_REFRESH_TOKEN fehlt");
+async function getAccessToken(creds: EbayCreds): Promise<string> {
+  if (!creds.clientId || !creds.clientSecret || !creds.refreshToken) {
+    throw new Error("eBay-Credentials unvollständig");
   }
 
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const credentials = Buffer.from(`${creds.clientId}:${creds.clientSecret}`).toString("base64");
 
   const res = await fetch(`${EBAY_API}/identity/v1/oauth2/token`, {
     method: "POST",
@@ -23,7 +25,7 @@ async function getAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: refreshToken,
+      refresh_token: creds.refreshToken,
       scope: "https://api.ebay.com/oauth/api_scope/sell.fulfillment",
     }).toString(),
   });
@@ -36,6 +38,22 @@ async function getAccessToken(): Promise<string> {
   const data = (await res.json()) as { access_token?: string };
   if (!data.access_token) throw new Error("eBay: Kein access_token erhalten");
   return data.access_token;
+}
+
+function mainCreds(): EbayCreds {
+  return {
+    clientId: clean(process.env.EBAY_CLIENT_ID),
+    clientSecret: clean(process.env.EBAY_CLIENT_SECRET),
+    refreshToken: clean(process.env.EBAY_REFRESH_TOKEN),
+  };
+}
+
+function outletCreds(): EbayCreds {
+  return {
+    clientId: clean(process.env.EBAY_CLIENT_ID),
+    clientSecret: clean(process.env.EBAY_CLIENT_SECRET),
+    refreshToken: clean(process.env.EBAY_OUTLET_REFRESH_TOKEN),
+  };
 }
 
 type EbayAddress = {
@@ -69,8 +87,8 @@ type EbayOrder = {
   lineItems?: EbayLineItem[];
 };
 
-export async function fetchEbayOrders(): Promise<NormalizedOrder[]> {
-  const token = await getAccessToken();
+async function fetchOrdersWithCreds(creds: EbayCreds, marketplace: string): Promise<NormalizedOrder[]> {
+  const token = await getAccessToken(creds);
   const orders: NormalizedOrder[] = [];
   let offset = 0;
   const limit = 50;
@@ -104,7 +122,7 @@ export async function fetchEbayOrders(): Promise<NormalizedOrder[]> {
       orders.push({
         externalId: o.orderId,
         orderNumber: o.legacyOrderId ?? o.orderId,
-        marketplace: "EBAY",
+        marketplace,
         orderDate: new Date(o.creationDate),
         customerName: shipTo?.fullName ?? "Unbekannt",
         street: [addr?.addressLine1, addr?.addressLine2].filter(Boolean).join(" "),
@@ -129,18 +147,28 @@ export async function fetchEbayOrders(): Promise<NormalizedOrder[]> {
   return orders;
 }
 
+export async function fetchEbayOrders(): Promise<NormalizedOrder[]> {
+  return fetchOrdersWithCreds(mainCreds(), "EBAY");
+}
+
+export async function fetchEbayOutletOrders(): Promise<NormalizedOrder[]> {
+  return fetchOrdersWithCreds(outletCreds(), "EBAY_OUTLET");
+}
+
 const EBAY_CARRIER_MAP: Record<string, string> = {
   DHL: "DHL",
   GEL: "GEL_EXPRESS",
 };
 
-export async function sendEbayShipment(params: {
+export type SendEbayShipmentParams = {
   orderId: string;
   trackingNumber: string;
   carrier: "DHL" | "GEL";
   lineItems: { lineItemId: string; quantity: number }[];
-}): Promise<void> {
-  const token = await getAccessToken();
+};
+
+async function sendShipmentWithCreds(params: SendEbayShipmentParams, creds: EbayCreds): Promise<void> {
+  const token = await getAccessToken(creds);
 
   const url = `${EBAY_API}/sell/fulfillment/v1/order/${encodeURIComponent(params.orderId)}/shipping_fulfillment`;
 
@@ -165,4 +193,12 @@ export async function sendEbayShipment(params: {
     const text = await res.text();
     throw new Error(`eBay Versandmeldung ${res.status}: ${text}`);
   }
+}
+
+export async function sendEbayShipment(params: SendEbayShipmentParams): Promise<void> {
+  return sendShipmentWithCreds(params, mainCreds());
+}
+
+export async function sendEbayOutletShipment(params: SendEbayShipmentParams): Promise<void> {
+  return sendShipmentWithCreds(params, outletCreds());
 }

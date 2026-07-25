@@ -8,7 +8,7 @@ import { sendOttoShipmentNotification } from "@/lib/connectors/otto";
 import { sendKauflandShipmentNotification, uploadKauflandInvoice } from "@/lib/connectors/kaufland";
 import { sendMediaMarktShipmentNotification, uploadMediaMarktInvoice } from "@/lib/connectors/mediamarkt";
 import { sendShopifyFulfillment } from "@/lib/connectors/shopify";
-import { sendEbayShipment } from "@/lib/connectors/ebay";
+import { sendEbayShipment, sendEbayOutletShipment } from "@/lib/connectors/ebay";
 import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
@@ -275,7 +275,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     }
   }
 
-  if (order.marketplace === "EBAY") {
+  if (order.marketplace === "EBAY" || order.marketplace === "EBAY_OUTLET") {
     const lineItems = order.items
       .filter((i) => i.positionItemId)
       .map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
@@ -287,7 +287,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
 
       await createInvoiceFromOrder(order, userId);
 
-      await sendEbayShipment({
+      const sender = order.marketplace === "EBAY_OUTLET" ? sendEbayOutletShipment : sendEbayShipment;
+      await sender({
         orderId: order.externalId,
         trackingNumber: shipmentResult.trackingNumber,
         carrier,

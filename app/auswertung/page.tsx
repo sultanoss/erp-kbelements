@@ -12,6 +12,7 @@ const MARKETPLACE_LABELS: Record<string, string> = {
   MEDIAMARKT: "Media Markt",
   AMAZON: "Amazon",
   EBAY: "Ebay",
+  EBAY_OUTLET: "eBay Outlet",
   SHOPIFY: "Shopify",
   DIREKT: "Lager / Direkt",
 };

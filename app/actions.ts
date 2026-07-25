@@ -569,6 +569,7 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
   const file = formData.get("file") as File | null;
   const dateRaw = text(formData, "date");
   const source = text(formData, "source") || "TAGESVERKAUF";
+  const useNsStock = text(formData, "lager") === "ns";
   const date = dateRaw ? new Date(`${dateRaw}T12:00:00`) : new Date();
 
   if (!file || file.size === 0) return { ok: false, imported: 0, skipped: 0, errors: ["Keine Datei ausgewählt."], saleIds: [] };
@@ -617,15 +618,23 @@ export async function importSalesCSV(_prev: unknown, formData: FormData): Promis
         await prisma.$transaction(async (tx) => {
           const item = await tx.item.findUnique({ where: { sku } });
           if (!item) throw new Error(`SKU "${sku}" nicht gefunden`);
-          const newStock = item.stock - quantity;
           const sale = await tx.sale.create({
             data: { date, marketplace: marketplace as Marketplace, sku, quantity, source, userId: user.id },
           });
           saleIds.push(sale.id);
-          await tx.item.update({ where: { sku }, data: { stock: newStock } });
-          await tx.activityLog.create({
-            data: { type: ActivityType.SALE, sku, oldStock: item.stock, newStock, userId: user.id },
-          });
+          if (useNsStock) {
+            const newStock = item.stockNS - quantity;
+            await tx.item.update({ where: { sku }, data: { stockNS: newStock } });
+            await tx.activityLog.create({
+              data: { type: ActivityType.SALE, sku, oldStock: item.stockNS, newStock, note: "NS-Lager", userId: user.id },
+            });
+          } else {
+            const newStock = item.stock - quantity;
+            await tx.item.update({ where: { sku }, data: { stock: newStock } });
+            await tx.activityLog.create({
+              data: { type: ActivityType.SALE, sku, oldStock: item.stock, newStock, userId: user.id },
+            });
+          }
         });
         imported++;
       } catch (e) {

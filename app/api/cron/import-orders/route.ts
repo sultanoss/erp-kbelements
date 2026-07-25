@@ -3,7 +3,7 @@ import { fetchNewOrders, type NormalizedOrder } from "@/lib/connectors/otto";
 import { fetchKauflandOrders } from "@/lib/connectors/kaufland";
 import { fetchMediaMarktOrders } from "@/lib/connectors/mediamarkt";
 import { fetchShopifyOrders } from "@/lib/connectors/shopify";
-import { fetchEbayOrders } from "@/lib/connectors/ebay";
+import { fetchEbayOrders, fetchEbayOutletOrders } from "@/lib/connectors/ebay";
 
 export const maxDuration = 60;
 
@@ -109,6 +109,14 @@ export async function GET(request: Request) {
       await saveOrders(await fetchEbayOrders());
     } catch (e) {
       errors.push(`EBAY: ${(e as Error).message}`);
+    }
+  }
+
+  if (process.env.EBAY_OUTLET_REFRESH_TOKEN) {
+    try {
+      await saveOrders(await fetchEbayOutletOrders());
+    } catch (e) {
+      errors.push(`EBAY_OUTLET: ${(e as Error).message}`);
     }
   }
 

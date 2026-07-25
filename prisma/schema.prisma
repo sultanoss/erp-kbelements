@@ -19,6 +19,7 @@ enum Marketplace {
   KAUFLAND
   MEDIAMARKT
   EBAY
+  EBAY_OUTLET
   SHOPIFY
   DIREKT
 }
