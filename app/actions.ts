@@ -932,8 +932,25 @@ export async function createSalesFromTodaysShipments(): Promise<{ created: numbe
   for (const shipment of shipments) {
     const marketplace = (shipment.order.marketplace as Marketplace) ?? "DIREKT";
 
-    if (shipment.isHerdset) {
-      if (alreadyBookedHerdsets.has(shipment.id)) continue;
+    if (alreadyBooked.has(shipment.id)) continue;
+    for (const item of shipment.items) {
+      if (!item.internalSku) continue;
+      await prisma.sale.create({
+        data: {
+          date: todayStart,
+          marketplace,
+          sku: item.internalSku,
+          quantity: item.quantity,
+          source: "TAGESVERKAUF",
+          shipmentId: shipment.id,
+          userId: user.id,
+        },
+      });
+    }
+    alreadyBooked.add(shipment.id);
+    created++;
+
+    if (shipment.isHerdset && !alreadyBookedHerdsets.has(shipment.id)) {
       for (const item of shipment.items) {
         if (!item.internalSku) continue;
         await prisma.herdsetSale.create({
@@ -948,25 +965,6 @@ export async function createSalesFromTodaysShipments(): Promise<{ created: numbe
         });
       }
       alreadyBookedHerdsets.add(shipment.id);
-      created++;
-    } else {
-      if (alreadyBooked.has(shipment.id)) continue;
-      for (const item of shipment.items) {
-        if (!item.internalSku) continue;
-        await prisma.sale.create({
-          data: {
-            date: todayStart,
-            marketplace,
-            sku: item.internalSku,
-            quantity: item.quantity,
-            source: "TAGESVERKAUF",
-            shipmentId: shipment.id,
-            userId: user.id,
-          },
-        });
-      }
-      alreadyBooked.add(shipment.id);
-      created++;
     }
   }
 
