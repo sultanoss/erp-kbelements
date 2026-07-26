@@ -119,6 +119,7 @@ export default async function CorrectionsPage({
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lager</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Grund</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Austausch</th>
+            <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Austausch angekommen</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Benutzer</th>
             <th className="px-4 py-3"></th>
           </tr></thead>
@@ -141,6 +142,11 @@ export default async function CorrectionsPage({
                 <td className="px-4 py-3">
                   {c.austausch && (
                     <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-amber-700">Ja</span>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {c.austauschAngekommen && (
+                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-green-700">Ja</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-grey-mid">{c.user.name}</td>

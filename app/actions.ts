@@ -212,6 +212,7 @@ export async function updateCorrection(formData: FormData) {
   const reason = text(formData, "reason");
   const lager = text(formData, "lager");
   const austausch = text(formData, "austausch") === "ja";
+  const austauschAngekommen = text(formData, "austauschAngekommen") === "ja";
   const dateStr = text(formData, "date");
   if (!id || Number.isNaN(quantity) || quantity === 0 || !reason) return;
 
@@ -244,6 +245,7 @@ export async function updateCorrection(formData: FormData) {
         reason,
         lager: lager || "neuware",
         austausch,
+        austauschAngekommen,
       },
     });
 

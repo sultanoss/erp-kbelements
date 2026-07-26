@@ -51,6 +51,11 @@ export default async function EditCorrectionPage({
             <option value="ja">Ja</option>
           </SelectField>
 
+          <SelectField label="Austausch angekommen" name="austauschAngekommen" defaultValue={correction.austauschAngekommen ? "ja" : "nein"}>
+            <option value="nein">Nein</option>
+            <option value="ja">Ja</option>
+          </SelectField>
+
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-mono text-xs text-amber-700">
             Bestandsänderung: Die alte Korrektur ({correction.quantity > 0 ? "+" : ""}{correction.quantity} {correction.lager === "ns" ? "NS-Lager" : "Neuware"}) wird rückgängig gemacht und durch die neue ersetzt.
           </div>
