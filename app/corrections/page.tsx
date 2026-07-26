@@ -120,6 +120,7 @@ export default async function CorrectionsPage({
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Grund</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Austausch</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Benutzer</th>
+            <th className="px-4 py-3"></th>
           </tr></thead>
           <tbody className="divide-y divide-grey-border">
             {corrections.map((c) => (
@@ -143,6 +144,14 @@ export default async function CorrectionsPage({
                   )}
                 </td>
                 <td className="px-4 py-3 text-grey-mid">{c.user.name}</td>
+                <td className="px-4 py-3">
+                  <a
+                    href={`/corrections/${c.id}`}
+                    className="inline-flex items-center rounded border border-grey-border bg-white px-2.5 py-1 font-mono text-[10px] font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
+                  >
+                    Bearbeiten
+                  </a>
+                </td>
               </tr>
             ))}
           </tbody>

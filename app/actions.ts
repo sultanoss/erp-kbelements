@@ -205,6 +205,60 @@ export async function createCorrection(formData: FormData) {
   revalidatePath("/inventory");
 }
 
+export async function updateCorrection(formData: FormData) {
+  const user = await requireUser();
+  const id = text(formData, "id");
+  const quantity = numberValue(formData, "quantity");
+  const reason = text(formData, "reason");
+  const lager = text(formData, "lager");
+  const austausch = text(formData, "austausch") === "ja";
+  const dateStr = text(formData, "date");
+  if (!id || Number.isNaN(quantity) || quantity === 0 || !reason) return;
+
+  const isNS = lager === "ns";
+
+  await prisma.$transaction(async (tx) => {
+    const old = await tx.correction.findUniqueOrThrow({ where: { id } });
+    const item = await tx.item.findUniqueOrThrow({ where: { sku: old.sku } });
+
+    // Reverse old correction on old lager
+    const wasNS = old.lager === "ns";
+    const stockAfterReverse = wasNS
+      ? { stockNS: item.stockNS - old.quantity }
+      : { stock: item.stock - old.quantity };
+    const itemAfterReverse = await tx.item.update({ where: { sku: old.sku }, data: stockAfterReverse });
+
+    // Apply new correction on new lager
+    const baseStock = isNS ? itemAfterReverse.stockNS : itemAfterReverse.stock;
+    const newStock = baseStock + quantity;
+    await tx.item.update({
+      where: { sku: old.sku },
+      data: isNS ? { stockNS: newStock } : { stock: newStock },
+    });
+
+    await tx.correction.update({
+      where: { id },
+      data: {
+        date: dateStr ? new Date(`${dateStr}T12:00:00`) : old.date,
+        quantity,
+        reason,
+        lager: lager || "neuware",
+        austausch,
+      },
+    });
+
+    const lagerLabel = isNS ? "NS-Lager" : "Neuware-Lager";
+    const note = austausch ? `${reason} (${lagerLabel}) | Austausch` : `${reason} (${lagerLabel})`;
+    await tx.activityLog.create({
+      data: { type: ActivityType.CORRECTION, sku: old.sku, oldStock: baseStock, newStock, note: `[Bearbeitet] ${note}`, userId: user.id },
+    });
+  });
+
+  revalidatePath("/corrections");
+  revalidatePath("/inventory");
+  redirect("/corrections");
+}
+
 export async function markAsBezahlt(invoiceId: string) {
   await requireUser();
   await prisma.invoice.update({
