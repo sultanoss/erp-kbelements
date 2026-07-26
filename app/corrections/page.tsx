@@ -8,10 +8,30 @@ import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function CorrectionsPage() {
+const today = new Date().toISOString().slice(0, 10);
+
+export default async function CorrectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ von?: string; bis?: string }>;
+}) {
+  const { von, bis } = await searchParams;
+
+  const dateFilter = von || bis ? {
+    date: {
+      ...(von ? { gte: new Date(`${von}T00:00:00`) } : {}),
+      ...(bis ? { lte: new Date(`${bis}T23:59:59`) } : {}),
+    },
+  } : {};
+
   const [items, corrections] = await Promise.all([
     prisma.item.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.correction.findMany({ take: 30, orderBy: { createdAt: "desc" }, include: { user: true } }),
+    prisma.correction.findMany({
+      take: von || bis ? 500 : 30,
+      orderBy: { date: "desc" },
+      where: dateFilter,
+      include: { user: true },
+    }),
   ]);
 
   return (
@@ -36,8 +56,47 @@ export default async function CorrectionsPage() {
         </form>
       </Panel>
       <Panel className="overflow-x-auto">
-        <div className="flex items-center gap-3 border-b border-grey-border px-5 py-4">
-          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Letzte Korrekturen</div>
+        <div className="flex flex-wrap items-center gap-3 border-b border-grey-border px-5 py-4">
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
+            {von || bis ? "Korrekturen im Zeitraum" : "Letzte Korrekturen"}
+          </div>
+          <form method="GET" className="ml-auto flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Von</span>
+              <input
+                type="date"
+                name="von"
+                defaultValue={von ?? ""}
+                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+              />
+            </label>
+            <label className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bis</span>
+              <input
+                type="date"
+                name="bis"
+                defaultValue={bis ?? ""}
+                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+              />
+            </label>
+            <button
+              type="submit"
+              className="h-8 rounded-lg bg-brand-red px-3 font-mono text-xs font-semibold text-white hover:bg-brand-red-dark"
+            >
+              Anzeigen
+            </button>
+            {(von || bis) && (
+              <a
+                href="/corrections"
+                className="h-8 inline-flex items-center rounded-lg border border-grey-border bg-white px-3 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
+              >
+                Zurücksetzen
+              </a>
+            )}
+            {corrections.length > 0 && (
+              <span className="font-mono text-xs text-grey-mid">{corrections.length} Einträge</span>
+            )}
+          </form>
         </div>
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead><tr className="border-b border-grey-border bg-grey-light">
