@@ -8,26 +8,32 @@ import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
+const inputClass = "h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none";
+
 export default async function CorrectionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ von?: string; bis?: string }>;
+  searchParams: Promise<{ von?: string; bis?: string; austausch?: string; grund?: string }>;
 }) {
-  const { von, bis } = await searchParams;
-
-  const dateFilter = von || bis ? {
-    date: {
-      ...(von ? { gte: new Date(`${von}T00:00:00`) } : {}),
-      ...(bis ? { lte: new Date(`${bis}T23:59:59`) } : {}),
-    },
-  } : {};
+  const { von, bis, austausch: austauschFilter, grund: grundFilter } = await searchParams;
+  const hasFilter = !!(von || bis || austauschFilter || grundFilter);
 
   const [items, corrections] = await Promise.all([
     prisma.item.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.correction.findMany({
-      take: von || bis ? 500 : 30,
+      take: hasFilter ? 500 : 30,
       orderBy: { date: "desc" },
-      where: dateFilter,
+      where: {
+        ...(von || bis ? {
+          date: {
+            ...(von ? { gte: new Date(`${von}T00:00:00`) } : {}),
+            ...(bis ? { lte: new Date(`${bis}T23:59:59`) } : {}),
+          },
+        } : {}),
+        ...(austauschFilter === "ja" ? { austausch: true } : {}),
+        ...(austauschFilter === "nein" ? { austausch: false } : {}),
+        ...(grundFilter ? { reason: { contains: grundFilter, mode: "insensitive" } } : {}),
+      },
       include: { user: true },
     }),
   ]);
@@ -60,34 +66,39 @@ export default async function CorrectionsPage({
       <Panel className="overflow-x-auto">
         <div className="flex flex-wrap items-center gap-3 border-b border-grey-border px-5 py-4">
           <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-            {von || bis ? "Korrekturen im Zeitraum" : "Letzte Korrekturen"}
+            {hasFilter ? "Korrekturen (gefiltert)" : "Letzte Korrekturen"}
           </div>
           <form method="GET" className="ml-auto flex flex-wrap items-center gap-2">
             <label className="flex items-center gap-1.5">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Von</span>
-              <input
-                type="date"
-                name="von"
-                defaultValue={von ?? ""}
-                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-              />
+              <input type="date" name="von" defaultValue={von ?? ""} className={inputClass} />
             </label>
             <label className="flex items-center gap-1.5">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bis</span>
+              <input type="date" name="bis" defaultValue={bis ?? ""} className={inputClass} />
+            </label>
+            <label className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Austausch</span>
+              <select name="austausch" defaultValue={austauschFilter ?? ""} className={inputClass}>
+                <option value="">Alle</option>
+                <option value="ja">Ja</option>
+                <option value="nein">Nein</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Grund</span>
               <input
-                type="date"
-                name="bis"
-                defaultValue={bis ?? ""}
-                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
+                type="text"
+                name="grund"
+                defaultValue={grundFilter ?? ""}
+                placeholder="Retoure, Storno …"
+                className={`${inputClass} w-36`}
               />
             </label>
-            <button
-              type="submit"
-              className="h-8 rounded-lg bg-brand-red px-3 font-mono text-xs font-semibold text-white hover:bg-brand-red-dark"
-            >
+            <button type="submit" className="h-8 rounded-lg bg-brand-red px-3 font-mono text-xs font-semibold text-white hover:bg-brand-red-dark">
               Anzeigen
             </button>
-            {(von || bis) && (
+            {hasFilter && (
               <a
                 href="/corrections"
                 className="h-8 inline-flex items-center rounded-lg border border-grey-border bg-white px-3 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
@@ -136,7 +147,7 @@ export default async function CorrectionsPage({
             ))}
           </tbody>
         </table>
-        {corrections.length === 0 && <div className="p-8 text-center font-mono text-xs text-grey-mid">Noch keine Korrekturen.</div>}
+        {corrections.length === 0 && <div className="p-8 text-center font-mono text-xs text-grey-mid">Keine Korrekturen gefunden.</div>}
       </Panel>
     </AppShell>
   );
