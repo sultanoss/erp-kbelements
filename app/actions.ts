@@ -176,6 +176,7 @@ export async function createCorrection(formData: FormData) {
   const quantity = numberValue(formData, "quantity");
   const reason = text(formData, "reason");
   const lager = text(formData, "lager"); // "neuware" | "ns"
+  const austausch = text(formData, "austausch") === "ja";
   if (!sku || Number.isNaN(quantity) || quantity === 0 || !reason) return;
 
   const isNS = lager === "ns";
@@ -186,14 +187,16 @@ export async function createCorrection(formData: FormData) {
     const newStock = oldStock + quantity;
 
     await tx.correction.create({
-      data: { date: dateValue(formData, "date"), sku, quantity, reason, lager: lager || "neuware", userId: user.id },
+      data: { date: dateValue(formData, "date"), sku, quantity, reason, lager: lager || "neuware", austausch, userId: user.id },
     });
     await tx.item.update({
       where: { sku },
       data: isNS ? { stockNS: newStock } : { stock: newStock },
     });
+    const lagerLabel = isNS ? "NS-Lager" : "Neuware-Lager";
+    const note = austausch ? `${reason} (${lagerLabel}) | Austausch` : `${reason} (${lagerLabel})`;
     await tx.activityLog.create({
-      data: { type: ActivityType.CORRECTION, sku, oldStock, newStock, note: `${reason} (${isNS ? "NS-Lager" : "Neuware-Lager"})`, userId: user.id },
+      data: { type: ActivityType.CORRECTION, sku, oldStock, newStock, note, userId: user.id },
     });
   });
 

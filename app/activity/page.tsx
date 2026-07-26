@@ -24,9 +24,9 @@ const typeBadge: Record<string, string> = {
 export default async function ActivityPage({
   searchParams,
 }: {
-  searchParams: Promise<{ von?: string; bis?: string; type?: string }>;
+  searchParams: Promise<{ von?: string; bis?: string; type?: string; austausch?: string }>;
 }) {
-  const { von, bis, type: typeFilter } = await searchParams;
+  const { von, bis, type: typeFilter, austausch: austauschFilter } = await searchParams;
 
   const logs = await prisma.activityLog.findMany({
     take: 200,
@@ -34,6 +34,7 @@ export default async function ActivityPage({
     include: { user: true },
     where: {
       ...(typeFilter ? { type: typeFilter as ActivityType } : {}),
+      ...(austauschFilter === "ja" ? { type: "CORRECTION" as ActivityType, note: { contains: "| Austausch" } } : {}),
       ...(von || bis
         ? {
             createdAt: {
@@ -47,7 +48,7 @@ export default async function ActivityPage({
 
   const inputClass = "h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
   const labelClass = "font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid";
-  const hasFilter = !!(typeFilter || von || bis);
+  const hasFilter = !!(typeFilter || von || bis || austauschFilter);
 
   return (
     <AppShell>
@@ -70,6 +71,13 @@ export default async function ActivityPage({
             <option value="RECEIPT">Wareneingang</option>
             <option value="CORRECTION">Korrektur</option>
             <option value="USER_CHANGE">Benutzeränderung</option>
+          </select>
+        </label>
+        <label className="grid gap-1.5">
+          <span className={labelClass}>Austausch</span>
+          <select name="austausch" defaultValue={austauschFilter ?? ""} className={inputClass}>
+            <option value="">Alle</option>
+            <option value="ja">Nur Austausch</option>
           </select>
         </label>
         <button

@@ -101,6 +101,7 @@ model Correction {
   quantity  Int
   reason    String
   lager     String   @default("neuware")
+  austausch Boolean  @default(false)
   userId    String
   createdAt DateTime @default(now())
   item      Item     @relation(fields: [sku], references: [sku], onUpdate: Cascade)

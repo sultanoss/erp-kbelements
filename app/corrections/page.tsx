@@ -8,8 +8,6 @@ import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-const today = new Date().toISOString().slice(0, 10);
-
 export default async function CorrectionsPage({
   searchParams,
 }: {
@@ -43,7 +41,7 @@ export default async function CorrectionsPage({
       </Panel>
       <Panel className="mb-6 p-5">
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Korrektur eintragen</div>
-        <form action={createCorrection} className="grid gap-4 md:grid-cols-6">
+        <form action={createCorrection} className="grid gap-4 md:grid-cols-7">
           <Field label="Datum" name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
           <SelectField label="SKU" name="sku">{items.map((i) => <option key={i.sku} value={i.sku}>{i.sku}</option>)}</SelectField>
           <SelectField label="Lager" name="lager">
@@ -52,6 +50,10 @@ export default async function CorrectionsPage({
           </SelectField>
           <Field label="Menge" name="quantity" type="number" defaultValue={-1} />
           <Field label="Grund" name="reason" placeholder="Inventur, Bruch ..." />
+          <SelectField label="Austausch" name="austausch">
+            <option value="nein">Nein</option>
+            <option value="ja">Ja</option>
+          </SelectField>
           <div className="flex items-end"><SubmitButton>Korrektur speichern</SubmitButton></div>
         </form>
       </Panel>
@@ -98,13 +100,14 @@ export default async function CorrectionsPage({
             )}
           </form>
         </div>
-        <table className="w-full min-w-[640px] text-left text-sm">
+        <table className="w-full min-w-[700px] text-left text-sm">
           <thead><tr className="border-b border-grey-border bg-grey-light">
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Menge</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lager</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Grund</th>
+            <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Austausch</th>
             <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Benutzer</th>
           </tr></thead>
           <tbody className="divide-y divide-grey-border">
@@ -123,6 +126,11 @@ export default async function CorrectionsPage({
                   )}
                 </td>
                 <td className="px-4 py-3 text-grey-dark">{c.reason}</td>
+                <td className="px-4 py-3">
+                  {c.austausch && (
+                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-amber-700">Ja</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-grey-mid">{c.user.name}</td>
               </tr>
             ))}
