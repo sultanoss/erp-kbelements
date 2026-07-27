@@ -10,17 +10,37 @@ export async function GET(req: Request) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const sales = await prisma.sale.groupBy({
-    by: ["sku"],
+  const sales = await prisma.sale.findMany({
     where: { date: { gte: todayStart } },
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: "desc" } },
+    select: { sku: true, quantity: true, marketplace: true },
   });
 
-  const total = sales.reduce((s, r) => s + (r._sum.quantity ?? 0), 0);
+  // Group by marketplace
+  const direkt = sales.filter(s => s.marketplace === "DIREKT");
+  const versand = sales.filter(s => s.marketplace !== "DIREKT");
+
+  const direktTotal = direkt.reduce((s, r) => s + r.quantity, 0);
+  const versandTotal = versand.reduce((s, r) => s + r.quantity, 0);
+
+  // Group versand by SKU
+  const versandBySku: Record<string, number> = {};
+  for (const s of versand) {
+    versandBySku[s.sku] = (versandBySku[s.sku] ?? 0) + s.quantity;
+  }
+
+  // Group direkt by SKU
+  const direktBySku: Record<string, number> = {};
+  for (const s of direkt) {
+    direktBySku[s.sku] = (direktBySku[s.sku] ?? 0) + s.quantity;
+  }
 
   return NextResponse.json({
-    total,
-    bySku: sales.map(r => ({ sku: r.sku, qty: r._sum.quantity })),
+    total: sales.reduce((s, r) => s + r.quantity, 0),
+    direktTotal,
+    versandTotal,
+    direktBySku,
+    versandBySku: Object.entries(versandBySku)
+      .sort((a, b) => b[1] - a[1])
+      .map(([sku, qty]) => ({ sku, qty })),
   });
 }
