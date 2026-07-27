@@ -261,23 +261,12 @@ export function PurchaseForm({ allItems }: { allItems: ItemInfo[] }) {
                       <span className="pl-1 font-mono text-[10px] text-grey-mid truncate">{item.name}</span>
                     )}
                   </div>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={line.currentStock}
-                    onChange={(e) => updateLine(line.id, "currentStock", parseInt(e.target.value) || 0)}
-                    className={inputClass}
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={line.currentAvgPrice || ""}
-                    onChange={(e) => updateLine(line.id, "currentAvgPrice", parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    className={inputClass}
-                  />
+                  <div className={readonlyClass + " justify-center tabular-nums"}>
+                    {line.currentStock}
+                  </div>
+                  <div className={readonlyClass + " justify-center tabular-nums"}>
+                    {line.currentAvgPrice > 0 ? `${line.currentAvgPrice.toFixed(2)} €` : "–"}
+                  </div>
                   <input
                     type="number"
                     min={0}
