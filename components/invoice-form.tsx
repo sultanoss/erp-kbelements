@@ -20,6 +20,12 @@ export type B2bCustomer = {
   notes: string | null;
 };
 
+export type B2cCustomer = {
+  id: string;
+  name: string;
+  address: string;
+};
+
 export type InvoiceInitialData = {
   invoiceId?: string;
   date: string;
@@ -50,6 +56,7 @@ export function InvoiceForm({
   originalInvoiceId,
   originalInvoiceNum,
   b2bCustomers = [],
+  b2cCustomers = [],
 }: {
   skus: SkuData[];
   initialData?: InvoiceInitialData;
@@ -57,6 +64,7 @@ export function InvoiceForm({
   originalInvoiceId?: string;
   originalInvoiceNum?: string;
   b2bCustomers?: B2bCustomer[];
+  b2cCustomers?: B2cCustomer[];
 }) {
   const [items, setItems] = useState<LineItem[]>(initialData?.items ?? [newLine(1)]);
   const [mwstRate, setMwstRate] = useState(initialData?.mwstRate ?? 19);
@@ -64,6 +72,7 @@ export function InvoiceForm({
   const [shippingMwst, setShippingMwst] = useState<number>(initialData?.shippingMwst ?? 19);
   const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">(initialData?.paymentMethod ?? "konto");
   const [zahlungAusstehend, setZahlungAusstehend] = useState(false);
+  const [kundeSpeichern, setKundeSpeichern] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -74,6 +83,7 @@ export function InvoiceForm({
   const [customerNum, setCustomerNum] = useState(initialData?.customerNum ?? "");
   const [paymentInfo, setPaymentInfo] = useState(initialData?.paymentInfo ?? "");
   const [selectedB2bId, setSelectedB2bId] = useState("");
+  const [selectedB2cId, setSelectedB2cId] = useState("");
   const [lastPrices, setLastPrices] = useState<Record<number, { sku: string; price: number | null } | undefined>>({});
 
   useEffect(() => {
@@ -105,6 +115,15 @@ export function InvoiceForm({
     setPaymentInfo(c.paymentInfo ?? "");
   }
 
+  function selectB2cCustomer(id: string) {
+    setSelectedB2cId(id);
+    if (!id) return;
+    const c = b2cCustomers.find((x) => x.id === id);
+    if (!c) return;
+    setCustomerName(c.name);
+    setCustomerAddress(c.address);
+  }
+
   function handleReset() {
     setItems([newLine(1)]);
     setMwstRate(19);
@@ -112,12 +131,14 @@ export function InvoiceForm({
     setShippingMwst(19);
     setPaymentMethod("konto");
     setZahlungAusstehend(false);
+    setKundeSpeichern(false);
     setError("");
     setCustomerName("");
     setCustomerAddress("");
     setCustomerNum("");
     setPaymentInfo("");
     setSelectedB2bId("");
+    setSelectedB2cId("");
     formRef.current?.reset();
   }
 
@@ -227,7 +248,7 @@ export function InvoiceForm({
       if (initialData?.invoiceId) {
         updateInvoice(initialData.invoiceId, payload);
       } else {
-        createInvoice({ ...payload, bezahlt: !zahlungAusstehend });
+        createInvoice({ ...payload, bezahlt: !zahlungAusstehend, saveAsB2cCustomer: kundeSpeichern });
       }
     });
   }
@@ -236,6 +257,28 @@ export function InvoiceForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+
+      {/* B2C Kunde Auswahl */}
+      {b2cCustomers.length > 0 && !initialData?.invoiceId && (
+        <div className="flex items-center gap-3 rounded-lg border border-grey-border bg-grey-light/60 px-4 py-3">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid whitespace-nowrap">B2C Kunde</span>
+          <select
+            value={selectedB2cId}
+            onChange={(e) => selectB2cCustomer(e.target.value)}
+            className="h-9 flex-1 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+          >
+            <option value="">— Kunden wählen (optional) —</option>
+            {b2cCustomers.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          {selectedB2cId && (
+            <button type="button" onClick={() => { setSelectedB2cId(""); }} className="font-mono text-xs text-grey-mid hover:text-brand-red">
+              ✕ zurücksetzen
+            </button>
+          )}
+        </div>
+      )}
 
       {/* B2B Kunde Auswahl */}
       {b2bCustomers.length > 0 && !initialData?.invoiceId && (
@@ -541,6 +584,17 @@ export function InvoiceForm({
                   className="h-4 w-4 rounded accent-brand-red"
                 />
                 <span className="text-sm font-semibold text-grey-dark">Zahlung ausstehend (unbezahlt)</span>
+              </label>
+            )}
+            {!initialData?.invoiceId && (
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={kundeSpeichern}
+                  onChange={(e) => setKundeSpeichern(e.target.checked)}
+                  className="h-4 w-4 rounded accent-brand-red"
+                />
+                <span className="text-sm font-semibold text-grey-dark">Kunde speichern (B2C)</span>
               </label>
             )}
           </div>

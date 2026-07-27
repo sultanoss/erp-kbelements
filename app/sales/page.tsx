@@ -1,12 +1,8 @@
 import { createSale, createNSSale } from "@/app/actions";
-import { CsvImport } from "@/components/csv-import";
 import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/shell";
 import { Field, Panel, SelectField, SubmitButton } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
-import { HaendlerImport } from "@/components/haendler-import";
-import { DeleteSales } from "@/components/delete-sales";
-import { EbayOutletImport } from "@/components/ebay-outlet-import";
 
 export const dynamic = "force-dynamic";
 
@@ -19,77 +15,7 @@ export default async function SalesPage() {
     <AppShell>
       <PageHeader title="Verkäufe" eyebrow="Bestand wird automatisch reduziert" />
 
-      {/* Export-Buttons */}
-      <div className="mb-6 flex flex-wrap items-center gap-2">
-        <form method="GET" action="/api/export/sales" className="flex items-center gap-2">
-          <input
-            name="date"
-            type="date"
-            defaultValue={today}
-            className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors"
-          >
-            ↓ Tag exportieren
-          </button>
-        </form>
-        <form method="GET" action="/api/export/sales-range" className="flex items-center gap-2">
-          <input
-            name="von"
-            type="date"
-            defaultValue={today}
-            className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-          />
-          <span className="font-mono text-xs text-grey-mid">–</span>
-          <input
-            name="bis"
-            type="date"
-            defaultValue={today}
-            className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-xs text-grey-dark focus:border-brand-red focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors"
-          >
-            ↓ Zeitraum exportieren
-          </button>
-        </form>
-        <a
-          href="/api/template"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors"
-        >
-          ↓ Template
-        </a>
-      </div>
-
-      {/* Tagesverkäufe importieren */}
-      <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          Tagesverkäufe importieren
-        </div>
-        <CsvImport />
-      </Panel>
-
-      {/* Händler Verkäufe */}
-      <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          Händler Verkäufe
-        </div>
-        <HaendlerImport />
-      </Panel>
-
-      {/* eBay Outlet Verkäufe (NS-Lager) */}
-      <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
-          eBay Outlet Verkäufe
-        </div>
-        <p className="mb-4 font-mono text-xs text-grey-mid">Bucht aus NS-Lager. Format wie Tagesverkäufe-CSV.</p>
-        <EbayOutletImport />
-      </Panel>
-
-      {/* Lager Verkauf */}
+      {/* Neuware-Lager Verkauf */}
       <Panel className="mb-6 p-5">
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
           Neuware-Lager Verkauf
@@ -146,17 +72,6 @@ export default async function SalesPage() {
             />
           </div>
         </form>
-      </Panel>
-
-      {/* Verkäufe löschen */}
-      <Panel className="mb-6 p-5">
-        <div className="mb-4 border-l-2 border-grey-mid pl-3 text-sm font-bold text-grey-dark">
-          Verkäufe löschen
-        </div>
-        <p className="mb-4 font-mono text-xs text-grey-mid">
-          Löscht alle Verkäufe eines Datums (nach Quelle filterbar) und stellt den Bestand wieder her.
-        </p>
-        <DeleteSales />
       </Panel>
     </AppShell>
   );

@@ -21,6 +21,7 @@ const baseLinks: NavItem[] = [
     { href: "/buchhaltung",           label: "Rechnungen"   },
     { href: "/buchhaltung/storniert", label: "Storniert"    },
     { href: "/gutschrift",            label: "Gutschriften" },
+    { href: "/b2c/kunden",            label: "B2C Kunden"   },
     { href: "/export",                label: "Export"       },
   ]},
   { label: "Angebote", icon: "FileText", separator: true, children: [

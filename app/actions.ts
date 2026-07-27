@@ -302,6 +302,7 @@ export async function createInvoice(data: {
   docType: "rechnung" | "angebot" | "gutschrift";
   originalInvoiceId?: string;
   originalInvoiceNum?: string;
+  saveAsB2cCustomer?: boolean;
   items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
 }) {
   const user = await requireUser();
@@ -372,6 +373,12 @@ export async function createInvoice(data: {
   revalidatePath("/gutschrift");
   revalidatePath("/inventory");
   revalidatePath("/");
+  if (data.saveAsB2cCustomer && data.customerName && data.customerAddress) {
+    await prisma.b2cCustomer.create({
+      data: { name: data.customerName.trim(), address: data.customerAddress.trim() },
+    });
+    revalidatePath("/b2c/kunden");
+  }
   if (data.docType === "angebot") redirect(`/angebot/${invoice.id}`);
   if (data.docType === "gutschrift") redirect(`/gutschrift/${invoice.id}`);
   redirect(`/buchhaltung/${invoice.id}`);
