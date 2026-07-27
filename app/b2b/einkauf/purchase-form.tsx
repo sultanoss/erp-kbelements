@@ -252,9 +252,7 @@ export function PurchaseForm({ allItems }: { allItems: ItemInfo[] }) {
                     >
                       <option value="">— SKU wählen —</option>
                       {allItems.map((i) => (
-                        <option key={i.sku} value={i.sku}>
-                          {i.sku}{i.name ? ` — ${i.name}` : ""}
-                        </option>
+                        <option key={i.sku} value={i.sku}>{i.sku}</option>
                       ))}
                     </select>
                     {item?.name && (
