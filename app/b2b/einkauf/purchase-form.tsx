@@ -255,9 +255,6 @@ export function PurchaseForm({ allItems }: { allItems: ItemInfo[] }) {
                         <option key={i.sku} value={i.sku}>{i.sku}</option>
                       ))}
                     </select>
-                    {item?.name && (
-                      <span className="pl-1 font-mono text-[10px] text-grey-mid truncate">{item.name}</span>
-                    )}
                   </div>
                   <div className={readonlyClass + " justify-center tabular-nums"}>
                     {line.currentStock}
