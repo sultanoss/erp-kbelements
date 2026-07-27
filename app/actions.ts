@@ -992,11 +992,27 @@ export type DailySalesResult = {
   shipmentIds: string[];
 };
 
-export async function createDailySalesFromShipments(): Promise<DailySalesResult> {
+export async function getPendingShipments() {
+  await requireUser();
+  return prisma.shipment.findMany({
+    where: { salesCreated: false },
+    include: {
+      order: { select: { marketplace: true, orderNumber: true } },
+      items: { where: { warehouse: { not: "ns" } } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function createDailySalesFromShipments(selectedIds: string[]): Promise<DailySalesResult> {
   const user = await requireUser();
 
+  if (selectedIds.length === 0) {
+    return { ok: true, nothingNew: true, salesCreated: 0, herdsetsCreated: 0, saleIds: [], herdsetSaleIds: [], shipmentIds: [] };
+  }
+
   const shipments = await prisma.shipment.findMany({
-    where: { salesCreated: false },
+    where: { id: { in: selectedIds }, salesCreated: false },
     include: { order: true, items: true },
   });
 
