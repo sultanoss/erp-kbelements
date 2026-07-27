@@ -48,9 +48,10 @@ export function OrderEditPanel({ orderId, initialNote, initialIsHerdset, herdset
             className="mt-0.5 h-4 w-4 accent-brand-red disabled:opacity-50"
           />
           <span className="font-mono text-xs text-grey-dark">
-            {isHerdset
-              ? `Herdset-Verkauf (${herdsetLabel ?? "kein Label"})`
-              : "Kein Herdset-Verkauf"}
+            ist ein Herdset
+            {isHerdset && herdsetLabel && (
+              <span className="ml-1.5 font-mono text-[10px] text-grey-mid">({herdsetLabel})</span>
+            )}
           </span>
         </label>
         {!isShipped && (

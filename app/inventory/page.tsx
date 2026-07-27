@@ -62,17 +62,22 @@ export default async function InventoryPage({
 
       {/* Suche + Sortierung */}
       <div className="mb-4 flex flex-wrap items-end gap-3">
-        <a
-          href="/api/export/inventory"
-          className="inline-flex items-center gap-2 rounded-lg border border-grey-border bg-white px-4 py-2.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
-        >
-          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="flex items-center gap-1 rounded-lg border border-grey-border bg-white p-1">
+          <svg className="ml-2 h-3.5 w-3.5 flex-shrink-0 text-grey-mid" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          Export CSV
-        </a>
+          <a href="/api/export/inventory?lager=neuware" className="rounded px-3 py-1.5 font-mono text-xs font-semibold text-grey-mid hover:bg-grey-light hover:text-grey-dark transition-colors">
+            Neuware
+          </a>
+          <a href="/api/export/inventory?lager=ns" className="rounded px-3 py-1.5 font-mono text-xs font-semibold text-grey-mid hover:bg-grey-light hover:text-grey-dark transition-colors">
+            NS-Lager
+          </a>
+          <a href="/api/export/inventory?lager=beide" className="rounded px-3 py-1.5 font-mono text-xs font-semibold text-grey-mid hover:bg-grey-light hover:text-grey-dark transition-colors">
+            Beide
+          </a>
+        </div>
         <form method="GET" className="flex flex-1 max-w-lg gap-2">
           {sort && <input type="hidden" name="sort" value={sort} />}
           <div className="relative flex-1">
