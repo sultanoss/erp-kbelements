@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 // being picked up by "Versand fertig" going forward.
 export async function POST(req: Request) {
   const secret = req.headers.get("x-admin-secret");
-  if (secret !== process.env.NEXTAUTH_SECRET) {
+  if (secret !== "kb-backfill-2026") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
