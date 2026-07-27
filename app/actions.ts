@@ -995,12 +995,11 @@ export type DailySalesResult = {
 export async function createDailySalesFromShipments(): Promise<DailySalesResult> {
   const user = await requireUser();
 
-  const windowStart = new Date();
-  windowStart.setDate(windowStart.getDate() - 7);
-  windowStart.setHours(0, 0, 0, 0);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
   const shipments = await prisma.shipment.findMany({
-    where: { salesCreated: false, createdAt: { gte: windowStart } },
+    where: { salesCreated: false, createdAt: { gte: todayStart } },
     include: { order: true, items: true },
   });
 
