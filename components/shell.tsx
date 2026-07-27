@@ -15,7 +15,6 @@ const baseLinks: NavItem[] = [
   { href: "/inventory", label: "Lager", icon: "Boxes" },
   { href: "/sales", label: "Verkäufe", icon: "ClipboardList" },
   { href: "/auswertung", label: "Auswertung", icon: "BarChart2" },
-  { href: "/receipts", label: "Wareneingang", icon: "PackagePlus" },
   { href: "/corrections", label: "Korrekturen", icon: "SlidersHorizontal" },
   { label: "Buchhaltung", icon: "Receipt", separator: true, children: [
     { href: "/buchhaltung",           label: "Rechnungen"   },

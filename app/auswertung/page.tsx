@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/shell";
 import { Panel } from "@/components/ui";
-import { HerdsetImport } from "@/components/herdset-import";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -252,29 +251,6 @@ export default async function AuswertungPage({
         )}
       </details>
 
-      {/* ── Upload Herdsets ── */}
-      <details open className="group">
-        <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
-          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Herdsets hochladen</div>
-          <div className="h-px flex-1 bg-grey-border" />
-          <span className="font-mono text-[10px] text-grey-mid group-open:hidden">▼ aufklappen</span>
-          <span className="font-mono text-[10px] text-grey-mid hidden group-open:inline">▲ zuklappen</span>
-        </summary>
-      <Panel className="p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs text-grey-mid">
-            Format: Portal als Abschnitt (Amazon, Mediamarkt, Otto …), darunter Artikel und Menge
-          </p>
-          <a
-            href="/api/template?type=herdsets"
-            className="font-mono text-xs font-semibold text-brand-red hover:underline"
-          >
-            ↓ Template herunterladen
-          </a>
-        </div>
-        <HerdsetImport />
-      </Panel>
-      </details>
     </AppShell>
   );
 }
