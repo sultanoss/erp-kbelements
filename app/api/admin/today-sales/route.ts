@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   todayStart.setHours(0, 0, 0, 0);
 
   const sales = await prisma.sale.findMany({
-    where: { date: { gte: todayStart } },
+    where: { date: { gte: todayStart }, source: { not: "NS_LAGER" } },
     select: { sku: true, quantity: true, marketplace: true },
   });
 
