@@ -966,4 +966,99 @@ export async function goHome() {
   redirect("/");
 }
 
+export type DailySalesResult = {
+  ok: boolean;
+  nothingNew: boolean;
+  salesCreated: number;
+  herdsetsCreated: number;
+  saleIds: string[];
+  herdsetSaleIds: string[];
+  shipmentIds: string[];
+};
+
+export async function createDailySalesFromShipments(): Promise<DailySalesResult> {
+  const user = await requireUser();
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const shipments = await prisma.shipment.findMany({
+    where: { salesCreated: false, createdAt: { gte: todayStart } },
+    include: { order: true, items: true },
+  });
+
+  if (shipments.length === 0) {
+    return { ok: true, nothingNew: true, salesCreated: 0, herdsetsCreated: 0, saleIds: [], herdsetSaleIds: [], shipmentIds: [] };
+  }
+
+  const saleIds: string[] = [];
+  const herdsetSaleIds: string[] = [];
+  const shipmentIds: string[] = [];
+
+  for (const shipment of shipments) {
+    const { order } = shipment;
+    const marketplace = order.marketplace as Marketplace;
+    const saleDate = shipment.createdAt;
+
+    for (const item of shipment.items) {
+      const source = item.warehouse === "ns" ? "NS_LAGER" : "TAGESVERKAUF";
+      const sale = await prisma.sale.create({
+        data: { date: saleDate, marketplace, sku: item.internalSku, quantity: item.quantity, source, userId: user.id },
+      });
+      saleIds.push(sale.id);
+    }
+
+    if (order.isHerdset && order.herdsetLabel) {
+      const herdset = await prisma.herdsetSale.create({
+        data: { date: saleDate, marketplace, label: order.herdsetLabel, quantity: 1, userId: user.id },
+      });
+      herdsetSaleIds.push(herdset.id);
+    }
+
+    await prisma.shipment.update({ where: { id: shipment.id }, data: { salesCreated: true } });
+    shipmentIds.push(shipment.id);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/sales");
+  revalidatePath("/auswertung");
+
+  return { ok: true, nothingNew: false, salesCreated: saleIds.length, herdsetsCreated: herdsetSaleIds.length, saleIds, herdsetSaleIds, shipmentIds };
+}
+
+export async function undoDailySales(data: {
+  saleIds: string[];
+  herdsetSaleIds: string[];
+  shipmentIds: string[];
+}): Promise<{ done: boolean }> {
+  await requireUser();
+
+  if (data.saleIds.length > 0) {
+    await prisma.sale.deleteMany({ where: { id: { in: data.saleIds } } });
+  }
+  if (data.herdsetSaleIds.length > 0) {
+    await prisma.herdsetSale.deleteMany({ where: { id: { in: data.herdsetSaleIds } } });
+  }
+
+  for (const shipmentId of data.shipmentIds) {
+    const shipment = await prisma.shipment.findUnique({
+      where: { id: shipmentId },
+      select: { orderId: true, order: { select: { externalId: true } } },
+    });
+    if (!shipment) continue;
+
+    if (shipment.order.externalId.startsWith("TEST-")) {
+      await prisma.shipment.delete({ where: { id: shipmentId } });
+      await prisma.order.delete({ where: { id: shipment.orderId } });
+    } else {
+      await prisma.shipment.update({ where: { id: shipmentId }, data: { salesCreated: false } });
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/sales");
+  revalidatePath("/auswertung");
+
+  return { done: true };
+}
 

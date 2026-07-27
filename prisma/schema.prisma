@@ -197,6 +197,8 @@ model Order {
   orderDate      DateTime
   orderNumber    String?
   trackingNumber String?
+  isHerdset      Boolean     @default(false)
+  herdsetLabel   String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   items          OrderItem[]
@@ -233,6 +235,7 @@ model Shipment {
   weight          Float?
   carrierResponse Json?
   notifiedOttoAt  DateTime?
+  salesCreated    Boolean        @default(false)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   items           ShipmentItem[]

@@ -72,6 +72,8 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const formRef = useRef<HTMLFormElement>(null);
   const manualIdRef = useRef(0);
 
+  const [isHerdset, setIsHerdset] = useState(false);
+
   const [shipName, setShipName] = useState(consignee.name);
   const [shipStreet, setShipStreet] = useState(consignee.street);
   const [shipZip, setShipZip] = useState(consignee.zip);
@@ -142,6 +144,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     if (carrier === "GEL") fd.set("trackingNumber", manualTracking);
     fd.set("items", JSON.stringify(selectedItems));
     fd.set("manualItems", JSON.stringify(manualItems));
+    if (isHerdset && marketplace !== "EBAY_OUTLET") fd.set("isHerdset", "on");
     fd.set("shipName", shipName.trim());
     fd.set("shipStreet", shipStreet.trim());
     fd.set("shipZip", shipZip.trim());
@@ -165,6 +168,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setManualTracking("");
     setSearch("");
     setSearchResults([]);
+    setIsHerdset(false);
     setShipName(consignee.name);
     setShipStreet(consignee.street);
     setShipZip(consignee.zip);
@@ -493,6 +497,26 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                       Manuell hinzufügen
                     </button>
                   </div>
+
+                  {/* Herdset */}
+                  {marketplace !== "EBAY_OUTLET" && (
+                    <div>
+                      <label className="flex cursor-pointer items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={isHerdset}
+                          onChange={(e) => setIsHerdset(e.target.checked)}
+                          className="h-4 w-4 rounded border-grey-border text-brand-red focus:ring-brand-red"
+                        />
+                        <span className="font-mono text-xs font-semibold text-grey-dark">Ist ein Herdset</span>
+                      </label>
+                      {isHerdset && orderItems[0] && (
+                        <div className="mt-1.5 font-mono text-[10px] text-grey-mid pl-6.5">
+                          Marktplatz-SKU: <span className="font-semibold text-grey-dark">{orderItems[0].marketplaceSku}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Carrier-specific fields */}
                   {carrier === "DHL" && (

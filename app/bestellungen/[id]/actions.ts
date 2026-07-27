@@ -52,6 +52,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const shipCountry    = (formData.get("shipCountry")    as string | null)?.trim() || null;
   const shipPostNumber = (formData.get("shipPostNumber") as string | null)?.trim() || undefined;
 
+  const isHerdset = formData.get("isHerdset") === "on";
+
   if (!id || !carrier) return { ok: false, error: "Fehlende Pflichtfelder" };
   if (carrier !== "DHL" && carrier !== "GEL") return { ok: false, error: "Ungültiger Carrier" };
 
@@ -175,6 +177,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         data: {
           status: "ABGESCHLOSSEN",
           trackingNumber: shipmentResult.trackingNumber,
+          isHerdset,
+          herdsetLabel: isHerdset ? (order.items[0]?.marketplaceSku ?? null) : null,
         },
       });
 
