@@ -7,16 +7,22 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function NeueRechnungPage() {
-  const items = await prisma.item.findMany({
-    orderBy: { createdAt: "asc" },
-    select: { sku: true, name: true, stock: true, stockNS: true },
-  });
+  const [items, b2bCustomers] = await Promise.all([
+    prisma.item.findMany({
+      orderBy: { createdAt: "asc" },
+      select: { sku: true, name: true, stock: true, stockNS: true },
+    }),
+    prisma.b2bCustomer.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, customerNum: true, address: true, mwstRate: true, paymentMethod: true, paymentInfo: true, notes: true },
+    }),
+  ]);
 
   return (
     <AppShell>
       <PageHeader title="Neue Rechnung" eyebrow="Buchhaltung" />
       <Panel className="p-6">
-        <InvoiceForm skus={items} />
+        <InvoiceForm skus={items} b2bCustomers={b2bCustomers} />
       </Panel>
     </AppShell>
   );

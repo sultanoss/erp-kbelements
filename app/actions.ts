@@ -72,6 +72,8 @@ export async function createSale(formData: FormData) {
   const sku = text(formData, "sku");
   const quantity = numberValue(formData, "quantity");
   const marketplace = text(formData, "marketplace") as Marketplace;
+  const isHerdset = formData.get("isHerdset") === "on";
+  const herdsetLabel = text(formData, "herdsetLabel");
   if (!sku || quantity <= 0) return;
 
   await prisma.$transaction(async (tx) => {
@@ -87,17 +89,25 @@ export async function createSale(formData: FormData) {
     await tx.activityLog.create({
       data: { type: ActivityType.SALE, sku, oldStock, newStock, userId: user.id },
     });
+    if (isHerdset && herdsetLabel) {
+      await tx.herdsetSale.create({
+        data: { date: dateValue(formData, "date"), marketplace: "DIREKT" as Marketplace, label: herdsetLabel, quantity: 1, userId: user.id },
+      });
+    }
   });
 
   revalidatePath("/");
   revalidatePath("/sales");
   revalidatePath("/inventory");
+  revalidatePath("/auswertung");
 }
 
 export async function createNSSale(formData: FormData) {
   const user = await requireUser();
   const sku = text(formData, "sku");
   const quantity = numberValue(formData, "quantity");
+  const isHerdset = formData.get("isHerdset") === "on";
+  const herdsetLabel = text(formData, "herdsetLabel");
   if (!sku || quantity <= 0) return;
 
   await prisma.$transaction(async (tx) => {
@@ -113,11 +123,17 @@ export async function createNSSale(formData: FormData) {
     await tx.activityLog.create({
       data: { type: ActivityType.SALE, sku, oldStock, newStock, note: "NS-Lager", userId: user.id },
     });
+    if (isHerdset && herdsetLabel) {
+      await tx.herdsetSale.create({
+        data: { date: dateValue(formData, "date"), marketplace: "DIREKT" as Marketplace, label: herdsetLabel, quantity: 1, userId: user.id },
+      });
+    }
   });
 
   revalidatePath("/");
   revalidatePath("/sales");
   revalidatePath("/inventory");
+  revalidatePath("/auswertung");
 }
 
 export async function createNSReceipt(formData: FormData) {
@@ -1060,5 +1076,24 @@ export async function undoDailySales(data: {
   revalidatePath("/auswertung");
 
   return { done: true };
+}
+
+export async function getLastPriceForCustomerSku(
+  customerName: string,
+  sku: string
+): Promise<number | null> {
+  const item = await prisma.invoiceItem.findFirst({
+    where: {
+      invoice: {
+        customerName: { equals: customerName, mode: "insensitive" },
+        status: "aktiv",
+        docType: "rechnung",
+      },
+      skus: { some: { sku } },
+    },
+    orderBy: { invoice: { date: "desc" } },
+    select: { unitPrice: true },
+  });
+  return item?.unitPrice ?? null;
 }
 

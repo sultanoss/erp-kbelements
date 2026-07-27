@@ -1,13 +1,24 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
-import { createInvoice, updateInvoice } from "@/app/actions";
+import { useState, useTransition, useRef, useEffect } from "react";
+import { createInvoice, updateInvoice, getLastPriceForCustomerSku } from "@/app/actions";
 
 type DocType = "rechnung" | "angebot" | "gutschrift";
 
 type SkuEntry = { id: number; sku: string; lager: string };
 type LineItem = { id: number; pos: number; quantity: number; description: string; unitPrice: number; skus: SkuEntry[] };
 type SkuData = { sku: string; name: string; stock: number; stockNS: number };
+
+export type B2bCustomer = {
+  id: string;
+  name: string;
+  customerNum: string | null;
+  address: string;
+  mwstRate: number;
+  paymentMethod: string;
+  paymentInfo: string | null;
+  notes: string | null;
+};
 
 export type InvoiceInitialData = {
   invoiceId?: string;
@@ -32,7 +43,21 @@ function newLine(pos: number): LineItem {
   return { id: nextId++, pos, quantity: 1, description: "", unitPrice: 0, skus: [{ id: nextSkuId++, sku: "", lager: "neuware" }] };
 }
 
-export function InvoiceForm({ skus, initialData, docType = "rechnung", originalInvoiceId, originalInvoiceNum }: { skus: SkuData[]; initialData?: InvoiceInitialData; docType?: DocType; originalInvoiceId?: string; originalInvoiceNum?: string }) {
+export function InvoiceForm({
+  skus,
+  initialData,
+  docType = "rechnung",
+  originalInvoiceId,
+  originalInvoiceNum,
+  b2bCustomers = [],
+}: {
+  skus: SkuData[];
+  initialData?: InvoiceInitialData;
+  docType?: DocType;
+  originalInvoiceId?: string;
+  originalInvoiceNum?: string;
+  b2bCustomers?: B2bCustomer[];
+}) {
   const [items, setItems] = useState<LineItem[]>(initialData?.items ?? [newLine(1)]);
   const [mwstRate, setMwstRate] = useState(initialData?.mwstRate ?? 19);
   const [shippingCost, setShippingCost] = useState<string>(initialData?.shippingCost ?? "");
@@ -43,6 +68,43 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Controlled customer fields for B2B auto-fill
+  const [customerName, setCustomerName] = useState(initialData?.customerName ?? "");
+  const [customerAddress, setCustomerAddress] = useState(initialData?.customerAddress ?? "");
+  const [customerNum, setCustomerNum] = useState(initialData?.customerNum ?? "");
+  const [paymentInfo, setPaymentInfo] = useState(initialData?.paymentInfo ?? "");
+  const [selectedB2bId, setSelectedB2bId] = useState("");
+  const [lastPrices, setLastPrices] = useState<Record<number, { sku: string; price: number | null } | undefined>>({});
+
+  useEffect(() => {
+    setLastPrices({});
+    if (!selectedB2bId) return;
+    const customer = b2bCustomers.find((c) => c.id === selectedB2bId);
+    if (!customer) return;
+    for (const item of items) {
+      const sku = item.skus[0]?.sku;
+      if (sku) {
+        getLastPriceForCustomerSku(customer.name, sku).then((price) =>
+          setLastPrices((prev) => ({ ...prev, [item.id]: { sku, price } }))
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedB2bId]);
+
+  function selectB2bCustomer(id: string) {
+    setSelectedB2bId(id);
+    if (!id) return;
+    const c = b2bCustomers.find((x) => x.id === id);
+    if (!c) return;
+    setCustomerName(c.name);
+    setCustomerAddress(c.address);
+    setCustomerNum(c.customerNum ?? "");
+    setMwstRate(c.mwstRate);
+    setPaymentMethod(c.paymentMethod as "konto" | "bar");
+    setPaymentInfo(c.paymentInfo ?? "");
+  }
+
   function handleReset() {
     setItems([newLine(1)]);
     setMwstRate(19);
@@ -51,6 +113,11 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
     setPaymentMethod("konto");
     setZahlungAusstehend(false);
     setError("");
+    setCustomerName("");
+    setCustomerAddress("");
+    setCustomerNum("");
+    setPaymentInfo("");
+    setSelectedB2bId("");
     formRef.current?.reset();
   }
 
@@ -84,17 +151,33 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
   }
 
   function updateSku(itemId: number, skuId: number, field: "sku" | "lager", value: string) {
+    // Determine synchronously before setItems (updater runs asynchronously)
+    const currentItem = items.find((it) => it.id === itemId);
+    const isFirstSku = currentItem ? currentItem.skus.findIndex((s) => s.id === skuId) === 0 : false;
+
     setItems((prev) => prev.map((it) => {
       if (it.id !== itemId) return it;
       const idx = it.skus.findIndex((s) => s.id === skuId);
       const updatedSkus = it.skus.map((s) => s.id === skuId ? { ...s, [field]: value } : s);
-      // Auto-fill description only when this is the sole SKU in the position
       if (field === "sku" && idx === 0 && value && !it.description && it.skus.length === 1) {
         const found = skus.find((s) => s.sku === value);
         if (found?.name) return { ...it, skus: updatedSkus, description: found.name };
       }
       return { ...it, skus: updatedSkus };
     }));
+
+    if (field === "sku" && isFirstSku && selectedB2bId) {
+      const customer = b2bCustomers.find((c) => c.id === selectedB2bId);
+      if (customer) {
+        if (!value) {
+          setLastPrices((prev) => { const n = { ...prev }; delete n[itemId]; return n; });
+        } else {
+          getLastPriceForCustomerSku(customer.name, value).then((price) =>
+            setLastPrices((prev) => ({ ...prev, [itemId]: { sku: value, price } }))
+          );
+        }
+      }
+    }
   }
 
   const bruttoPositionen = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
@@ -111,24 +194,24 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const date = String(fd.get("date") ?? today);
-    const customerName = String(fd.get("customerName") ?? "").trim();
-    const customerAddress = String(fd.get("customerAddress") ?? "").trim();
-    const customerNum = String(fd.get("customerNum") ?? "").trim();
     const notes = String(fd.get("notes") ?? "").trim();
     const noPayment = docType === "angebot" || docType === "gutschrift";
-    const paymentInfo = paymentMethod === "konto" ? String(fd.get("paymentInfo") ?? "").trim() : null;
 
-    if (!customerName) { setError("Kundenname fehlt"); return; }
+    if (!customerName.trim()) { setError("Kundenname fehlt"); return; }
     if (items.some((it) => !it.description)) { setError("Alle Positionen brauchen eine Bezeichnung"); return; }
 
     setError("");
     const payload = {
-      date, customerName, customerAddress, customerNum, mwstRate,
+      date,
+      customerName: customerName.trim(),
+      customerAddress: customerAddress.trim(),
+      customerNum: customerNum.trim(),
+      mwstRate,
       shippingCost: shippingCost !== "" ? shippingVal : null,
       shippingMwst,
       paymentMethod: noPayment ? "konto" : paymentMethod,
       notes,
-      paymentInfo: noPayment ? null : (paymentInfo || null),
+      paymentInfo: noPayment ? null : (paymentMethod === "konto" ? paymentInfo.trim() || null : null),
       docType,
       originalInvoiceId: originalInvoiceId ?? undefined,
       originalInvoiceNum: originalInvoiceNum ?? undefined,
@@ -149,47 +232,88 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
     });
   }
 
+  const fieldClass = "h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
+
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-      {/* Kundendaten */}
+
+      {/* B2B Kunde Auswahl */}
+      {b2bCustomers.length > 0 && !initialData?.invoiceId && (
+        <div className="flex items-center gap-3 rounded-lg border border-grey-border bg-grey-light/60 px-4 py-3">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid whitespace-nowrap">B2B Kunde</span>
+          <select
+            value={selectedB2bId}
+            onChange={(e) => selectB2bCustomer(e.target.value)}
+            className="h-9 flex-1 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+          >
+            <option value="">— Kunden wählen (optional) —</option>
+            {b2bCustomers.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}{c.customerNum ? ` (${c.customerNum})` : ""}
+              </option>
+            ))}
+          </select>
+          {selectedB2bId && (
+            <button
+              type="button"
+              onClick={() => { setSelectedB2bId(""); }}
+              className="font-mono text-xs text-grey-mid hover:text-brand-red"
+            >
+              ✕ zurücksetzen
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Datum + Kundennummer + MwSt */}
       <div className="grid gap-4 md:grid-cols-3">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</label>
-          <input name="date" type="date" defaultValue={initialData?.date ?? today}
-            className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
+          <input name="date" type="date" defaultValue={initialData?.date ?? today} className={fieldClass} />
         </div>
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunden-Nr. (optional)</label>
-          <input name="customerNum" type="text" defaultValue={initialData?.customerNum ?? ""} placeholder="z.B. 18043"
-            className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
+          <input
+            type="text"
+            value={customerNum}
+            onChange={(e) => setCustomerNum(e.target.value)}
+            placeholder="z.B. 18043"
+            className={fieldClass}
+          />
         </div>
         <div className="flex items-end gap-4">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">MwSt.</span>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="mwst" value="19" checked={mwstRate === 19} onChange={() => setMwstRate(19)} className="accent-brand-red" />
-            <span className="text-sm font-semibold">19 %</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="mwst" value="20" checked={mwstRate === 20} onChange={() => setMwstRate(20)} className="accent-brand-red" />
-            <span className="text-sm font-semibold">20 %</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="mwst" value="0" checked={mwstRate === 0} onChange={() => setMwstRate(0)} className="accent-brand-red" />
-            <span className="text-sm font-semibold">0 % (steuerfrei)</span>
-          </label>
+          {([19, 20, 0] as const).map((rate) => (
+            <label key={rate} className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="mwst" value={rate} checked={mwstRate === rate} onChange={() => setMwstRate(rate)} className="accent-brand-red" />
+              <span className="text-sm font-semibold">{rate === 0 ? "0 %" : `${rate} %`}</span>
+            </label>
+          ))}
         </div>
       </div>
 
+      {/* Kundenname + Adresse */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kundenname *</label>
-          <input name="customerName" type="text" defaultValue={initialData?.customerName ?? ""} placeholder="Max Mustermann" required
-            className="h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10" />
+          <input
+            type="text"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            placeholder="Max Mustermann"
+            required
+            className={fieldClass}
+          />
         </div>
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Adresse</label>
-          <textarea name="customerAddress" rows={2} defaultValue={initialData?.customerAddress ?? ""} placeholder={"Musterstraße 1\n12345 Musterstadt"}
-            className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
+          <textarea
+            value={customerAddress}
+            onChange={(e) => setCustomerAddress(e.target.value)}
+            rows={2}
+            placeholder={"Musterstraße 1\n12345 Musterstadt"}
+            className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none"
+          />
         </div>
       </div>
 
@@ -207,10 +331,8 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
         <div className="space-y-3">
           {items.map((it) => (
             <div key={it.id} className="grid grid-cols-[2rem_1fr_1fr_5rem_7rem_2.5rem] gap-2 items-start">
-              {/* Pos */}
               <span className="pt-2 font-mono text-sm text-grey-mid text-center">{it.pos}.</span>
 
-              {/* SKU Section — stacked entries */}
               <div className="space-y-1">
                 {it.skus.map((s, idx) => {
                   const found = skus.find((sk) => sk.sku === s.sku);
@@ -255,7 +377,6 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
                 </button>
               </div>
 
-              {/* Bezeichnung */}
               <input
                 value={it.description}
                 onChange={(e) => updateItem(it.id, "description", e.target.value)}
@@ -263,8 +384,6 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
                 required
                 className="h-8 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none"
               />
-
-              {/* Menge */}
               <input
                 type="number"
                 value={it.quantity}
@@ -273,18 +392,23 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
                 onChange={(e) => updateItem(it.id, "quantity", parseFloat(e.target.value) || 0)}
                 className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
               />
-
-              {/* Preis */}
-              <input
-                type="number"
-                value={it.unitPrice}
-                min={0}
-                step={0.01}
-                onChange={(e) => updateItem(it.id, "unitPrice", parseFloat(e.target.value) || 0)}
-                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
-              />
-
-              {/* Zeile löschen */}
+              <div className="flex flex-col gap-0.5">
+                <input
+                  type="number"
+                  value={it.unitPrice}
+                  min={0}
+                  step={0.01}
+                  onChange={(e) => updateItem(it.id, "unitPrice", parseFloat(e.target.value) || 0)}
+                  className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
+                />
+                {selectedB2bId && lastPrices[it.id] !== undefined && (
+                  <span className="pl-1 font-mono text-[10px] text-brand-red">
+                    {lastPrices[it.id]!.price != null
+                      ? `Letzter Preis: ${lastPrices[it.id]!.price!.toFixed(2)} €`
+                      : "Noch kein B2B-Kauf"}
+                  </span>
+                )}
+              </div>
               <button type="button" onClick={() => removeItem(it.id)}
                 className="mt-0.5 h-8 w-9 rounded-lg border border-grey-border text-grey-mid hover:border-brand-red hover:text-brand-red text-xs flex items-center justify-center">
                 ✕
@@ -322,18 +446,12 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
           {shippingVal > 0 && (
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-grey-mid">MwSt.:</span>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" checked={shippingMwst === 19} onChange={() => setShippingMwst(19)} className="accent-brand-red" />
-                <span className="font-mono text-sm">19 %</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" checked={shippingMwst === 20} onChange={() => setShippingMwst(20)} className="accent-brand-red" />
-                <span className="font-mono text-sm">20 %</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" checked={shippingMwst === 0} onChange={() => setShippingMwst(0)} className="accent-brand-red" />
-                <span className="font-mono text-sm">0 %</span>
-              </label>
+              {([19, 20, 0] as const).map((rate) => (
+                <label key={rate} className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" checked={shippingMwst === rate} onChange={() => setShippingMwst(rate)} className="accent-brand-red" />
+                  <span className="font-mono text-sm">{rate} %</span>
+                </label>
+              ))}
             </div>
           )}
         </div>
@@ -404,10 +522,14 @@ export function InvoiceForm({ skus, initialData, docType = "rechnung", originalI
             </div>
             {paymentMethod === "konto" && (
               <div className="grid gap-1.5">
-                <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation</label>
-                <textarea name="paymentInfo" rows={2} defaultValue={initialData?.paymentInfo ?? ""}
+                <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zahlungsinformation (optional)</label>
+                <textarea
+                  value={paymentInfo}
+                  onChange={(e) => setPaymentInfo(e.target.value)}
+                  rows={2}
                   placeholder="z.B. Zahlung (eBay Managed Payments) vom 07.06.2026 529,00 €"
-                  className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
+                  className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none"
+                />
               </div>
             )}
             {!initialData?.invoiceId && (

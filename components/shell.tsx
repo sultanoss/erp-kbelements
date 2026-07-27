@@ -35,9 +35,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  const b2bGroup: NavItem = { label: "B2B", icon: "Building2", separator: true, children: [
+    { href: "/b2b/einkauf",    label: "Wareneinkauf" },
+    { href: "/b2b/preisliste", label: "Preisliste"   },
+    { href: "/b2b/kunden",     label: "B2B Kunden"   },
+  ]};
+
   const links: NavItem[] =
     session.user.role === "ADMIN"
-      ? [...baseLinks, { href: "/admin/users", label: "Benutzer", icon: "Users" as IconName }, protokoll]
+      ? [...baseLinks, b2bGroup, { href: "/admin/users", label: "Benutzer", icon: "Users" as IconName }, protokoll]
       : [...baseLinks, protokoll];
 
   const initials = session.user.name

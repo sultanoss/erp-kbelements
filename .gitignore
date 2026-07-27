@@ -17,3 +17,5 @@ test-*.mjs
 .env.vercel.*
 .env.prod.local
 .env.production.local
+
+.env*

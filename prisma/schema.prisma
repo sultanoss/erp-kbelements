@@ -40,28 +40,33 @@ model User {
   active       Boolean        @default(true)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  sales        Sale[]
-  receipts     Receipt[]
-  corrections  Correction[]
-  activities   ActivityLog[]
-  herdsetSales HerdsetSale[]
-  invoices     Invoice[]
+  sales          Sale[]
+  receipts       Receipt[]
+  corrections    Correction[]
+  activities     ActivityLog[]
+  herdsetSales   HerdsetSale[]
+  invoices       Invoice[]
+  purchaseOrders PurchaseOrder[]
 }
 
 
 model Item {
-  sku           String         @id
-  name          String         @default("")
-  stock         Int            @default(0)
-  stockNS       Int            @default(0)
-  minStock      Int            @default(0)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  sales         Sale[]
-  receipts      Receipt[]
-  corrections   Correction[]
-  activities    ActivityLog[]
-  shipmentItems ShipmentItem[]
+  sku                  String                 @id
+  name                 String                 @default("")
+  stock                Int                    @default(0)
+  stockNS              Int                    @default(0)
+  minStock             Int                    @default(0)
+  purchasePrice        Float?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  sales                Sale[]
+  receipts             Receipt[]
+  corrections          Correction[]
+  activities           ActivityLog[]
+  shipmentItems        ShipmentItem[]
+  purchaseOrderItems   PurchaseOrderItem[]
+  purchasePriceHistory PurchasePriceHistory[]
+  priceColumnValues    PriceColumnValue[]
 }
 
 model Sale {
@@ -253,6 +258,84 @@ model ShipmentItem {
   quantity    Int
   warehouse   String   @default("neuware")
   createdAt   DateTime @default(now())
+}
+
+model PurchaseOrder {
+  id            String              @id @default(cuid())
+  date          DateTime
+  supplier      String
+  invoiceNumber String
+  notes         String?
+  userId        String
+  user          User                @relation(fields: [userId], references: [id])
+  items         PurchaseOrderItem[]
+  createdAt     DateTime            @default(now())
+
+  @@index([date])
+}
+
+model PurchaseOrderItem {
+  id               String        @id @default(cuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  sku              String
+  item             Item          @relation(fields: [sku], references: [sku])
+  quantity         Int
+  purchasePrice    Float
+  oldPurchasePrice Float?
+  oldStock         Int
+}
+
+model PurchasePriceHistory {
+  id              String   @id @default(cuid())
+  sku             String
+  item            Item     @relation(fields: [sku], references: [sku])
+  date            DateTime
+  supplier        String
+  invoiceNumber   String
+  quantity        Int
+  purchasePrice   Float
+  purchaseOrderId String
+  createdAt       DateTime @default(now())
+
+  @@index([sku])
+  @@index([purchaseOrderId])
+}
+
+model PriceColumn {
+  id        String             @id @default(cuid())
+  title     String
+  order     Int                @default(0)
+  createdAt DateTime           @default(now())
+  values    PriceColumnValue[]
+}
+
+model PriceColumnValue {
+  id            String      @id @default(cuid())
+  priceColumnId String
+  priceColumn   PriceColumn @relation(fields: [priceColumnId], references: [id], onDelete: Cascade)
+  sku           String
+  item          Item        @relation(fields: [sku], references: [sku])
+  price         Float?
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([priceColumnId, sku])
+  @@index([sku])
+}
+
+model B2bCustomer {
+  id            String   @id @default(cuid())
+  name          String
+  customerNum   String?
+  address       String
+  mwstRate      Int      @default(19)
+  paymentMethod String   @default("konto")
+  paymentInfo   String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([name])
 }
 
 model Setting {

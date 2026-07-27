@@ -11,9 +11,15 @@ export const dynamic = "force-dynamic";
 export default async function BuchhaltungPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string; pm?: string; zahlung?: string }>;
+  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string; pm?: string; zahlung?: string; b2b?: string }>;
 }) {
-  const { q, num, from, to, pm, zahlung } = await searchParams;
+  const { q, num, from, to, pm, zahlung, b2b } = await searchParams;
+
+  let b2bCustomerNames: string[] = [];
+  if (b2b === "1") {
+    const customers = await prisma.b2bCustomer.findMany({ select: { name: true } });
+    b2bCustomerNames = customers.map((c) => c.name);
+  }
 
   const invoices = await prisma.invoice.findMany({
     where: {
@@ -34,12 +40,13 @@ export default async function BuchhaltungPage({
       }),
       ...(pm && { paymentMethod: pm }),
       ...(zahlung === "offen" && { bezahlt: false }),
+      ...(b2b === "1" && b2bCustomerNames.length > 0 && { customerName: { in: b2bCustomerNames } }),
     },
     orderBy: [{ createdAt: "desc" }],
     include: { items: true },
   });
 
-  const hasFilter = !!(q || num || from || to || pm || zahlung);
+  const hasFilter = !!(q || num || from || to || pm || zahlung || b2b);
 
   return (
     <AppShell>
@@ -107,6 +114,17 @@ export default async function BuchhaltungPage({
             >
               <option value="">Alle</option>
               <option value="offen">Unbezahlt</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Typ</label>
+            <select
+              name="b2b"
+              defaultValue={b2b ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+            >
+              <option value="">Alle</option>
+              <option value="1">B2B Rechnungen</option>
             </select>
           </div>
           <button

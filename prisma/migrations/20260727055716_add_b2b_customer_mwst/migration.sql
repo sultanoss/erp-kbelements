@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "B2bCustomer" ADD COLUMN     "mwstRate" INTEGER NOT NULL DEFAULT 19;
