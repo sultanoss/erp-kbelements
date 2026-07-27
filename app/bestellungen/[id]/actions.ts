@@ -14,6 +14,54 @@ import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
 import { cancelDHLShipment } from "@/lib/shipping/dhl";
 import { stornoInvoice } from "@/app/actions";
+import type { Marketplace } from "@prisma/client";
+
+export async function updateOrderNote(orderId: string, note: string) {
+  await prisma.order.update({ where: { id: orderId }, data: { note: note.trim() || null } });
+  revalidatePath(`/bestellungen/${orderId}`);
+  revalidatePath("/bestellungen");
+}
+
+export async function updateOrderHerdset(orderId: string, isHerdset: boolean) {
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | null)?.id;
+  if (!userId) throw new Error("Nicht angemeldet");
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true, shipments: true },
+  });
+  if (!order) throw new Error("Bestellung nicht gefunden");
+
+  const herdsetLabel = isHerdset ? (order.items[0]?.marketplaceSku ?? null) : null;
+
+  await prisma.order.update({ where: { id: orderId }, data: { isHerdset, herdsetLabel } });
+
+  if (!isHerdset) {
+    await prisma.herdsetSale.deleteMany({ where: { orderId } });
+  } else {
+    const processedShipment = order.shipments.find((s) => s.salesCreated);
+    if (processedShipment && herdsetLabel) {
+      const today = new Date();
+      today.setHours(12, 0, 0, 0);
+      await prisma.herdsetSale.create({
+        data: {
+          date: today,
+          marketplace: order.marketplace as Marketplace,
+          label: herdsetLabel,
+          quantity: 1,
+          orderId,
+          userId,
+        },
+      });
+    }
+  }
+
+  revalidatePath(`/bestellungen/${orderId}`);
+  revalidatePath("/bestellungen");
+  revalidatePath("/");
+  revalidatePath("/auswertung");
+}
 
 export async function markAsAbgeschlossen(formData: FormData) {
   const id = formData.get("id") as string;

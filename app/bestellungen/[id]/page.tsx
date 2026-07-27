@@ -12,6 +12,7 @@ import { RetryShopifyButton } from "./retry-shopify-button";
 import { RetryEbayButton } from "./retry-ebay-button";
 import { RetryOttoButton } from "./retry-otto-button";
 import { StorniereButton } from "./stornieren-button";
+import { OrderEditPanel } from "./order-edit-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -370,6 +371,22 @@ export default async function BestellungDetailPage({
             {order.shipments?.[0]?.labelUrl && (
               <PrintLabelButton url={order.shipments[0].labelUrl} crop={!!order.shipments[0].returnTrackingNumber} />
             )}
+          </Panel>
+
+          {/* Notiz & Herdset */}
+          <Panel className="overflow-hidden">
+            <div className="border-b border-grey-border px-5 py-3">
+              <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Notiz & Herdset</div>
+            </div>
+            <div className="p-5">
+              <OrderEditPanel
+                orderId={order.id}
+                initialNote={order.note ?? null}
+                initialIsHerdset={order.isHerdset}
+                herdsetLabel={order.herdsetLabel ?? null}
+                isShipped={isAbgeschlossen}
+              />
+            </div>
           </Panel>
         </div>
       </div>

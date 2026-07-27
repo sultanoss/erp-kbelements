@@ -123,11 +123,13 @@ model HerdsetSale {
   marketplace Marketplace
   label       String
   quantity    Int
+  orderId     String?
   userId      String
   createdAt   DateTime    @default(now())
   user        User        @relation(fields: [userId], references: [id])
 
   @@index([date])
+  @@index([orderId])
 }
 
 model Invoice {
@@ -204,6 +206,7 @@ model Order {
   trackingNumber String?
   isHerdset      Boolean     @default(false)
   herdsetLabel   String?
+  note           String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   items          OrderItem[]

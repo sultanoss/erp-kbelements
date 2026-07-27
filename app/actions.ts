@@ -1039,7 +1039,7 @@ export async function createDailySalesFromShipments(selectedIds: string[]): Prom
 
     if (order.isHerdset && order.herdsetLabel) {
       const herdset = await prisma.herdsetSale.create({
-        data: { date: saleDate, marketplace, label: order.herdsetLabel, quantity: 1, userId: user.id },
+        data: { date: saleDate, marketplace, label: order.herdsetLabel, quantity: 1, orderId: order.id, userId: user.id },
       });
       herdsetSaleIds.push(herdset.id);
     }

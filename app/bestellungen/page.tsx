@@ -51,7 +51,20 @@ export default async function BestellungenPage({
         } : {}),
         ...dateFilter,
       },
-      include: { items: true },
+      select: {
+        id: true,
+        marketplace: true,
+        status: true,
+        customerName: true,
+        billingName: true,
+        zip: true,
+        city: true,
+        country: true,
+        orderDate: true,
+        orderNumber: true,
+        note: true,
+        items: { select: { id: true, marketplaceSku: true, quantity: true } },
+      },
     }),
     prisma.setting.findUnique({ where: { key: "lastOrderImport" } }),
   ]);
@@ -134,6 +147,7 @@ export default async function BestellungenPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunde</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Notiz</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-grey-border">
@@ -192,6 +206,15 @@ export default async function BestellungenPage({
                       {statusLabel[order.status] ?? order.status}
                     </span>
                   </a>
+                </td>
+                <td className="px-4 py-3 max-w-[200px]">
+                  {order.note ? (
+                    <a href={`/bestellungen/${order.id}${backParam}`} className="block font-mono text-xs text-grey-dark" title={order.note}>
+                      {order.note.length > 40 ? `${order.note.slice(0, 40)}…` : order.note}
+                    </a>
+                  ) : (
+                    <span className="text-grey-mid/40">—</span>
+                  )}
                 </td>
               </tr>
             ))}
