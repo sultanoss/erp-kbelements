@@ -5,12 +5,14 @@ import { STATUS_LABELS, RESOLUTION_LABELS, formatDate } from "@/lib/status";
 import StatusChangeModal from "./StatusChangeModal";
 import EditReturnModal from "./EditReturnModal";
 import ReturnImages from "./ReturnImages";
+import ReturnReplies from "./ReturnReplies";
+import ReturnDeleteButton from "./ReturnDeleteButton";
 
 export default async function ReturnDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: { user } }, { data: ret }, { data: events }, { data: images }] = await Promise.all([
+  const [{ data: { user } }, { data: ret }, { data: events }, { data: images }, { data: replies }] = await Promise.all([
     supabase.auth.getUser(),
     supabase
       .from("returns")
@@ -27,6 +29,11 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
       .select("id, storage_path, filename, media_type")
       .eq("return_id", id)
       .order("created_at"),
+    supabase
+      .from("return_replies")
+      .select("*")
+      .eq("return_id", id)
+      .order("created_at", { ascending: true }),
   ]);
 
   if (!ret) notFound();
@@ -66,6 +73,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
 
           {/* Aktionen */}
           <div className="flex gap-2 flex-wrap items-start">
+            <ReturnDeleteButton returnId={id} />
             <EditReturnModal
               returnId={id}
               currentStatus={ret.status}
@@ -215,7 +223,8 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
           )}
         </div>
 
-        {/* Rechte Spalte: Verlauf */}
+        {/* Rechte Spalte: Verlauf + Nachrichten */}
+        <div className="space-y-4">
         <div className="card p-4 h-fit">
           <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-4">Verlauf</div>
           {!events?.length ? (
@@ -239,6 +248,13 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
               </div>
             </div>
           )}
+        </div>
+
+        <ReturnReplies
+          returnId={id}
+          userName={userName}
+          initialReplies={replies ?? []}
+        />
         </div>
       </div>
     </div>

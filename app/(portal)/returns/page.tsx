@@ -35,7 +35,12 @@ export default async function ReturnsPage({
   if (params.status) query = query.eq("status", params.status);
   if (params.resolution) query = query.eq("resolution", params.resolution);
 
-  const { data: returns, error } = await query;
+  const [{ data: returns, error }, { data: { user: currentUser } }] = await Promise.all([
+    query,
+    supabase.auth.getUser(),
+  ]);
+
+  const currentUserName = currentUser?.user_metadata?.full_name ?? currentUser?.email ?? "";
 
   const cell = "block px-4 py-3";
 
@@ -104,6 +109,7 @@ export default async function ReturnsPage({
                   const status = STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-stone-100 text-stone-600" };
                   const resolution = r.resolution ? RESOLUTION_LABELS[r.resolution] : null;
                   const bearbeiter = r.status === "erledigt" ? r.resolved_by : r.received_by;
+                  const hasNewReply = !!r.last_reply_at && !!r.last_reply_author && r.last_reply_author !== currentUserName;
 
                   return (
                     <tr key={r.id} className="hover:bg-stone-50 transition-colors cursor-pointer">
@@ -131,9 +137,17 @@ export default async function ReturnsPage({
                       </td>
                       <td className="p-0">
                         <Link href={href} className={cell}>
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
-                            {status.label}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
+                              {status.label}
+                            </span>
+                            {hasNewReply && (
+                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-blue-500 animate-pulse" />
+                                Neue Antwort von {r.last_reply_author}
+                              </span>
+                            )}
+                          </div>
                         </Link>
                       </td>
                       <td className="p-0">
