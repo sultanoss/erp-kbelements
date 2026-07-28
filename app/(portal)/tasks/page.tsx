@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
 import { STATUS_LABELS, TASK_TYPE_LABELS, formatDate } from "@/lib/status";
 import TasksFilterBar from "./TasksFilterBar";
+import TasksListRefresher from "./TasksListRefresher";
 
 interface SearchParams {
   q?: string;
@@ -62,6 +63,7 @@ export default async function TasksPage({
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      <TasksListRefresher />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Aufgaben</h1>
