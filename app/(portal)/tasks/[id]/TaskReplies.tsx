@@ -68,6 +68,11 @@ export default function TaskReplies({ taskId, userName, initialReplies }: Props)
 
     if (dbErr || !data) { setError(dbErr?.message ?? "Fehler beim Senden"); setSaving(false); return; }
 
+    await supabase
+      .from("tasks")
+      .update({ last_reply_at: data.created_at, last_reply_author: userName })
+      .eq("id", taskId);
+
     setReplies((prev) => [...prev, { id: data.id, content: content.trim(), author: userName, created_at: data.created_at }]);
     setContent("");
     setSaving(false);

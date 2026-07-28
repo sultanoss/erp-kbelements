@@ -40,10 +40,13 @@ export default async function TasksPage({
   if (params.created_by) query = query.ilike("created_by", `%${params.created_by}%`);
   if (params.urgent === "1") query = query.eq("is_urgent", true);
 
-  const [{ data: tasks, error }, { data: { users } }] = await Promise.all([
+  const [{ data: tasks, error }, { data: { users } }, { data: { user: currentUser } }] = await Promise.all([
     query,
     adminSupabase.auth.admin.listUsers(),
+    supabase.auth.getUser(),
   ]);
+
+  const currentUserName = currentUser?.user_metadata?.full_name ?? currentUser?.email ?? "";
 
   const userList = (users ?? []).map((u) => ({
     id: u.id,
@@ -124,6 +127,7 @@ export default async function TasksPage({
                   const tags: string[] = t.tags ?? [];
                   const assigned: string[] = t.assigned_to ?? [];
                   const urgent: boolean = t.is_urgent ?? false;
+                  const hasNewReply = !!t.last_reply_at && !!t.last_reply_author && t.last_reply_author !== currentUserName;
 
                   return (
                     <tr key={t.id} className={`hover:bg-stone-50 transition-colors cursor-pointer ${urgent ? "border-l-2 border-l-red-500" : ""}`}>
@@ -146,7 +150,13 @@ export default async function TasksPage({
                               <span key={tag} className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-stone-100 text-stone-700 whitespace-nowrap">
                                 {TASK_TYPE_LABELS[tag] ?? tag}
                               </span>
-                            )) : (!urgent && <span className="text-stone-300">—</span>)}
+                            )) : (!urgent && !hasNewReply && <span className="text-stone-300">—</span>)}
+                            {hasNewReply && (
+                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-blue-500 animate-pulse" />
+                                Neue Antwort von {t.last_reply_author}
+                              </span>
+                            )}
                           </div>
                         </Link>
                       </td>
