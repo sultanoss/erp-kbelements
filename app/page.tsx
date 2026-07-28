@@ -18,23 +18,34 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales] = await Promise.all([
-    prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
-    prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
-    prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } }, _sum: { quantity: true } }),
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, rawOpenItems] = await Promise.all([
+    prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
+    prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
+    prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.herdsetSale.aggregate({ where: { date: { gte: todayStart } }, _sum: { quantity: true } }),
     prisma.item.findMany({ orderBy: { stock: "asc" }, select: { sku: true, stock: true, minStock: true } }),
     prisma.sale.groupBy({
       by: ["sku"],
-      where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
+      where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: "desc" } },
       take: 10,
     }),
     prisma.sale.groupBy({
       by: ["date"],
-      where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
+      where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } },
       _sum: { quantity: true },
+    }),
+    prisma.orderItem.findMany({
+      where: {
+        order: { status: "NEU", isHerdset: false, marketplace: { not: "EBAY_OUTLET" } },
+      },
+      select: {
+        internalSku: true,
+        marketplaceSku: true,
+        quantity: true,
+        order: { select: { marketplace: true } },
+      },
     }),
   ]);
 
@@ -52,6 +63,18 @@ export default async function DashboardPage() {
   const lastMonthQty = salesLastMonth._sum.quantity ?? 0;
   const pct = lastMonthQty > 0 ? Math.round(((thisMonthQty - lastMonthQty) / lastMonthQty) * 100) : null;
 
+  const portalMap = new Map<string, number>();
+  let totalOpenUnits = 0;
+  for (const item of rawOpenItems) {
+    const sku = item.internalSku ?? item.marketplaceSku ?? "";
+    const parts = sku.split("/").filter(Boolean);
+    const units = parts.length * (item.quantity ?? 1);
+    totalOpenUnits += units;
+    const mp = item.order.marketplace;
+    portalMap.set(mp, (portalMap.get(mp) ?? 0) + units);
+  }
+  const portalBreakdown = [...portalMap.entries()].sort((a, b) => b[1] - a[1]);
+
   return (
     <AppShell>
       <PageHeader title="Dashboard" eyebrow="Übersicht" />
@@ -60,11 +83,28 @@ export default async function DashboardPage() {
         <VersandFertigButton />
       </div>
 
-      {/* Zeile 1: 3 Metriken */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Zeile 1: 4 Metriken */}
+      <div className="grid gap-4 md:grid-cols-4">
         <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} />
         <Metric label="Herdsets heute" value={herdsetToday._sum.quantity ?? 0} />
         <Metric label={`Verkäufe ${monthLabel}`} value={thisMonthQty} pct={pct} />
+        <Panel className="p-5">
+          <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Offene Bestellungen</div>
+          <div className="font-mono text-4xl font-black tabular-nums" style={{ color: "#d97706" }}>{totalOpenUnits}</div>
+          {portalBreakdown.length > 0 && (
+            <details className="mt-3">
+              <summary className="cursor-pointer list-none font-mono text-xs text-grey-mid select-none hover:text-grey-dark">▶ Nach Portal</summary>
+              <div className="mt-2 divide-y divide-grey-border">
+                {portalBreakdown.map(([mp, qty]) => (
+                  <div key={mp} className="flex justify-between py-1.5">
+                    <span className="font-mono text-[10px] font-bold text-grey-dark uppercase">{mp}</span>
+                    <span className="font-mono text-[10px] font-bold tabular-nums" style={{ color: "#d97706" }}>{qty} Stk.</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </Panel>
       </div>
 
       {/* Zeile 2: Niedrig-Bestand + Top-Verkäufe */}
