@@ -1117,3 +1117,28 @@ export async function getLastPriceForCustomerSku(
   return item?.unitPrice ?? null;
 }
 
+export async function getVersandAbgeschlossenStatus(): Promise<{ confirmed: boolean; timeLabel?: string }> {
+  const today = new Date().toISOString().slice(0, 10);
+  const [datumSetting, zeitSetting] = await Promise.all([
+    prisma.setting.findUnique({ where: { key: "versandAbgeschlossenDatum" } }),
+    prisma.setting.findUnique({ where: { key: "versandAbgeschlossenZeit" } }),
+  ]);
+  if (datumSetting?.value !== today) return { confirmed: false };
+  const timeLabel = zeitSetting
+    ? new Date(zeitSetting.value).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr"
+    : undefined;
+  return { confirmed: true, timeLabel };
+}
+
+export async function confirmVersandAbgeschlossen(): Promise<{ confirmed: boolean; timeLabel?: string }> {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  await Promise.all([
+    prisma.setting.upsert({ where: { key: "versandAbgeschlossenDatum" }, update: { value: today }, create: { key: "versandAbgeschlossenDatum", value: today } }),
+    prisma.setting.upsert({ where: { key: "versandAbgeschlossenZeit" }, update: { value: now.toISOString() }, create: { key: "versandAbgeschlossenZeit", value: now.toISOString() } }),
+  ]);
+  const timeLabel = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr";
+  return { confirmed: true, timeLabel };
+}
+
+

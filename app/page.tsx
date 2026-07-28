@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { VersandFertigButton } from "@/components/versand-fertig";
+import { VersandAbgeschlossenButton } from "@/components/versand-abgeschlossen-button";
 
 export const dynamic = "force-dynamic";
 
@@ -79,8 +80,9 @@ export default async function DashboardPage() {
     <AppShell>
       <PageHeader title="Dashboard" eyebrow="Übersicht" />
 
-      <div className="mb-5">
+      <div className="mb-5 flex items-center gap-3">
         <VersandFertigButton />
+        <VersandAbgeschlossenButton />
       </div>
 
       {/* Zeile 1: 3 Metriken */}
