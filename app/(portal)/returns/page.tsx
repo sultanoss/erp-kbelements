@@ -145,7 +145,7 @@ export default async function ReturnsPage({
                               {status.label}
                             </span>
                             {r.is_outlet && (
-                              <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700">
+                              <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">
                                 Outlet
                               </span>
                             )}

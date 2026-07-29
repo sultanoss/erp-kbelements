@@ -104,9 +104,9 @@ export default function ReturnsFilterBar({ defaults }: Props) {
               type="checkbox"
               checked={outlet}
               onChange={(e) => setOutlet(e.target.checked)}
-              className="w-4 h-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+              className="w-4 h-4 rounded border-stone-300 text-red-600 focus:ring-red-500"
             />
-            <span className="text-sm font-medium text-amber-700">Nur Outlet</span>
+            <span className="text-sm font-medium text-red-700">Nur Outlet</span>
           </label>
         </div>
         <div className="flex gap-2">

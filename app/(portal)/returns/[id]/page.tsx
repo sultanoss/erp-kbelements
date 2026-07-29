@@ -62,7 +62,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
                 {status.label}
               </span>
               {ret.is_outlet && (
-                <span className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-amber-100 text-amber-700">
+                <span className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-red-100 text-red-700">
                   Outlet
                 </span>
               )}

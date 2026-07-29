@@ -186,7 +186,7 @@ export default function NewReturnForm({ skus, userName }: Props) {
       {/* Outlet */}
       <div className="card p-4">
         <label className="flex items-center gap-3 cursor-pointer">
-          <div className={`relative w-11 h-6 flex-shrink-0 rounded-full transition-colors ${isOutlet ? "bg-amber-500" : "bg-stone-300"}`}>
+          <div className={`relative w-11 h-6 flex-shrink-0 rounded-full transition-colors ${isOutlet ? "bg-red-600" : "bg-stone-300"}`}>
             <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${isOutlet ? "translate-x-5" : ""}`} />
             <input type="checkbox" className="sr-only" checked={isOutlet} onChange={(e) => setIsOutlet(e.target.checked)} />
           </div>
