@@ -286,7 +286,7 @@ export function PriceTable({
                     className="group flex h-8 w-8 items-center justify-center rounded hover:bg-grey-light/60"
                   >
                     {row.imageUrl ? (
-                      <img src={row.imageUrl} alt={row.sku} className="h-6 w-6 rounded object-contain" />
+                      <img src={row.imageUrl} alt={row.sku} className="h-10 w-10 rounded object-contain" />
                     ) : (
                       <span className="text-[11px] text-grey-mid group-hover:text-brand-red">✏️</span>
                     )}
