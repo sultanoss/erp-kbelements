@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/status";
+import { AllesErledigtButton } from "./AllesErledigtButton";
 
 interface Reply {
   id: string;
@@ -123,7 +124,8 @@ export default function TaskReplies({ taskId, userName, initialReplies }: Props)
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
-        <div className="flex justify-end mt-2">
+        <div className="flex items-center justify-between mt-2">
+          <AllesErledigtButton taskId={taskId} />
           <button
             type="submit"
             disabled={saving || !content.trim()}

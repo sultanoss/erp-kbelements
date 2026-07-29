@@ -9,7 +9,7 @@ import TaskDeleteButton from "./TaskDeleteButton";
 import TaskReplies from "./TaskReplies";
 import TaskMedia from "./TaskMedia";
 import TaskRealtimeRefresher from "./TaskRealtimeRefresher";
-import { AllesErledigtButton } from "./AllesErledigtButton";
+
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -105,7 +105,6 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
         <div className="flex gap-2 flex-wrap flex-shrink-0">
-          {task.last_reply_at && <AllesErledigtButton taskId={task.id} />}
           <TaskDeleteButton taskId={task.id} />
           <TaskEditModal
             taskId={task.id}
