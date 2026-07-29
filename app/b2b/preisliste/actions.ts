@@ -42,8 +42,26 @@ export async function updateColumnValue(priceColumnId: string, sku: string, pric
 
 export async function updateItemMeta(
   sku: string,
-  data: { description?: string; highlights?: string; scopeOfDelivery?: string }
+  data: { name?: string; description?: string; highlights?: string; scopeOfDelivery?: string }
 ) {
   await requireAdmin();
   await prisma.item.update({ where: { sku }, data });
+}
+
+export async function createItem(sku: string, name: string): Promise<{ sku: string; name: string }> {
+  await requireAdmin();
+  const item = await prisma.item.create({ data: { sku: sku.trim(), name: name.trim() } });
+  revalidatePath("/b2b/preisliste");
+  return { sku: item.sku, name: item.name };
+}
+
+export async function deleteItem(sku: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  try {
+    await prisma.item.delete({ where: { sku } });
+    revalidatePath("/b2b/preisliste");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Artikel hat Bestände oder Verkäufe und kann nicht gelöscht werden." };
+  }
 }

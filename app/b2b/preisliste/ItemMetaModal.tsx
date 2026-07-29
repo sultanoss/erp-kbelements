@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useTransition, useEffect } from "react";
-import { updateItemMeta } from "./actions";
+import { updateItemMeta, deleteItem } from "./actions";
 
 interface ItemMeta {
   sku: string;
@@ -16,9 +16,11 @@ interface Props {
   item: ItemMeta;
   onClose: () => void;
   onSaved: (updated: Partial<ItemMeta>) => void;
+  onDeleted: (sku: string) => void;
 }
 
-export function ItemMetaModal({ item, onClose, onSaved }: Props) {
+export function ItemMetaModal({ item, onClose, onSaved, onDeleted }: Props) {
+  const [name, setName]                     = useState(item.name);
   const [description, setDescription]       = useState(item.description ?? "");
   const [highlights, setHighlights]         = useState(item.highlights ?? "");
   const [scopeOfDelivery, setScopeOfDelivery] = useState(item.scopeOfDelivery ?? "");
@@ -26,10 +28,11 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
   const [uploading, setUploading]           = useState(false);
   const [uploadError, setUploadError]       = useState("");
   const [saving, startSaving]               = useTransition();
+  const [deleting, startDeleting]           = useTransition();
+  const [deleteError, setDeleteError]       = useState("");
   const [lightboxOpen, setLightboxOpen]     = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Close lightbox on ESC
   useEffect(() => {
     if (!lightboxOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setLightboxOpen(false); };
@@ -52,7 +55,7 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
       const data = await res.json();
       setImageUrl(data.url);
     } else {
-      setUploadError("Upload failed");
+      setUploadError("Upload fehlgeschlagen");
     }
     setUploading(false);
   }
@@ -66,9 +69,23 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
 
   function handleSave() {
     startSaving(async () => {
-      await updateItemMeta(item.sku, { description, highlights, scopeOfDelivery });
-      onSaved({ description, highlights, scopeOfDelivery, imageUrl });
+      await updateItemMeta(item.sku, { name, description, highlights, scopeOfDelivery });
+      onSaved({ name, description, highlights, scopeOfDelivery, imageUrl });
       onClose();
+    });
+  }
+
+  function handleDelete() {
+    if (!confirm(`Artikel "${item.sku}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
+    setDeleteError("");
+    startDeleting(async () => {
+      const res = await deleteItem(item.sku);
+      if (res.ok) {
+        onDeleted(item.sku);
+        onClose();
+      } else {
+        setDeleteError(res.error ?? "Fehler beim Löschen.");
+      }
     });
   }
 
@@ -99,12 +116,12 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
-        <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
+        <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl max-h-[90vh] flex flex-col">
 
           {/* Header — zentriert */}
-          <div className="relative flex flex-col items-center border-b border-grey-border px-7 py-5">
+          <div className="relative flex flex-col items-center border-b border-grey-border px-7 py-5 flex-shrink-0">
             <div className="font-mono text-[11px] font-bold tracking-wide text-brand-red">{item.sku}</div>
-            <div className="mt-0.5 text-sm font-semibold text-grey-dark text-center">{item.name || "–"}</div>
+            <div className="mt-0.5 text-xs text-grey-mid">Artikel bearbeiten</div>
             <button
               onClick={onClose}
               className="absolute right-5 top-5 text-grey-mid hover:text-grey-dark text-lg leading-none"
@@ -113,12 +130,26 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
             </button>
           </div>
 
-          <div className="space-y-5 px-7 py-6">
+          <div className="space-y-5 px-7 py-6 overflow-y-auto flex-1">
+
+            {/* Name */}
+            <div>
+              <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wide text-grey-mid">
+                Produktname
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-md border border-grey-border px-3 py-2.5 text-sm font-semibold text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10"
+                placeholder="Produktname…"
+              />
+            </div>
 
             {/* Image */}
             <div>
               <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wide text-grey-mid">
-                Product Image
+                Produktbild
               </div>
               {imageUrl ? (
                 <div className="space-y-2">
@@ -144,14 +175,14 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
                       disabled={uploading}
                       className="flex-1 rounded border border-grey-border py-1.5 font-mono text-xs text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors disabled:opacity-40"
                     >
-                      Replace
+                      Ersetzen
                     </button>
                     <button
                       onClick={handleRemoveImage}
                       disabled={uploading}
                       className="flex-1 rounded border border-red-200 py-1.5 font-mono text-xs text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                     >
-                      Remove
+                      Entfernen
                     </button>
                   </div>
                 </div>
@@ -161,7 +192,7 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
                   disabled={uploading}
                   className="flex h-24 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-grey-border font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors disabled:opacity-40"
                 >
-                  {uploading ? "Uploading…" : "↑ Upload Image"}
+                  {uploading ? "Wird hochgeladen…" : "↑ Bild hochladen"}
                 </button>
               )}
               {uploadError && <p className="mt-1 font-mono text-xs text-red-600">{uploadError}</p>}
@@ -178,7 +209,7 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full rounded-md border border-grey-border px-3 py-2.5 font-mono text-xs text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10 resize-y"
-                placeholder="Short product description…"
+                placeholder="Kurze Produktbeschreibung…"
               />
             </div>
 
@@ -192,7 +223,7 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
                 value={highlights}
                 onChange={(e) => setHighlights(e.target.value)}
                 className="w-full rounded-md border border-grey-border px-3 py-2.5 font-mono text-xs text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10 resize-y"
-                placeholder={"One highlight per line:\nBoost-Funktion\nTimer\nKindersicherung"}
+                placeholder={"Ein Punkt pro Zeile:\nBoost-Funktion\nTimer\nKindersicherung"}
               />
               <p className="mt-1 font-mono text-[10px] text-grey-mid/70">Ein Punkt pro Zeile (kein Komma)</p>
             </div>
@@ -207,26 +238,42 @@ export function ItemMetaModal({ item, onClose, onSaved }: Props) {
                 value={scopeOfDelivery}
                 onChange={(e) => setScopeOfDelivery(e.target.value)}
                 className="w-full rounded-md border border-grey-border px-3 py-2.5 font-mono text-xs text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10 resize-y"
-                placeholder="What's included…"
+                placeholder="Was ist enthalten…"
               />
             </div>
+
+            {/* Delete error */}
+            {deleteError && (
+              <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 font-mono text-xs text-red-700">
+                {deleteError}
+              </p>
+            )}
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 border-t border-grey-border px-7 py-4">
+          <div className="flex items-center justify-between border-t border-grey-border px-7 py-4 flex-shrink-0">
             <button
-              onClick={onClose}
-              className="rounded-lg border border-grey-border px-4 py-2 font-mono text-xs text-grey-mid hover:text-grey-dark transition-colors"
+              onClick={handleDelete}
+              disabled={deleting || saving || uploading}
+              className="rounded-lg border border-red-200 px-4 py-2 font-mono text-xs text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors"
             >
-              Cancel
+              {deleting ? "Wird gelöscht…" : "Artikel löschen"}
             </button>
-            <button
-              onClick={handleSave}
-              disabled={saving || uploading}
-              className="rounded-lg bg-brand-red px-5 py-2 font-mono text-xs font-semibold text-white hover:bg-brand-red/90 disabled:opacity-40 transition-opacity"
-            >
-              {saving ? "Saving…" : "Save"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={onClose}
+                className="rounded-lg border border-grey-border px-4 py-2 font-mono text-xs text-grey-mid hover:text-grey-dark transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving || uploading || deleting}
+                className="rounded-lg bg-brand-red px-5 py-2 font-mono text-xs font-semibold text-white hover:bg-brand-red/90 disabled:opacity-40 transition-opacity"
+              >
+                {saving ? "Wird gespeichert…" : "Speichern"}
+              </button>
+            </div>
           </div>
         </div>
       </div>

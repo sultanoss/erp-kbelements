@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updatePurchasePrice, addPriceColumn, deletePriceColumn, updateColumnValue } from "./actions";
+import { updatePurchasePrice, addPriceColumn, deletePriceColumn, updateColumnValue, createItem } from "./actions";
 import { ItemMetaModal } from "./ItemMetaModal";
 
 type Column = { id: string; title: string; order: number };
@@ -122,6 +122,88 @@ function AddColumnForm({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
   );
 }
 
+// ---------- NewItemModal ----------
+
+function NewItemModal({ columns, onCreated, onClose }: {
+  columns: Column[];
+  onCreated: (row: Row) => void;
+  onClose: () => void;
+}) {
+  const [sku, setSku] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const [, start] = useTransition();
+
+  function handleSubmit() {
+    if (!sku.trim()) { setError("SKU ist erforderlich."); return; }
+    if (!name.trim()) { setError("Produktname ist erforderlich."); return; }
+    setError("");
+    start(async () => {
+      try {
+        const item = await createItem(sku.trim(), name.trim());
+        const newRow: Row = {
+          sku: item.sku,
+          name: item.name,
+          purchasePrice: null,
+          description: null,
+          highlights: null,
+          scopeOfDelivery: null,
+          imageUrl: null,
+          columnValues: columns.map((c) => ({ priceColumnId: c.id, price: null })),
+        };
+        onCreated(newRow);
+        onClose();
+      } catch {
+        setError("SKU bereits vorhanden oder ungültig.");
+      }
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full max-w-sm rounded-xl bg-white shadow-2xl">
+        <div className="relative flex flex-col items-center border-b border-grey-border px-6 py-5">
+          <div className="font-mono text-xs font-bold text-brand-red uppercase tracking-wide">Neuer Artikel</div>
+          <button onClick={onClose} className="absolute right-5 top-5 text-grey-mid hover:text-grey-dark text-lg leading-none">✕</button>
+        </div>
+        <div className="space-y-4 px-6 py-5">
+          <div>
+            <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wide text-grey-mid">SKU</label>
+            <input
+              autoFocus
+              type="text"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); if (e.key === "Escape") onClose(); }}
+              className="w-full rounded-md border border-grey-border px-3 py-2.5 font-mono text-sm text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10"
+              placeholder="z.B. KB-HKS-001"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wide text-grey-mid">Produktname</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); if (e.key === "Escape") onClose(); }}
+              className="w-full rounded-md border border-grey-border px-3 py-2.5 text-sm text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10"
+              placeholder="Produktname…"
+            />
+          </div>
+          {error && <p className="font-mono text-xs text-red-600">{error}</p>}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-grey-border px-6 py-4">
+          <button onClick={onClose} className="rounded-lg border border-grey-border px-4 py-2 font-mono text-xs text-grey-mid hover:text-grey-dark transition-colors">Abbrechen</button>
+          <button onClick={handleSubmit} className="rounded-lg bg-brand-red px-5 py-2 font-mono text-xs font-semibold text-white hover:bg-brand-red/90 transition-opacity">Anlegen</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- main component ----------
 
 export function PriceTable({
@@ -138,6 +220,7 @@ export function PriceTable({
   const [saveResult, setSaveResult] = useState<"ok" | "error" | null>(null);
   const [rows, setRows] = useState<Row[]>(initialRows);
   const [editingRow, setEditingRow] = useState<Row | null>(null);
+  const [newItemOpen, setNewItemOpen] = useState(false);
 
   const dirtyKeys = Object.keys(values).filter((k) => values[k] !== (saved[k] ?? ""));
   const dirtyCount = dirtyKeys.length;
@@ -211,6 +294,19 @@ export function PriceTable({
     setRows((prev) => prev.map((r) => r.sku === sku ? { ...r, ...updated } : r));
   }
 
+  function handleItemDeleted(sku: string) {
+    setRows((prev) => prev.filter((r) => r.sku !== sku));
+  }
+
+  function handleItemCreated(row: Row) {
+    setRows((prev) => [...prev, row]);
+    const newEntries: Record<CellKey, string> = {};
+    newEntries[`ep|${row.sku}`] = "";
+    for (const col of columns) newEntries[`col|${col.id}|${row.sku}`] = "";
+    setValues((prev) => ({ ...prev, ...newEntries }));
+    setSaved((prev) => ({ ...prev, ...newEntries }));
+  }
+
   return (
     <div>
       {editingRow && (
@@ -218,6 +314,14 @@ export function PriceTable({
           item={editingRow}
           onClose={() => setEditingRow(null)}
           onSaved={(updated) => { handleMetaSaved(editingRow.sku, updated); setEditingRow(null); }}
+          onDeleted={(sku) => { handleItemDeleted(sku); setEditingRow(null); }}
+        />
+      )}
+      {newItemOpen && (
+        <NewItemModal
+          columns={columns}
+          onCreated={handleItemCreated}
+          onClose={() => setNewItemOpen(false)}
         />
       )}
       {/* Toolbar */}
@@ -232,6 +336,12 @@ export function PriceTable({
           )}
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setNewItemOpen(true)}
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-grey-border px-4 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
+          >
+            + Neuer Artikel
+          </button>
           <a
             href="/api/preisliste/export"
             className="flex h-9 items-center gap-1.5 rounded-lg border border-grey-border px-4 font-mono text-xs font-semibold text-grey-dark hover:border-grey-dark transition-colors"
