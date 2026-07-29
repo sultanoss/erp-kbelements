@@ -18,6 +18,7 @@ interface Props {
     refund_status: string | null;
     refund_note: string | null;
     altgeraet: string | null;
+    is_outlet: boolean | null;
   };
 }
 
@@ -34,6 +35,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
   );
   const [refundNote, setRefundNote] = useState(initialValues.refund_note ?? "");
   const [altgeraet, setAltgeraet] = useState(initialValues.altgeraet ?? "");
+  const [isOutlet, setIsOutlet] = useState(initialValues.is_outlet ?? false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -49,6 +51,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
     setRefundStatus((initialValues.refund_status as "ja" | "nein" | "") ?? "");
     setRefundNote(initialValues.refund_note ?? "");
     setAltgeraet(initialValues.altgeraet ?? "");
+    setIsOutlet(initialValues.is_outlet ?? false);
     setError("");
     setOpen(true);
   }
@@ -58,11 +61,12 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
     setError("");
 
     const now = new Date().toISOString();
-    const updates: Record<string, string | null> = {
+    const updates: Record<string, string | null | boolean> = {
       status,
       order_number: orderNumber.trim() || null,
       description: description.trim() || null,
       updated_at: now,
+      is_outlet: isOutlet,
     };
 
     if (status === "erledigt") {
@@ -157,6 +161,19 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div className={`relative w-11 h-6 flex-shrink-0 rounded-full transition-colors ${isOutlet ? "bg-amber-500" : "bg-stone-300"}`}>
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${isOutlet ? "translate-x-5" : ""}`} />
+                    <input type="checkbox" className="sr-only" checked={isOutlet} onChange={(e) => setIsOutlet(e.target.checked)} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-stone-900">Outlet</div>
+                    <div className="text-xs text-stone-500">Als Outlet-Artikel kennzeichnen</div>
+                  </div>
+                </label>
               </div>
 
               <div>

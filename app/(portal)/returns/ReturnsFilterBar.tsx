@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
     resolution: string;
     from: string;
     to: string;
+    outlet: string;
   };
 }
 
@@ -19,10 +20,20 @@ export default function ReturnsFilterBar({ defaults }: Props) {
   const [resolution, setResolution] = useState(defaults.resolution);
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
+  const [outlet, setOutlet] = useState(defaults.outlet === "1");
   const router = useRouter();
 
-  const hasActiveFilter = !!(defaults.q || defaults.status || defaults.resolution || defaults.from || defaults.to);
-  const hasFormValues = !!(q || status || resolution || from || to);
+  useEffect(() => {
+    const noParams = !defaults.q && !defaults.status && !defaults.resolution && !defaults.from && !defaults.to && !defaults.outlet;
+    if (noParams) {
+      const saved = sessionStorage.getItem("returns_filter");
+      if (saved) router.replace(`/returns?${saved}`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const hasActiveFilter = !!(defaults.q || defaults.status || defaults.resolution || defaults.from || defaults.to || defaults.outlet);
+  const hasFormValues = !!(q || status || resolution || from || to || outlet);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,11 +43,14 @@ export default function ReturnsFilterBar({ defaults }: Props) {
     if (resolution) p.set("resolution", resolution);
     if (from) p.set("from", from);
     if (to) p.set("to", to);
+    if (outlet) p.set("outlet", "1");
+    sessionStorage.setItem("returns_filter", p.toString());
     router.push(`/returns${p.toString() ? `?${p.toString()}` : ""}`);
   }
 
   function handleReset() {
-    setQ(""); setStatus(""); setResolution(""); setFrom(""); setTo("");
+    sessionStorage.removeItem("returns_filter");
+    setQ(""); setStatus(""); setResolution(""); setFrom(""); setTo(""); setOutlet(false);
     router.push("/returns");
   }
 
@@ -83,6 +97,17 @@ export default function ReturnsFilterBar({ defaults }: Props) {
         <div>
           <label className="label">Bis</label>
           <input type="date" className="input" value={to} onChange={(e) => setTo(e.target.value)} />
+        </div>
+        <div className="flex items-end pb-0.5">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={outlet}
+              onChange={(e) => setOutlet(e.target.checked)}
+              className="w-4 h-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+            />
+            <span className="text-sm font-medium text-amber-700">Nur Outlet</span>
+          </label>
         </div>
         <div className="flex gap-2">
           <button

@@ -9,6 +9,7 @@ interface SearchParams {
   to?: string;
   status?: string;
   resolution?: string;
+  outlet?: string;
 }
 
 export default async function ReturnsPage({
@@ -34,6 +35,7 @@ export default async function ReturnsPage({
   if (params.to) query = query.lte("created_at", params.to + "T23:59:59");
   if (params.status) query = query.eq("status", params.status);
   if (params.resolution) query = query.eq("resolution", params.resolution);
+  if (params.outlet === "1") query = query.eq("is_outlet", true);
 
   const [{ data: returns, error }, { data: { user: currentUser } }] = await Promise.all([
     query,
@@ -68,6 +70,7 @@ export default async function ReturnsPage({
         resolution: params.resolution ?? "",
         from: params.from ?? "",
         to: params.to ?? "",
+        outlet: params.outlet ?? "",
       }} />
 
       {error && (
@@ -96,7 +99,7 @@ export default async function ReturnsPage({
               {!returns?.length ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-12 text-center text-stone-400">
-                    {params.q || params.status || params.resolution || params.from || params.to
+                    {params.q || params.status || params.resolution || params.from || params.to || params.outlet
                       ? "Keine Retouren für diese Filterkriterien gefunden."
                       : "Noch keine Retouren vorhanden. Erstelle die erste Retoure."}
                   </td>
@@ -141,6 +144,11 @@ export default async function ReturnsPage({
                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
                               {status.label}
                             </span>
+                            {r.is_outlet && (
+                              <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700">
+                                Outlet
+                              </span>
+                            )}
                             {hasNewReply && (
                               <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 whitespace-nowrap">
                                 <span className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-blue-500 animate-pulse" />

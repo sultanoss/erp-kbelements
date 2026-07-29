@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TASK_TYPE_OPTIONS } from "@/lib/status";
 
@@ -29,6 +29,15 @@ export default function TasksFilterBar({ defaults, users }: Props) {
   const [urgent, setUrgent] = useState(defaults.urgent === "1");
   const router = useRouter();
 
+  useEffect(() => {
+    const noParams = !defaults.q && !defaults.status && !defaults.type && !defaults.from && !defaults.to && !defaults.assigned_to && !defaults.created_by && !defaults.urgent;
+    if (noParams) {
+      const saved = sessionStorage.getItem("tasks_filter");
+      if (saved) router.replace(`/tasks?${saved}`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const hasActiveFilter = !!(defaults.q || defaults.status || defaults.type || defaults.from || defaults.to || defaults.assigned_to || defaults.created_by || defaults.urgent);
   const hasFormValues = !!(q || status || type || from || to || assignedTo || createdBy || urgent);
 
@@ -43,10 +52,12 @@ export default function TasksFilterBar({ defaults, users }: Props) {
     if (assignedTo) p.set("assigned_to", assignedTo);
     if (createdBy) p.set("created_by", createdBy);
     if (urgent) p.set("urgent", "1");
+    sessionStorage.setItem("tasks_filter", p.toString());
     router.push(`/tasks${p.toString() ? `?${p.toString()}` : ""}`);
   }
 
   function handleReset() {
+    sessionStorage.removeItem("tasks_filter");
     setQ(""); setStatus(""); setType(""); setFrom(""); setTo(""); setAssignedTo(""); setCreatedBy(""); setUrgent(false);
     router.push("/tasks");
   }

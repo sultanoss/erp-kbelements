@@ -24,6 +24,7 @@ export default function NewReturnForm({ skus, userName }: Props) {
   const [orderNumber, setOrderNumber] = useState("");
   const [description, setDescription] = useState("");
   const [initialStatus, setInitialStatus] = useState("eingegangen");
+  const [isOutlet, setIsOutlet] = useState(false);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [skuSearch, setSkuSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -75,6 +76,7 @@ export default function NewReturnForm({ skus, userName }: Props) {
         order_number: orderNumber || null,
         description: description || null,
         status: initialStatus,
+        is_outlet: isOutlet,
       })
       .select("id")
       .single();
@@ -179,6 +181,20 @@ export default function NewReturnForm({ skus, userName }: Props) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Outlet */}
+      <div className="card p-4">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <div className={`relative w-11 h-6 flex-shrink-0 rounded-full transition-colors ${isOutlet ? "bg-amber-500" : "bg-stone-300"}`}>
+            <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${isOutlet ? "translate-x-5" : ""}`} />
+            <input type="checkbox" className="sr-only" checked={isOutlet} onChange={(e) => setIsOutlet(e.target.checked)} />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-stone-900">Outlet</div>
+            <div className="text-xs text-stone-500">Retoure als Outlet-Artikel kennzeichnen</div>
+          </div>
+        </label>
       </div>
 
       {/* SKU-Auswahl */}

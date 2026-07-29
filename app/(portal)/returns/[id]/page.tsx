@@ -61,6 +61,11 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
               <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${status.className}`}>
                 {status.label}
               </span>
+              {ret.is_outlet && (
+                <span className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-amber-100 text-amber-700">
+                  Outlet
+                </span>
+              )}
               {ret.resolution && (
                 <span className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-stone-100 text-stone-700">
                   {RESOLUTION_LABELS[ret.resolution]}
@@ -88,6 +93,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
                 refund_status: ret.refund_status ?? null,
                 refund_note: ret.refund_note ?? null,
                 altgeraet: ret.altgeraet ?? null,
+                is_outlet: ret.is_outlet ?? false,
               }}
             />
             {ret.status !== "erledigt" && ret.status !== "wieder_an_kunde" && (
