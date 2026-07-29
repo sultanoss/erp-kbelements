@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updatePurchasePrice, addPriceColumn, deletePriceColumn, updateColumnValue, createItem } from "./actions";
-import { ItemMetaModal } from "./ItemMetaModal";
+import { updatePurchasePrice, addPriceColumn, deletePriceColumn, updateColumnValue } from "./actions";
 
 type Column = { id: string; title: string; order: number };
 type ColumnValue = { priceColumnId: string; price: number | null };
@@ -10,14 +9,10 @@ type Row = {
   sku: string;
   name: string;
   purchasePrice: number | null;
-  description: string | null;
-  highlights: string | null;
-  scopeOfDelivery: string | null;
-  imageUrl: string | null;
   columnValues: ColumnValue[];
 };
 
-type CellKey = string; // "ep|{sku}" or "col|{colId}|{sku}"
+type CellKey = string;
 
 function fmt(v: number | null): string {
   if (v == null) return "";
@@ -42,8 +37,6 @@ function buildValues(rows: Row[], cols: Column[]) {
   }
   return map;
 }
-
-// ---------- sub-components ----------
 
 const inputBase =
   "h-9 w-full rounded-md border px-2 font-mono text-sm tabular-nums text-grey-dark placeholder:text-grey-mid/40 focus:outline-none focus:ring-2 transition-colors";
@@ -122,90 +115,6 @@ function AddColumnForm({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
   );
 }
 
-// ---------- NewItemModal ----------
-
-function NewItemModal({ columns, onCreated, onClose }: {
-  columns: Column[];
-  onCreated: (row: Row) => void;
-  onClose: () => void;
-}) {
-  const [sku, setSku] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [, start] = useTransition();
-
-  function handleSubmit() {
-    if (!sku.trim()) { setError("SKU ist erforderlich."); return; }
-    if (!name.trim()) { setError("Produktname ist erforderlich."); return; }
-    setError("");
-    start(async () => {
-      try {
-        const item = await createItem(sku.trim(), name.trim());
-        const newRow: Row = {
-          sku: item.sku,
-          name: item.name,
-          purchasePrice: null,
-          description: null,
-          highlights: null,
-          scopeOfDelivery: null,
-          imageUrl: null,
-          columnValues: columns.map((c) => ({ priceColumnId: c.id, price: null })),
-        };
-        onCreated(newRow);
-        onClose();
-      } catch {
-        setError("SKU bereits vorhanden oder ungültig.");
-      }
-    });
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="w-full max-w-sm rounded-xl bg-white shadow-2xl">
-        <div className="relative flex flex-col items-center border-b border-grey-border px-6 py-5">
-          <div className="font-mono text-xs font-bold text-brand-red uppercase tracking-wide">Neuer Artikel</div>
-          <button onClick={onClose} className="absolute right-5 top-5 text-grey-mid hover:text-grey-dark text-lg leading-none">✕</button>
-        </div>
-        <div className="space-y-4 px-6 py-5">
-          <div>
-            <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wide text-grey-mid">SKU</label>
-            <input
-              autoFocus
-              type="text"
-              value={sku}
-              onChange={(e) => setSku(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); if (e.key === "Escape") onClose(); }}
-              className="w-full rounded-md border border-grey-border px-3 py-2.5 font-mono text-sm text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10"
-              placeholder="z.B. KB-HKS-001"
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wide text-grey-mid">Produktname</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); if (e.key === "Escape") onClose(); }}
-              className="w-full rounded-md border border-grey-border px-3 py-2.5 text-sm text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10"
-              placeholder="Produktname…"
-            />
-          </div>
-          {error && <p className="font-mono text-xs text-red-600">{error}</p>}
-        </div>
-        <div className="flex justify-end gap-2 border-t border-grey-border px-6 py-4">
-          <button onClick={onClose} className="rounded-lg border border-grey-border px-4 py-2 font-mono text-xs text-grey-mid hover:text-grey-dark transition-colors">Abbrechen</button>
-          <button onClick={handleSubmit} className="rounded-lg bg-brand-red px-5 py-2 font-mono text-xs font-semibold text-white hover:bg-brand-red/90 transition-opacity">Anlegen</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------- main component ----------
-
 export function PriceTable({
   initialRows,
   initialColumns,
@@ -218,9 +127,6 @@ export function PriceTable({
   const [saved, setSaved] = useState<Record<CellKey, string>>(() => buildValues(initialRows, initialColumns));
   const [isSaving, startSaving] = useTransition();
   const [saveResult, setSaveResult] = useState<"ok" | "error" | null>(null);
-  const [rows, setRows] = useState<Row[]>(initialRows);
-  const [editingRow, setEditingRow] = useState<Row | null>(null);
-  const [newItemOpen, setNewItemOpen] = useState(false);
 
   const dirtyKeys = Object.keys(values).filter((k) => values[k] !== (saved[k] ?? ""));
   const dirtyCount = dirtyKeys.length;
@@ -261,7 +167,6 @@ export function PriceTable({
   async function handleAddColumn(title: string) {
     const newCol = await addPriceColumn(title);
     setColumns((prev) => [...prev, newCol]);
-    // initialize empty values for new column
     const newEntries: Record<CellKey, string> = {};
     for (const row of initialRows) {
       newEntries[`col|${newCol.id}|${row.sku}`] = "";
@@ -290,40 +195,8 @@ export function PriceTable({
   const thClass = "px-3 py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid whitespace-nowrap";
   const tdClass = "px-1 py-0.5";
 
-  function handleMetaSaved(sku: string, updated: Partial<Row>) {
-    setRows((prev) => prev.map((r) => r.sku === sku ? { ...r, ...updated } : r));
-  }
-
-  function handleItemDeleted(sku: string) {
-    setRows((prev) => prev.filter((r) => r.sku !== sku));
-  }
-
-  function handleItemCreated(row: Row) {
-    setRows((prev) => [...prev, row]);
-    const newEntries: Record<CellKey, string> = {};
-    newEntries[`ep|${row.sku}`] = "";
-    for (const col of columns) newEntries[`col|${col.id}|${row.sku}`] = "";
-    setValues((prev) => ({ ...prev, ...newEntries }));
-    setSaved((prev) => ({ ...prev, ...newEntries }));
-  }
-
   return (
     <div>
-      {editingRow && (
-        <ItemMetaModal
-          item={editingRow}
-          onClose={() => setEditingRow(null)}
-          onSaved={(updated) => { handleMetaSaved(editingRow.sku, updated); setEditingRow(null); }}
-          onDeleted={(sku) => { handleItemDeleted(sku); setEditingRow(null); }}
-        />
-      )}
-      {newItemOpen && (
-        <NewItemModal
-          columns={columns}
-          onCreated={handleItemCreated}
-          onClose={() => setNewItemOpen(false)}
-        />
-      )}
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 border-b border-grey-border px-4 py-3">
         <div className="font-mono text-xs text-grey-mid">
@@ -336,12 +209,6 @@ export function PriceTable({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setNewItemOpen(true)}
-            className="flex h-9 items-center gap-1.5 rounded-lg border border-grey-border px-4 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors"
-          >
-            + Neuer Artikel
-          </button>
           <a
             href="/api/preisliste/export"
             className="flex h-9 items-center gap-1.5 rounded-lg border border-grey-border px-4 font-mono text-xs font-semibold text-grey-dark hover:border-grey-dark transition-colors"
@@ -363,7 +230,6 @@ export function PriceTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-grey-border bg-grey-light/60">
-              <th className={thClass + " w-8"}></th>
               <th className={thClass + " w-28"}>SKU</th>
               <th className={thClass}>Artikelname</th>
               <th className={thClass + " w-40"}>Akt. Ø-Preis (€)</th>
@@ -387,21 +253,8 @@ export function PriceTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
+            {initialRows.map((row, i) => (
               <tr key={row.sku} className={i % 2 === 0 ? "bg-white" : "bg-grey-light/30"}>
-                <td className="px-1 py-0.5 w-8">
-                  <button
-                    onClick={() => setEditingRow(row)}
-                    title="Edit product info"
-                    className="group flex h-8 w-8 items-center justify-center rounded hover:bg-grey-light/60"
-                  >
-                    {row.imageUrl ? (
-                      <img src={row.imageUrl} alt={row.sku} className="h-10 w-10 rounded object-contain" />
-                    ) : (
-                      <span className="text-[11px] text-grey-mid group-hover:text-brand-red">✏️</span>
-                    )}
-                  </button>
-                </td>
                 <td className="px-3 py-1 font-mono text-xs font-semibold text-grey-dark whitespace-nowrap">
                   {row.sku}
                 </td>
