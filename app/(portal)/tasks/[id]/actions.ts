@@ -15,3 +15,13 @@ export async function deleteTask(taskId: string) {
 
   redirect("/tasks");
 }
+
+export async function clearTaskBadge(taskId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await adminSupabase
+    .from("tasks")
+    .update({ last_reply_at: null, last_reply_author: null })
+    .eq("id", taskId);
+}

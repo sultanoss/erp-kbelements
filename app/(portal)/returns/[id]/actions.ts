@@ -17,3 +17,13 @@ export async function deleteReturn(returnId: string) {
 
   redirect("/returns");
 }
+
+export async function clearReturnBadge(returnId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await adminSupabase
+    .from("returns")
+    .update({ last_reply_at: null, last_reply_author: null })
+    .eq("id", returnId);
+}

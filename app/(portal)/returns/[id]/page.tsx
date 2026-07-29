@@ -7,6 +7,7 @@ import EditReturnModal from "./EditReturnModal";
 import ReturnImages from "./ReturnImages";
 import ReturnReplies from "./ReturnReplies";
 import ReturnDeleteButton from "./ReturnDeleteButton";
+import { AllesErledigtButton } from "./AllesErledigtButton";
 
 export default async function ReturnDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -73,6 +74,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
 
           {/* Aktionen */}
           <div className="flex gap-2 flex-wrap items-start">
+            {ret.last_reply_at && <AllesErledigtButton returnId={ret.id} />}
             <ReturnDeleteButton returnId={id} />
             <EditReturnModal
               returnId={id}
