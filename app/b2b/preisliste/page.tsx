@@ -15,6 +15,10 @@ export default async function PreislistePage() {
         sku: true,
         name: true,
         purchasePrice: true,
+        description: true,
+        highlights: true,
+        scopeOfDelivery: true,
+        imageUrl: true,
         priceColumnValues: {
           select: { priceColumnId: true, price: true },
         },
@@ -33,6 +37,10 @@ export default async function PreislistePage() {
             sku: item.sku,
             name: item.name,
             purchasePrice: item.purchasePrice,
+            description: item.description,
+            highlights: item.highlights,
+            scopeOfDelivery: item.scopeOfDelivery,
+            imageUrl: item.imageUrl,
             columnValues: item.priceColumnValues,
           }))}
           initialColumns={columns}

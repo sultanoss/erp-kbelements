@@ -39,3 +39,11 @@ export async function updateColumnValue(priceColumnId: string, sku: string, pric
   });
   revalidatePath("/b2b/preisliste");
 }
+
+export async function updateItemMeta(
+  sku: string,
+  data: { description?: string; highlights?: string; scopeOfDelivery?: string }
+) {
+  await requireAdmin();
+  await prisma.item.update({ where: { sku }, data });
+}

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { updatePurchasePrice, addPriceColumn, deletePriceColumn, updateColumnValue } from "./actions";
+import { ItemMetaModal } from "./ItemMetaModal";
 
 type Column = { id: string; title: string; order: number };
 type ColumnValue = { priceColumnId: string; price: number | null };
@@ -9,6 +10,10 @@ type Row = {
   sku: string;
   name: string;
   purchasePrice: number | null;
+  description: string | null;
+  highlights: string | null;
+  scopeOfDelivery: string | null;
+  imageUrl: string | null;
   columnValues: ColumnValue[];
 };
 
@@ -131,6 +136,8 @@ export function PriceTable({
   const [saved, setSaved] = useState<Record<CellKey, string>>(() => buildValues(initialRows, initialColumns));
   const [isSaving, startSaving] = useTransition();
   const [saveResult, setSaveResult] = useState<"ok" | "error" | null>(null);
+  const [rows, setRows] = useState<Row[]>(initialRows);
+  const [editingRow, setEditingRow] = useState<Row | null>(null);
 
   const dirtyKeys = Object.keys(values).filter((k) => values[k] !== (saved[k] ?? ""));
   const dirtyCount = dirtyKeys.length;
@@ -200,8 +207,19 @@ export function PriceTable({
   const thClass = "px-3 py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid whitespace-nowrap";
   const tdClass = "px-1 py-0.5";
 
+  function handleMetaSaved(sku: string, updated: Partial<Row>) {
+    setRows((prev) => prev.map((r) => r.sku === sku ? { ...r, ...updated } : r));
+  }
+
   return (
     <div>
+      {editingRow && (
+        <ItemMetaModal
+          item={editingRow}
+          onClose={() => setEditingRow(null)}
+          onSaved={(updated) => { handleMetaSaved(editingRow.sku, updated); setEditingRow(null); }}
+        />
+      )}
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 border-b border-grey-border px-4 py-3">
         <div className="font-mono text-xs text-grey-mid">
@@ -235,6 +253,7 @@ export function PriceTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-grey-border bg-grey-light/60">
+              <th className={thClass + " w-8"}></th>
               <th className={thClass + " w-28"}>SKU</th>
               <th className={thClass}>Artikelname</th>
               <th className={thClass + " w-40"}>Akt. Ø-Preis (€)</th>
@@ -258,8 +277,21 @@ export function PriceTable({
             </tr>
           </thead>
           <tbody>
-            {initialRows.map((row, i) => (
+            {rows.map((row, i) => (
               <tr key={row.sku} className={i % 2 === 0 ? "bg-white" : "bg-grey-light/30"}>
+                <td className="px-1 py-0.5 w-8">
+                  <button
+                    onClick={() => setEditingRow(row)}
+                    title="Edit product info"
+                    className="group flex h-8 w-8 items-center justify-center rounded hover:bg-grey-light/60"
+                  >
+                    {row.imageUrl ? (
+                      <img src={row.imageUrl} alt={row.sku} className="h-6 w-6 rounded object-contain" />
+                    ) : (
+                      <span className="text-[11px] text-grey-mid group-hover:text-brand-red">✏️</span>
+                    )}
+                  </button>
+                </td>
                 <td className="px-3 py-1 font-mono text-xs font-semibold text-grey-dark whitespace-nowrap">
                   {row.sku}
                 </td>

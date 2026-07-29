@@ -57,6 +57,10 @@ model Item {
   stockNS              Int                    @default(0)
   minStock             Int                    @default(0)
   purchasePrice        Float?
+  description          String?
+  highlights           String?
+  scopeOfDelivery      String?
+  imageUrl             String?
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   sales                Sale[]
