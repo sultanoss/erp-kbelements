@@ -71,6 +71,14 @@ model Item {
   purchaseOrderItems   PurchaseOrderItem[]
   purchasePriceHistory PurchasePriceHistory[]
   priceColumnValues    PriceColumnValue[]
+  image                ItemImage?
+}
+
+model ItemImage {
+  sku         String @id
+  data        Bytes
+  contentType String @default("image/jpeg")
+  item        Item   @relation(fields: [sku], references: [sku], onDelete: Cascade)
 }
 
 model Sale {

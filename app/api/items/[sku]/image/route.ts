@@ -1,6 +1,14 @@
-import { put, del } from "@vercel/blob";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guards";
+
+export async function GET(_req: Request, { params }: { params: Promise<{ sku: string }> }) {
+  const { sku } = await params;
+  const img = await prisma.itemImage.findUnique({ where: { sku } });
+  if (!img) return new Response(null, { status: 404 });
+  return new Response(img.data, {
+    headers: { "Content-Type": img.contentType, "Cache-Control": "public, max-age=31536000" },
+  });
+}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ sku: string }> }) {
   await requireAdmin();
@@ -9,16 +17,23 @@ export async function PUT(req: Request, { params }: { params: Promise<{ sku: str
   const file = form.get("file") as File | null;
   if (!file) return Response.json({ error: "No file" }, { status: 400 });
 
-  const blob = await put(`items/${sku}`, file, { access: "public", allowOverwrite: true });
-  await prisma.item.update({ where: { sku }, data: { imageUrl: blob.url } });
-  return Response.json({ url: blob.url });
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const contentType = file.type || "image/jpeg";
+
+  await prisma.itemImage.upsert({
+    where: { sku },
+    create: { sku, data: buffer, contentType },
+    update: { data: buffer, contentType },
+  });
+  await prisma.item.update({ where: { sku }, data: { imageUrl: `/api/items/${sku}/image` } });
+
+  return Response.json({ url: `/api/items/${sku}/image` });
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ sku: string }> }) {
   await requireAdmin();
   const { sku } = await params;
-  const item = await prisma.item.findUnique({ where: { sku }, select: { imageUrl: true } });
-  if (item?.imageUrl) await del(item.imageUrl);
+  await prisma.itemImage.deleteMany({ where: { sku } });
   await prisma.item.update({ where: { sku }, data: { imageUrl: null } });
   return Response.json({ ok: true });
 }
