@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { savePurchaseOrder, undoPurchaseOrder } from "./actions";
 
 type ItemInfo = {
@@ -48,6 +48,114 @@ const inputClass =
   "h-9 w-full rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
 const readonlyClass =
   "flex h-9 items-center rounded-lg border border-grey-border bg-grey-light px-3 font-mono text-sm tabular-nums text-grey-dark";
+
+function SkuCombobox({
+  value,
+  allItems,
+  onChange,
+  className,
+}: {
+  value: string;
+  allItems: ItemInfo[];
+  onChange: (sku: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = q.trim()
+    ? allItems.filter(
+        (i) =>
+          i.sku.toLowerCase().includes(q.toLowerCase()) ||
+          i.name.toLowerCase().includes(q.toLowerCase())
+      ).slice(0, 20)
+    : allItems.slice(0, 20);
+
+  const selectedItem = allItems.find((i) => i.sku === value);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQ("");
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [open]);
+
+  function handleSelect(sku: string) {
+    onChange(sku);
+    setOpen(false);
+    setQ("");
+  }
+
+  function handleOpen() {
+    setOpen(true);
+    setQ("");
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={handleOpen}
+        className={`${className} flex items-center justify-between gap-2 text-left`}
+      >
+        <span className={value ? "text-grey-dark" : "text-grey-mid/60"}>
+          {selectedItem ? `${selectedItem.sku}` : "— SKU wählen —"}
+        </span>
+        <svg className="w-4 h-4 text-grey-mid flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute left-0 top-full z-30 mt-1 w-full min-w-[260px] rounded-lg border border-grey-border bg-white shadow-xl">
+          {/* Search input */}
+          <div className="border-b border-grey-border p-2">
+            <input
+              ref={inputRef}
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") { setOpen(false); setQ(""); }
+                if (e.key === "Enter" && filtered.length === 1) handleSelect(filtered[0].sku);
+              }}
+              placeholder="SKU oder Name suchen…"
+              className="h-8 w-full rounded-md border border-grey-border bg-grey-light/50 px-3 font-mono text-xs text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red/10"
+            />
+          </div>
+          {/* Options */}
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-4 py-3 font-mono text-xs text-grey-mid">Kein Artikel gefunden</div>
+            ) : (
+              filtered.map((i) => (
+                <button
+                  key={i.sku}
+                  type="button"
+                  onClick={() => handleSelect(i.sku)}
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-left hover:bg-grey-light/60 transition-colors ${value === i.sku ? "bg-brand-red/5" : ""}`}
+                >
+                  <span className="font-mono text-xs font-semibold text-grey-dark whitespace-nowrap">{i.sku}</span>
+                  {i.name && <span className="font-mono text-[11px] text-grey-mid truncate">{i.name}</span>}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function PurchaseForm({ allItems }: { allItems: ItemInfo[] }) {
   const today = new Date().toISOString().slice(0, 10);
@@ -245,16 +353,13 @@ export function PurchaseForm({ allItems }: { allItems: ItemInfo[] }) {
                   className="grid grid-cols-1 gap-2 rounded-lg border border-grey-border bg-white p-3 md:grid-cols-[2fr_6rem_8rem_7rem_6rem_7rem_8rem_2rem] md:items-center md:rounded-none md:border-0 md:bg-transparent md:p-0"
                 >
                   <div className="flex flex-col gap-1">
-                    <select
+                    <SkuCombobox
                       value={line.sku}
-                      onChange={(e) => updateLine(line.id, "sku", e.target.value)}
+                      allItems={allItems}
+                      onChange={(sku) => updateLine(line.id, "sku", sku)}
                       className={inputClass}
-                    >
-                      <option value="">— SKU wählen —</option>
-                      {allItems.map((i) => (
-                        <option key={i.sku} value={i.sku}>{i.sku}</option>
-                      ))}
-                    </select>
+                    />
+                    {item && <div className="px-1 font-mono text-[10px] text-grey-mid truncate">{item.name}</div>}
                   </div>
                   <div className={readonlyClass + " justify-center tabular-nums"}>
                     {line.currentStock}
