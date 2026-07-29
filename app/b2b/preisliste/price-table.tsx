@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { updatePurchasePrice, addPriceColumn, deletePriceColumn, updateColumnValue } from "./actions";
+import { useState, useTransition, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { updatePurchasePrice, addPriceColumn, deletePriceColumn, updateColumnValue, createItem } from "./actions";
 
 type Column = { id: string; title: string; order: number };
 type ColumnValue = { priceColumnId: string; price: number | null };
@@ -115,6 +116,142 @@ function AddColumnForm({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
   );
 }
 
+function AddItemForm({
+  existingRows,
+  columns,
+  onAdd,
+}: {
+  existingRows: Row[];
+  columns: Column[];
+  onAdd: (sku: string, name: string) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [skuQ, setSkuQ] = useState("");
+  const [nameQ, setNameQ] = useState("");
+  const [adding, setAdding] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const q = skuQ.trim().toLowerCase();
+  const matches = q
+    ? existingRows.filter((r) => r.sku.toLowerCase().includes(q) || r.name.toLowerCase().includes(q)).slice(0, 5)
+    : [];
+  const exactDuplicate = existingRows.some((r) => r.sku.toLowerCase() === q);
+  const canAdd = skuQ.trim().length > 0 && !exactDuplicate;
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") close();
+    }
+    function onClickOutside(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) close();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onClickOutside);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  function close() {
+    setOpen(false);
+    setSkuQ("");
+    setNameQ("");
+    setAdding(false);
+  }
+
+  async function handleAdd() {
+    if (!canAdd || adding) return;
+    setAdding(true);
+    await onAdd(skuQ.trim(), nameQ.trim());
+    close();
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="h-9 rounded-md border border-dashed border-grey-border px-3 font-mono text-xs font-semibold text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors whitespace-nowrap"
+      >
+        + Artikel
+      </button>
+    );
+  }
+
+  return (
+    <div ref={panelRef} className="relative">
+      <div className="absolute right-0 top-0 z-20 w-72 rounded-xl border border-grey-border bg-white shadow-xl p-4 space-y-3">
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-wide text-grey-mid">Neuer Artikel</div>
+
+        {/* SKU-Suche */}
+        <div>
+          <label className="mb-1 block font-mono text-[10px] text-grey-mid">SKU</label>
+          <input
+            autoFocus
+            type="text"
+            value={skuQ}
+            onChange={(e) => setSkuQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAdd();
+              if (e.key === "Escape") close();
+            }}
+            placeholder="z.B. KB-1234"
+            className="h-9 w-full rounded-md border border-grey-border bg-white px-3 font-mono text-xs text-grey-dark placeholder:text-grey-mid/40 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10"
+          />
+          {/* Matches */}
+          {matches.length > 0 && (
+            <div className="mt-1 rounded-md border border-grey-border bg-white divide-y divide-grey-border overflow-hidden">
+              {matches.map((r) => (
+                <div key={r.sku} className="px-3 py-1.5 flex items-center justify-between gap-2">
+                  <span className="font-mono text-[11px] font-semibold text-grey-dark">{r.sku}</span>
+                  <span className="text-[11px] text-grey-mid truncate">{r.name || "–"}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {exactDuplicate && (
+            <p className="mt-1 font-mono text-[10px] text-brand-red">SKU bereits vorhanden</p>
+          )}
+        </div>
+
+        {/* Name */}
+        <div>
+          <label className="mb-1 block font-mono text-[10px] text-grey-mid">Artikelname <span className="text-grey-mid/50">(optional)</span></label>
+          <input
+            type="text"
+            value={nameQ}
+            onChange={(e) => setNameQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAdd();
+              if (e.key === "Escape") close();
+            }}
+            placeholder="Produktname…"
+            className="h-9 w-full rounded-md border border-grey-border bg-white px-3 font-mono text-xs text-grey-dark placeholder:text-grey-mid/40 focus:outline-none focus:border-brand-red focus:ring-2 focus:ring-brand-red/10"
+          />
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={handleAdd}
+            disabled={!canAdd || adding}
+            className="flex-1 h-8 rounded-md bg-brand-red font-mono text-xs font-semibold text-white hover:bg-brand-red/90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+          >
+            {adding ? "Wird angelegt…" : "Anlegen"}
+          </button>
+          <button
+            onClick={close}
+            className="h-8 rounded-md border border-grey-border px-3 font-mono text-xs text-grey-mid hover:text-brand-red transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PriceTable({
   initialRows,
   initialColumns,
@@ -127,6 +264,13 @@ export function PriceTable({
   const [saved, setSaved] = useState<Record<CellKey, string>>(() => buildValues(initialRows, initialColumns));
   const [isSaving, startSaving] = useTransition();
   const [saveResult, setSaveResult] = useState<"ok" | "error" | null>(null);
+  const [filterQ, setFilterQ] = useState("");
+  const router = useRouter();
+
+  const q = filterQ.toLowerCase();
+  const filteredRows = q
+    ? initialRows.filter((r) => r.sku.toLowerCase().includes(q) || r.name.toLowerCase().includes(q))
+    : initialRows;
 
   const dirtyKeys = Object.keys(values).filter((k) => values[k] !== (saved[k] ?? ""));
   const dirtyCount = dirtyKeys.length;
@@ -192,6 +336,11 @@ export function PriceTable({
     });
   }
 
+  async function handleAddItem(sku: string, name: string) {
+    await createItem(sku, name);
+    router.refresh();
+  }
+
   const thClass = "px-3 py-2.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid whitespace-nowrap";
   const tdClass = "px-1 py-0.5";
 
@@ -199,16 +348,43 @@ export function PriceTable({
     <div>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 border-b border-grey-border px-4 py-3">
-        <div className="font-mono text-xs text-grey-mid">
-          {dirtyCount > 0 ? (
-            <span className="font-semibold text-amber-600">● {dirtyCount} ungespeicherte Änderung{dirtyCount !== 1 ? "en" : ""}</span>
-          ) : saveResult === "ok" ? (
-            <span className="font-semibold text-green-600">✓ Alle Änderungen gespeichert</span>
-          ) : (
-            <span>Felder bearbeiten, dann „Speichern" klicken</span>
-          )}
+        {/* Left: filter + status */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="relative w-56 flex-shrink-0">
+            <input
+              type="text"
+              value={filterQ}
+              onChange={(e) => setFilterQ(e.target.value)}
+              placeholder="SKU oder Name filtern…"
+              className="h-9 w-full rounded-md border border-grey-border bg-grey-light/40 pl-3 pr-8 font-mono text-xs text-grey-dark placeholder:text-grey-mid/50 focus:outline-none focus:border-brand-red focus:bg-white focus:ring-2 focus:ring-brand-red/10 transition-colors"
+            />
+            {filterQ && (
+              <button
+                onClick={() => setFilterQ("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-grey-mid hover:text-brand-red transition-colors"
+                tabIndex={-1}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="font-mono text-xs text-grey-mid truncate">
+            {dirtyCount > 0 ? (
+              <span className="font-semibold text-amber-600">● {dirtyCount} ungespeicherte Änderung{dirtyCount !== 1 ? "en" : ""}</span>
+            ) : saveResult === "ok" ? (
+              <span className="font-semibold text-green-600">✓ Alle Änderungen gespeichert</span>
+            ) : (
+              filterQ
+                ? <span>{filteredRows.length} von {initialRows.length} Artikeln</span>
+                : <span>Felder bearbeiten, dann „Speichern" klicken</span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Right: actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <a
             href="/api/preisliste/export"
             className="flex h-9 items-center gap-1.5 rounded-lg border border-grey-border px-4 font-mono text-xs font-semibold text-grey-dark hover:border-grey-dark transition-colors"
@@ -248,12 +424,15 @@ export function PriceTable({
                 </th>
               ))}
               <th className={thClass}>
-                <AddColumnForm onAdd={handleAddColumn} />
+                <div className="flex items-center gap-2">
+                  <AddColumnForm onAdd={handleAddColumn} />
+                  <AddItemForm existingRows={initialRows} columns={columns} onAdd={handleAddItem} />
+                </div>
               </th>
             </tr>
           </thead>
           <tbody>
-            {initialRows.map((row, i) => (
+            {filteredRows.map((row, i) => (
               <tr key={row.sku} className={i % 2 === 0 ? "bg-white" : "bg-grey-light/30"}>
                 <td className="px-3 py-1 font-mono text-xs font-semibold text-grey-dark whitespace-nowrap">
                   {row.sku}
@@ -284,8 +463,10 @@ export function PriceTable({
             ))}
           </tbody>
         </table>
-        {initialRows.length === 0 && (
-          <div className="py-12 text-center font-mono text-sm text-grey-mid">Keine Artikel gefunden.</div>
+        {filteredRows.length === 0 && (
+          <div className="py-12 text-center font-mono text-sm text-grey-mid">
+            {filterQ ? `Kein Artikel gefunden für „${filterQ}"` : "Keine Artikel gefunden."}
+          </div>
         )}
       </div>
     </div>
