@@ -95,19 +95,26 @@ export async function GET() {
       return cv?.price ?? null;
     };
 
+    const formatLines = (text: string | null) => {
+      if (!text) return "";
+      if (text.includes("\n")) return text;
+      return text.split(",").map((s) => s.trim()).filter(Boolean).join("\n");
+    };
+
     const rowData = [
-      "",                          // image placeholder (col 1)
+      "",
       item.sku,
       item.name,
-      item.description  ?? "",
-      item.highlights   ?? "",
-      item.scopeOfDelivery ?? "",
+      formatLines(item.description),
+      formatLines(item.highlights),
+      formatLines(item.scopeOfDelivery),
       ...(b2bCol ? [getPrice(b2bCol.id)] : []),
       ...otherCols.map((col) => getPrice(col.id)),
     ];
 
     const row = ws.addRow(rowData);
-    row.height = 58;
+    // Only fix height for rows with an image; otherwise let Excel auto-size
+    if (item.image?.data) row.height = 58;
 
     row.eachCell({ includeEmpty: true }, (cell, colNum) => {
       cell.fill   = { type: "pattern", pattern: "solid", fgColor: { argb: bgArgb } };
