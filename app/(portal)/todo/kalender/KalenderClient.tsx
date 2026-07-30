@@ -9,8 +9,6 @@ type Eintrag = {
   date: string;
   title: string;
   description: string | null;
-  reminder_at: string | null;
-  reminder_sent: boolean;
   user_id: string;
   created_at: string;
 };
@@ -30,13 +28,11 @@ export default function KalenderClient({
   year,
   month,
   userId,
-  ntfyTopic: initialNtfyTopic,
 }: {
   eintraege: Eintrag[];
   year: number;
   month: number;
   userId: string;
-  ntfyTopic: string;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -47,19 +43,11 @@ export default function KalenderClient({
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [reminderAt, setReminderAt] = useState("");
   const [saving, setSaving] = useState(false);
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editReminderAt, setEditReminderAt] = useState("");
-
-  // ntfy settings
-  const [ntfyTopic, setNtfyTopic] = useState(initialNtfyTopic);
-  const [ntfyInput, setNtfyInput] = useState(initialNtfyTopic);
-  const [savingNtfy, setSavingNtfy] = useState(false);
-  const [showNtfySettings, setShowNtfySettings] = useState(false);
 
   // Build calendar grid
   const firstDay = new Date(year, month - 1, 1);
@@ -101,11 +89,9 @@ export default function KalenderClient({
       date: selectedDate,
       title: title.trim(),
       description: description.trim() || null,
-      reminder_at: reminderAt ? new Date(reminderAt).toISOString() : null,
-      reminder_sent: false,
       user_id: userId,
     });
-    setTitle(""); setDescription(""); setReminderAt(""); setShowForm(false);
+    setTitle(""); setDescription(""); setShowForm(false);
     setSaving(false);
     startTransition(() => router.refresh());
   }
@@ -121,85 +107,16 @@ export default function KalenderClient({
     await supabase.from("kalender_eintraege").update({
       title: editTitle.trim(),
       description: editDescription.trim() || null,
-      reminder_at: editReminderAt ? new Date(editReminderAt).toISOString() : null,
-      reminder_sent: false,
       updated_at: new Date().toISOString(),
     }).eq("id", id);
     setEditId(null); setSaving(false);
     startTransition(() => router.refresh());
   }
 
-  async function handleSaveNtfy() {
-    setSavingNtfy(true);
-    await supabase.from("user_settings").upsert({
-      user_id: userId,
-      ntfy_topic: ntfyInput.trim() || null,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-    setNtfyTopic(ntfyInput.trim());
-    setSavingNtfy(false);
-    setShowNtfySettings(false);
-  }
-
   const dayEntries = selectedDate ? (entryMap.get(selectedDate) ?? []) : [];
 
   return (
     <div className="space-y-6">
-      {/* ntfy Settings */}
-      <div className="card p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span className="text-sm font-medium text-gray-700">Push-Erinnerungen (ntfy.sh)</span>
-            {ntfyTopic ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                ✓ {ntfyTopic}
-              </span>
-            ) : (
-              <span className="text-xs text-gray-400">nicht eingerichtet</span>
-            )}
-          </div>
-          <button
-            onClick={() => { setShowNtfySettings((v) => !v); setNtfyInput(ntfyTopic); }}
-            className="text-xs text-brand-red hover:underline"
-          >
-            {showNtfySettings ? "Schließen" : "Einrichten"}
-          </button>
-        </div>
-
-        {showNtfySettings && (
-          <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
-            <div className="rounded-lg bg-blue-50 p-3 text-xs text-blue-800 space-y-1">
-              <p className="font-semibold">So richtest du ntfy.sh ein:</p>
-              <ol className="list-decimal pl-4 space-y-0.5">
-                <li>Installiere die <strong>ntfy App</strong> auf deinem Handy (kostenlos, Android &amp; iOS)</li>
-                <li>Wähle einen einzigartigen Topic-Namen, z.B. <code>kb-radwan-x7k2</code></li>
-                <li>Abonniere diesen Topic in der App</li>
-                <li>Trage denselben Topic-Namen hier ein</li>
-              </ol>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={ntfyInput}
-                onChange={(e) => setNtfyInput(e.target.value)}
-                placeholder="z.B. kb-radwan-x7k2"
-                className="input flex-1"
-              />
-              <button
-                onClick={handleSaveNtfy}
-                disabled={savingNtfy}
-                className="btn-primary disabled:opacity-50"
-              >
-                {savingNtfy ? "…" : "Speichern"}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Calendar */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
@@ -283,20 +200,11 @@ export default function KalenderClient({
                 rows={2}
                 className="input w-full resize-none"
               />
-              <label className="grid gap-1">
-                <span className="text-xs text-gray-500">Erinnerung (optional)</span>
-                <input
-                  type="datetime-local"
-                  value={reminderAt}
-                  onChange={(e) => setReminderAt(e.target.value)}
-                  className="input w-full"
-                />
-              </label>
               <div className="flex gap-2">
                 <button onClick={handleAdd} disabled={saving || !title.trim()} className="btn-primary text-sm py-1.5 px-4 disabled:opacity-50">
                   {saving ? "Speichern…" : "Speichern"}
                 </button>
-                <button onClick={() => { setShowForm(false); setTitle(""); setDescription(""); setReminderAt(""); }} className="btn-secondary text-sm py-1.5 px-4">
+                <button onClick={() => { setShowForm(false); setTitle(""); setDescription(""); }} className="btn-secondary text-sm py-1.5 px-4">
                   Abbrechen
                 </button>
               </div>
@@ -314,10 +222,6 @@ export default function KalenderClient({
                   <div className="space-y-2">
                     <input type="text" value={editTitle} onChange={(ev) => setEditTitle(ev.target.value)} className="input w-full" autoFocus />
                     <textarea value={editDescription} onChange={(ev) => setEditDescription(ev.target.value)} rows={2} className="input w-full resize-none" placeholder="Beschreibung (optional)" />
-                    <label className="grid gap-1">
-                      <span className="text-xs text-gray-500">Erinnerung (optional)</span>
-                      <input type="datetime-local" value={editReminderAt} onChange={(ev) => setEditReminderAt(ev.target.value)} className="input w-full" />
-                    </label>
                     <div className="flex gap-2">
                       <button onClick={() => handleSaveEdit(e.id)} disabled={saving || !editTitle.trim()} className="btn-primary text-sm py-1 px-3 disabled:opacity-50">
                         {saving ? "…" : "Speichern"}
@@ -330,18 +234,10 @@ export default function KalenderClient({
                     <div>
                       <p className="text-sm font-medium text-gray-900">{e.title}</p>
                       {e.description && <p className="text-xs text-gray-500 mt-0.5 whitespace-pre-wrap">{e.description}</p>}
-                      {e.reminder_at && (
-                        <p className={`text-xs mt-1 flex items-center gap-1 ${e.reminder_sent ? "text-gray-400" : "text-brand-red"}`}>
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                          </svg>
-                          {e.reminder_sent ? "Erinnerung gesendet" : new Date(e.reminder_at).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                        </p>
-                      )}
                     </div>
                     <div className="flex gap-1 shrink-0">
                       <button
-                        onClick={() => { setEditId(e.id); setEditTitle(e.title); setEditDescription(e.description ?? ""); setEditReminderAt(e.reminder_at ? e.reminder_at.slice(0, 16) : ""); setShowForm(false); }}
+                        onClick={() => { setEditId(e.id); setEditTitle(e.title); setEditDescription(e.description ?? ""); setShowForm(false); }}
                         className="p-1.5 text-gray-400 hover:text-brand-red rounded transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

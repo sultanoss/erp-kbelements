@@ -20,20 +20,13 @@ export default async function KalenderPage({
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [{ data: eintraege }, { data: settings }] = await Promise.all([
-    supabase
-      .from("kalender_eintraege")
-      .select("*")
-      .eq("user_id", user?.id ?? "")
-      .gte("date", firstOfMonth)
-      .lte("date", lastOfMonth)
-      .order("created_at"),
-    supabase
-      .from("user_settings")
-      .select("ntfy_topic")
-      .eq("user_id", user?.id ?? "")
-      .maybeSingle(),
-  ]);
+  const { data: eintraege } = await supabase
+    .from("kalender_eintraege")
+    .select("*")
+    .eq("user_id", user?.id ?? "")
+    .gte("date", firstOfMonth)
+    .lte("date", lastOfMonth)
+    .order("created_at");
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -43,7 +36,6 @@ export default async function KalenderPage({
         year={year}
         month={month}
         userId={user?.id ?? ""}
-        ntfyTopic={settings?.ntfy_topic ?? ""}
       />
     </div>
   );
