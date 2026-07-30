@@ -23,26 +23,19 @@ export async function GET(req: Request) {
         } : {}),
       },
     },
-    include: { item: { select: { name: true } } },
   });
 
-  // Aggregate quantities per SKU
-  const map = new Map<string, { name: string; qty: number }>();
+  const map = new Map<string, number>();
   for (const item of items) {
-    const existing = map.get(item.sku);
-    if (existing) {
-      existing.qty += item.quantity;
-    } else {
-      map.set(item.sku, { name: item.item.name, qty: item.quantity });
-    }
+    map.set(item.sku, (map.get(item.sku) ?? 0) + item.quantity);
   }
 
   const rows = [...map.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([sku, { name, qty }]) => [sku, name, qty]);
+    .map(([sku, qty]) => [sku, qty]);
 
-  const ws = XLSX.utils.aoa_to_sheet([["SKU", "Artikelname", "Menge (gesamt)"], ...rows]);
-  ws["!cols"] = [{ wch: 22 }, { wch: 42 }, { wch: 16 }];
+  const ws = XLSX.utils.aoa_to_sheet([["SKU", "Menge (gesamt)"], ...rows]);
+  ws["!cols"] = [{ wch: 22 }, { wch: 16 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Einkauf");
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
