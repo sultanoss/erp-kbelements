@@ -94,3 +94,37 @@ create policy "Authenticated users can read return_events" on return_events
 
 create policy "Authenticated users can insert return_events" on return_events
   for insert with check (auth.role() = 'authenticated');
+
+-- ============================================================
+-- Todo: Terminkalender + Notizen
+-- Im Supabase SQL Editor ausführen
+-- ============================================================
+
+create table if not exists kalender_eintraege (
+  id uuid primary key default gen_random_uuid(),
+  date date not null,
+  title text not null,
+  description text,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+alter table kalender_eintraege enable row level security;
+create policy "own rows only" on kalender_eintraege
+  for all to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create table if not exists notizen (
+  id uuid primary key default gen_random_uuid(),
+  title text,
+  content text not null,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+alter table notizen enable row level security;
+create policy "own rows only" on notizen
+  for all to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

@@ -61,11 +61,17 @@ const chinaSubItems = [
   { href: "/china/ware", label: "Ware in China" },
 ];
 
+const todoSubItems = [
+  { href: "/todo/kalender", label: "Terminkalender" },
+  { href: "/todo/notizen", label: "Notizen" },
+];
+
 export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
   const [chinaOpen, setChinaOpen] = useState(pathname.startsWith("/china"));
+  const [todoOpen, setTodoOpen] = useState(pathname.startsWith("/todo"));
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -172,6 +178,52 @@ export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose 
               </div>
             )}
           </div>}
+
+          {/* Todo-Gruppe — alle User */}
+          <div>
+            <button
+              onClick={() => setTodoOpen((o) => !o)}
+              className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                pathname.startsWith("/todo")
+                  ? "bg-brand-red text-white"
+                  : "text-stone-300 hover:text-white hover:bg-stone-700"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Todo
+              </div>
+              <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${todoOpen ? "rotate-180" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {todoOpen && (
+              <div className="mt-1 space-y-0.5">
+                {todoSubItems.map((sub) => {
+                  const isActive = pathname === sub.href || pathname.startsWith(sub.href + "/");
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      onClick={close}
+                      className={`flex items-center gap-2 pl-10 pr-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? "bg-stone-700 text-white"
+                          : "text-stone-400 hover:text-white hover:bg-stone-700"
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-current flex-shrink-0" />
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {isAdmin && (
             <Link
