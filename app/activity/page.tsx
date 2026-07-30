@@ -25,9 +25,9 @@ const typeBadge: Record<string, string> = {
 export default async function ActivityPage({
   searchParams,
 }: {
-  searchParams: Promise<{ von?: string; bis?: string; type?: string; austausch?: string }>;
+  searchParams: Promise<{ von?: string; bis?: string; type?: string; austausch?: string; q?: string }>;
 }) {
-  const { von, bis, type: typeFilter, austausch: austauschFilter } = await searchParams;
+  const { von, bis, type: typeFilter, austausch: austauschFilter, q } = await searchParams;
   const isAustauschView = austauschFilter === "ja";
 
   const [logs, corrections] = await Promise.all([
@@ -47,6 +47,10 @@ export default async function ActivityPage({
                   },
                 }
               : {}),
+            ...(q ? { OR: [
+              { sku: { contains: q, mode: "insensitive" } },
+              { note: { contains: q, mode: "insensitive" } },
+            ]} : {}),
           },
         }),
     isAustauschView
@@ -63,6 +67,10 @@ export default async function ActivityPage({
                   },
                 }
               : {}),
+            ...(q ? { OR: [
+              { sku: { contains: q, mode: "insensitive" } },
+              { reason: { contains: q, mode: "insensitive" } },
+            ]} : {}),
           },
           include: { user: true },
         })
@@ -71,13 +79,23 @@ export default async function ActivityPage({
 
   const inputClass = "h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
   const labelClass = "font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid";
-  const hasFilter = !!(typeFilter || von || bis || austauschFilter);
+  const hasFilter = !!(typeFilter || von || bis || austauschFilter || q);
 
   return (
     <AppShell>
       <PageHeader title="Aktivitätsprotokoll" eyebrow="Jede wichtige Änderung" />
 
       <form method="GET" className="mb-6 flex flex-wrap items-end gap-3">
+        <label className="grid gap-1.5">
+          <span className={labelClass}>Suche</span>
+          <input
+            name="q"
+            type="search"
+            defaultValue={q ?? ""}
+            placeholder="SKU, Notiz, Grund …"
+            className={`${inputClass} w-52`}
+          />
+        </label>
         <label className="grid gap-1.5">
           <span className={labelClass}>Von</span>
           <input name="von" type="date" defaultValue={von ?? ""} className={inputClass} />
@@ -128,7 +146,7 @@ export default async function ActivityPage({
           ↓ Excel
         </a>
         <span className="ml-2 self-end pb-2 font-mono text-xs text-grey-mid">
-          {logs.length} Einträge
+          {isAustauschView ? corrections.length : logs.length} Einträge
         </span>
       </form>
 

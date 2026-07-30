@@ -48,6 +48,7 @@ export default async function BestellungenPage({
             { customerName: { contains: q, mode: "insensitive" } },
             { billingName: { contains: q, mode: "insensitive" } },
             { items: { some: { marketplaceSku: { contains: q, mode: "insensitive" } } } },
+            { items: { some: { internalSku: { contains: q, mode: "insensitive" } } } },
           ],
         } : {}),
         ...dateFilter,
