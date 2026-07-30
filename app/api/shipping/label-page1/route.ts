@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   const pdfBytes = await pdfRes.arrayBuffer();
 
-  void prisma.shipment.updateMany({
+  await prisma.shipment.updateMany({
     where: { labelUrl: url },
     data: { labelPrinted: true },
   });
