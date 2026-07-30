@@ -277,6 +277,15 @@ export async function updateCorrection(formData: FormData) {
   redirect("/corrections");
 }
 
+export async function markAllLabelsPrinted() {
+  await requireUser();
+  await prisma.shipment.updateMany({
+    where: { labelUrl: { not: null }, labelPrinted: false },
+    data: { labelPrinted: true },
+  });
+  revalidatePath("/");
+}
+
 export async function setAustauschAngekommen(formData: FormData) {
   await requireUser();
   const id = text(formData, "id");
