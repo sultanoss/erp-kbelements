@@ -23,19 +23,18 @@ export async function GET(req: Request) {
         } : {}),
       },
     },
+    include: { purchaseOrder: { select: { date: true } } },
+    orderBy: { purchaseOrder: { date: "asc" } },
   });
 
-  const map = new Map<string, number>();
-  for (const item of items) {
-    map.set(item.sku, (map.get(item.sku) ?? 0) + item.quantity);
-  }
+  const rows = items.map((item) => {
+    const d = item.purchaseOrder.date;
+    const dateStr = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`;
+    return [dateStr, item.sku, item.quantity];
+  });
 
-  const rows = [...map.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([sku, qty]) => [sku, qty]);
-
-  const ws = XLSX.utils.aoa_to_sheet([["SKU", "Menge (gesamt)"], ...rows]);
-  ws["!cols"] = [{ wch: 22 }, { wch: 16 }];
+  const ws = XLSX.utils.aoa_to_sheet([["Datum", "SKU", "Menge"], ...rows]);
+  ws["!cols"] = [{ wch: 14 }, { wch: 22 }, { wch: 10 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Einkauf");
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
