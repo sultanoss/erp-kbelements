@@ -46,6 +46,7 @@ export default async function BestellungenPage({
           OR: [
             { orderNumber: { contains: q, mode: "insensitive" } },
             { customerName: { contains: q, mode: "insensitive" } },
+            { billingName: { contains: q, mode: "insensitive" } },
             { items: { some: { marketplaceSku: { contains: q, mode: "insensitive" } } } },
           ],
         } : {}),
