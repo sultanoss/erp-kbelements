@@ -24,6 +24,7 @@ export default async function KalenderPage({
     supabase
       .from("kalender_eintraege")
       .select("*")
+      .eq("user_id", user?.id ?? "")
       .gte("date", firstOfMonth)
       .lte("date", lastOfMonth)
       .order("created_at"),
