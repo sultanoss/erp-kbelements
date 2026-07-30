@@ -111,12 +111,12 @@ export default async function DashboardPage() {
       </div>
 
       {/* Zeile 1: 4 Metriken */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} />
         <Metric label="Herdsets heute" value={herdsetToday._sum.quantity ?? 0} />
         <Metric label={`Verkäufe ${monthLabel}`} value={thisMonthQty} pct={pct} />
         <SpaeterVersandCard initialEntries={laterShipments} dueCount={dueCount} />
-        <UnprintedLabelsCard shipments={unprintedShipments} />
+        {unprintedShipments.length > 0 && <UnprintedLabelsCard shipments={unprintedShipments} />}
         {/* Offene Bestellungen — temporär ausgeblendet
         <Panel className="p-5">
           <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Offene Bestellungen</div>
