@@ -45,7 +45,7 @@ export default async function DashboardPage() {
         internalSku: true,
         marketplaceSku: true,
         quantity: true,
-        order: { select: { marketplace: true } },
+        order: { select: { marketplace: true, orderNumber: true, id: true } },
       },
     }),
   ]);
@@ -67,12 +67,16 @@ export default async function DashboardPage() {
   const portalMap = new Map<string, number>();
   let totalOpenUnits = 0;
   let combinedOrderLines = 0;
+  const setItems: { sku: string; quantity: number; marketplace: string; orderNumber: string; orderId: string }[] = [];
   for (const item of rawOpenItems) {
     const sku = item.internalSku ?? item.marketplaceSku ?? "";
     const parts = sku.split("/").filter(Boolean);
     const units = parts.length * (item.quantity ?? 1);
     totalOpenUnits += units;
-    if (parts.length > 1) combinedOrderLines += 1;
+    if (parts.length > 1) {
+      combinedOrderLines += 1;
+      setItems.push({ sku, quantity: item.quantity ?? 1, marketplace: item.order.marketplace, orderNumber: item.order.orderNumber, orderId: item.order.id });
+    }
     const mp = item.order.marketplace;
     portalMap.set(mp, (portalMap.get(mp) ?? 0) + units);
   }
@@ -109,6 +113,22 @@ export default async function DashboardPage() {
                     <span className="font-mono text-[10px] font-bold text-grey-dark uppercase">{mp}</span>
                     <span className="font-mono text-[10px] font-bold tabular-nums" style={{ color: "#d97706" }}>{qty} Stk.</span>
                   </div>
+                ))}
+              </div>
+            </details>
+          )}
+          {setItems.length > 0 && (
+            <details className="mt-2">
+              <summary className="cursor-pointer list-none font-mono text-xs text-grey-mid select-none hover:text-grey-dark">▶ Sets ({setItems.length})</summary>
+              <div className="mt-2 divide-y divide-grey-border max-h-48 overflow-y-auto">
+                {setItems.map((s, i) => (
+                  <a key={i} href={`/bestellungen/${s.orderId}`} className="flex items-center justify-between gap-2 py-1.5 hover:bg-grey-light/50 -mx-1 px-1 rounded transition-colors">
+                    <span className="font-mono text-[10px] font-semibold text-grey-dark">{s.sku}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-mono text-[10px] text-grey-mid uppercase">{s.marketplace}</span>
+                      {s.orderNumber && <span className="font-mono text-[10px] text-grey-mid">#{s.orderNumber}</span>}
+                    </div>
+                  </a>
                 ))}
               </div>
             </details>
