@@ -43,13 +43,17 @@ export default async function BestellungenPage({
         ...(status ? { status } : {}),
         ...(marketplace ? { marketplace } : {}),
         ...(q ? {
-          OR: [
-            { orderNumber: { contains: q, mode: "insensitive" } },
-            { customerName: { contains: q, mode: "insensitive" } },
-            { billingName: { contains: q, mode: "insensitive" } },
-            { items: { some: { marketplaceSku: { contains: q, mode: "insensitive" } } } },
-            { items: { some: { internalSku: { contains: q, mode: "insensitive" } } } },
-          ],
+          AND: q.trim().split(/\s+/).filter(Boolean).map((word) => ({
+            OR: [
+              { orderNumber: { contains: word, mode: "insensitive" } },
+              { customerName: { contains: word, mode: "insensitive" } },
+              { billingName: { contains: word, mode: "insensitive" } },
+              { city: { contains: word, mode: "insensitive" } },
+              { note: { contains: word, mode: "insensitive" } },
+              { items: { some: { marketplaceSku: { contains: word, mode: "insensitive" } } } },
+              { items: { some: { internalSku: { contains: word, mode: "insensitive" } } } },
+            ],
+          })),
         } : {}),
         ...dateFilter,
       },

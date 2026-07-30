@@ -36,7 +36,7 @@ export default async function ActivityPage({
       : prisma.activityLog.findMany({
           take: 200,
           orderBy: { createdAt: "desc" },
-          include: { user: true },
+          include: { user: true, correction: { select: { id: true } } },
           where: {
             ...(typeFilter ? { type: typeFilter as ActivityType } : {}),
             ...(von || bis
@@ -214,6 +214,7 @@ export default async function ActivityPage({
                 <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Neu</th>
                 <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Benutzer</th>
                 <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Notiz</th>
+                <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-grey-border">
@@ -230,6 +231,16 @@ export default async function ActivityPage({
                   <td className="px-4 py-3 font-mono tabular-nums text-grey-mid">{log.newStock ?? "—"}</td>
                   <td className="px-4 py-3 text-grey-dark">{log.user.name}</td>
                   <td className="px-4 py-3 text-grey-mid">{log.note ?? ""}</td>
+                  <td className="px-4 py-3">
+                    {log.correction?.id && (
+                      <a
+                        href={`/corrections/${log.correction.id}`}
+                        className="rounded border border-grey-border px-3 py-0.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors whitespace-nowrap"
+                      >
+                        Bearbeiten
+                      </a>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

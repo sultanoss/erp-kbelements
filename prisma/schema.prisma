@@ -122,8 +122,9 @@ model Correction {
   austauschAngekommen Boolean  @default(false)
   userId    String
   createdAt DateTime @default(now())
-  item      Item     @relation(fields: [sku], references: [sku], onUpdate: Cascade)
-  user      User     @relation(fields: [userId], references: [id])
+  item      Item        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  user      User        @relation(fields: [userId], references: [id])
+  activityLogs ActivityLog[]
 
   @@index([date])
   @@index([sku])
@@ -378,16 +379,18 @@ model LaterShipment {
 }
 
 model ActivityLog {
-  id        String       @id @default(cuid())
-  type      ActivityType
-  sku       String?
-  oldStock  Int?
-  newStock  Int?
-  note      String?
-  userId    String
-  createdAt DateTime     @default(now())
-  item      Item?        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
-  user      User         @relation(fields: [userId], references: [id])
+  id           String       @id @default(cuid())
+  type         ActivityType
+  sku          String?
+  oldStock     Int?
+  newStock     Int?
+  note         String?
+  userId       String
+  correctionId String?
+  createdAt    DateTime     @default(now())
+  item         Item?        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+  correction   Correction?  @relation(fields: [correctionId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([type])

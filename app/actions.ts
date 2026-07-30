@@ -202,7 +202,7 @@ export async function createCorrection(formData: FormData) {
     const oldStock = isNS ? item.stockNS : item.stock;
     const newStock = oldStock + quantity;
 
-    await tx.correction.create({
+    const correction = await tx.correction.create({
       data: { date: dateValue(formData, "date"), sku, quantity, reason, lager: lager || "neuware", austausch, userId: user.id },
     });
     await tx.item.update({
@@ -212,7 +212,7 @@ export async function createCorrection(formData: FormData) {
     const lagerLabel = isNS ? "NS-Lager" : "Neuware-Lager";
     const note = austausch ? `${reason} (${lagerLabel}) | Austausch` : `${reason} (${lagerLabel})`;
     await tx.activityLog.create({
-      data: { type: ActivityType.CORRECTION, sku, oldStock, newStock, note, userId: user.id },
+      data: { type: ActivityType.CORRECTION, sku, oldStock, newStock, note, userId: user.id, correctionId: correction.id },
     });
   });
 
