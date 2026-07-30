@@ -277,6 +277,15 @@ export async function updateCorrection(formData: FormData) {
   redirect("/corrections");
 }
 
+export async function setAustauschAngekommen(formData: FormData) {
+  await requireUser();
+  const id = text(formData, "id");
+  const angekommen = text(formData, "angekommen") === "ja";
+  if (!id) return;
+  await prisma.correction.update({ where: { id }, data: { austauschAngekommen: angekommen } });
+  revalidatePath("/activity");
+}
+
 export async function markAsBezahlt(invoiceId: string) {
   await requireUser();
   await prisma.invoice.update({
