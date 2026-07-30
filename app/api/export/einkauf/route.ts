@@ -33,21 +33,30 @@ export async function GET(req: Request) {
   let header: string[];
 
   if (hasDateFilter) {
-    // Group by (date, SKU), show date column
-    const map = new Map<string, number>();
+    // Group by SKU, aggregate qty, track min/max date
+    const fmt = (d: Date) =>
+      `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`;
+    const map = new Map<string, { qty: number; minDate: Date; maxDate: Date }>();
     for (const item of items) {
       const d = (item as typeof item & { purchaseOrder: { date: Date } }).purchaseOrder.date;
-      const dateStr = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`;
-      const key = `${dateStr}|||${item.sku}`;
-      map.set(key, (map.get(key) ?? 0) + item.quantity);
+      const existing = map.get(item.sku);
+      if (existing) {
+        existing.qty += item.quantity;
+        if (d < existing.minDate) existing.minDate = d;
+        if (d > existing.maxDate) existing.maxDate = d;
+      } else {
+        map.set(item.sku, { qty: item.quantity, minDate: d, maxDate: d });
+      }
     }
-    rows = [...map.entries()].map(([key, qty]) => {
-      const [dateStr, sku] = key.split("|||");
-      return [dateStr, sku, qty];
-    });
-    header = ["Datum", "SKU", "Menge"];
+    rows = [...map.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([sku, { qty, minDate, maxDate }]) => {
+        const range = fmt(minDate) === fmt(maxDate) ? fmt(minDate) : `${fmt(minDate)} bis ${fmt(maxDate)}`;
+        return [range, sku, qty];
+      });
+    header = ["Zeitraum", "SKU", "Menge"];
     const ws2 = XLSX.utils.aoa_to_sheet([header, ...rows]);
-    ws2["!cols"] = [{ wch: 14 }, { wch: 22 }, { wch: 10 }];
+    ws2["!cols"] = [{ wch: 28 }, { wch: 22 }, { wch: 10 }];
     const wb2 = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb2, ws2, "Einkauf");
     const buf2 = XLSX.write(wb2, { type: "buffer", bookType: "xlsx" });
