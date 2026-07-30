@@ -66,13 +66,13 @@ export default async function DashboardPage() {
 
   const portalMap = new Map<string, number>();
   let totalOpenUnits = 0;
-  let combinedOpenUnits = 0;
+  let combinedOrderLines = 0;
   for (const item of rawOpenItems) {
     const sku = item.internalSku ?? item.marketplaceSku ?? "";
     const parts = sku.split("/").filter(Boolean);
     const units = parts.length * (item.quantity ?? 1);
     totalOpenUnits += units;
-    if (parts.length > 1) combinedOpenUnits += units;
+    if (parts.length > 1) combinedOrderLines += 1;
     const mp = item.order.marketplace;
     portalMap.set(mp, (portalMap.get(mp) ?? 0) + units);
   }
@@ -96,8 +96,8 @@ export default async function DashboardPage() {
           <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Offene Bestellungen</div>
           <div className="flex items-end gap-3">
             <div className="font-mono text-4xl font-black tabular-nums" style={{ color: "#d97706" }}>{totalOpenUnits}</div>
-            {combinedOpenUnits > 0 && (
-              <div className="mb-1 font-mono text-xs font-semibold text-grey-mid">davon {combinedOpenUnits} Sets</div>
+            {combinedOrderLines > 0 && (
+              <div className="mb-1 font-mono text-xs font-semibold text-grey-mid">davon {combinedOrderLines} Sets</div>
             )}
           </div>
           {portalBreakdown.length > 0 && (
