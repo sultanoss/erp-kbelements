@@ -75,7 +75,7 @@ export default async function DashboardPage() {
     totalOpenUnits += units;
     if (parts.length > 1) {
       combinedOrderLines += 1;
-      setItems.push({ sku, quantity: item.quantity ?? 1, marketplace: item.order.marketplace, orderNumber: item.order.orderNumber, orderId: item.order.id });
+      setItems.push({ sku, quantity: item.quantity ?? 1, marketplace: item.order.marketplace, orderNumber: item.order.orderNumber ?? "", orderId: item.order.id });
     }
     const mp = item.order.marketplace;
     portalMap.set(mp, (portalMap.get(mp) ?? 0) + units);
