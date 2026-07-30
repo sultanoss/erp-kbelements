@@ -18,7 +18,7 @@ export default async function WareneinkaufPage({
   const { sku, from, to } = await searchParams;
   const hasFilter = !!(sku || from || to);
 
-  const [items, history] = await Promise.all([
+  const [items, history, suppliers] = await Promise.all([
     prisma.item.findMany({
       select: { sku: true, name: true, stock: true, purchasePrice: true },
       orderBy: { sku: "asc" },
@@ -36,6 +36,11 @@ export default async function WareneinkaufPage({
       take: 200,
       orderBy: { createdAt: "desc" },
       include: { item: { select: { name: true } } },
+    }),
+    prisma.purchaseOrder.findMany({
+      distinct: ["supplier"],
+      select: { supplier: true },
+      orderBy: { supplier: "asc" },
     }),
   ]);
 
@@ -72,6 +77,35 @@ export default async function WareneinkaufPage({
           Neuer Wareneinkauf
         </div>
         <PurchaseForm allItems={items} />
+      </Panel>
+
+      {/* Export */}
+      <Panel className="mb-6 p-5">
+        <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">
+          Export — SKU-Liste nach Lieferant
+        </div>
+        <form method="GET" action="/api/export/einkauf" className="flex flex-wrap items-end gap-3">
+          <label className="grid gap-1.5">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Lieferant</span>
+            <select name="supplier" className={inputClass}>
+              <option value="">Alle Lieferanten</option>
+              {suppliers.map((s) => (
+                <option key={s.supplier} value={s.supplier}>{s.supplier}</option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1.5">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Von</span>
+            <input name="from" type="date" className={inputClass} />
+          </label>
+          <label className="grid gap-1.5">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bis</span>
+            <input name="to" type="date" className={inputClass} />
+          </label>
+          <button type="submit" className="h-9 rounded-lg bg-brand-red px-4 font-mono text-sm font-semibold text-white hover:bg-brand-red/90 transition-colors">
+            ↓ Excel exportieren
+          </button>
+        </form>
       </Panel>
 
       {/* History */}
