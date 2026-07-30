@@ -101,7 +101,7 @@ export default function KalenderClient({
       date: selectedDate,
       title: title.trim(),
       description: description.trim() || null,
-      reminder_at: reminderAt || null,
+      reminder_at: reminderAt ? new Date(reminderAt).toISOString() : null,
       reminder_sent: false,
       user_id: userId,
     });
@@ -121,7 +121,7 @@ export default function KalenderClient({
     await supabase.from("kalender_eintraege").update({
       title: editTitle.trim(),
       description: editDescription.trim() || null,
-      reminder_at: editReminderAt || null,
+      reminder_at: editReminderAt ? new Date(editReminderAt).toISOString() : null,
       reminder_sent: false,
       updated_at: new Date().toISOString(),
     }).eq("id", id);
