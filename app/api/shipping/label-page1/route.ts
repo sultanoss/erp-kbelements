@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument } from "pdf-lib";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get("url");
@@ -23,6 +24,12 @@ export async function GET(req: NextRequest) {
   }
 
   const pdfBytes = await pdfRes.arrayBuffer();
+
+  void prisma.shipment.updateMany({
+    where: { labelUrl: url },
+    data: { labelPrinted: true },
+  });
+
   const srcDoc = await PDFDocument.load(pdfBytes);
   const newDoc = await PDFDocument.create();
   const [page] = await newDoc.copyPages(srcDoc, [0]);

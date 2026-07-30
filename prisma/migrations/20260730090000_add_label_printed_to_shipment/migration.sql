@@ -1,0 +1,1 @@
+ALTER TABLE "Shipment" ADD COLUMN "labelPrinted" BOOLEAN NOT NULL DEFAULT false;

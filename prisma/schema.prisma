@@ -257,6 +257,7 @@ model Shipment {
   carrierResponse Json?
   notifiedOttoAt  DateTime?
   salesCreated    Boolean        @default(false)
+  labelPrinted    Boolean        @default(false)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   items           ShipmentItem[]

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { VersandFertigButton } from "@/components/versand-fertig";
 import { VersandAbgeschlossenButton } from "@/components/versand-abgeschlossen-button";
 import { SpaeterVersandCard } from "@/app/spaeter-versand/SpaeterVersandCard";
+import { UnprintedLabelsCard } from "@/app/dashboard/UnprintedLabelsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, rawOpenItems, laterShipments] = await Promise.all([
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, rawOpenItems, laterShipments, unprintedShipments] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
@@ -50,6 +51,17 @@ export default async function DashboardPage() {
       },
     }),
     prisma.laterShipment.findMany({ orderBy: { shippingDate: "asc" } }),
+    prisma.shipment.findMany({
+      where: {
+        labelPrinted: false,
+        labelUrl: { not: null },
+        status: { not: "STORNIERT" },
+        createdAt: { gte: todayStart },
+      },
+      include: {
+        order: { select: { id: true, orderNumber: true, customerName: true, marketplace: true } },
+      },
+    }),
   ]);
 
   // Build day-by-day map for chart
@@ -99,11 +111,12 @@ export default async function DashboardPage() {
       </div>
 
       {/* Zeile 1: 4 Metriken */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} />
         <Metric label="Herdsets heute" value={herdsetToday._sum.quantity ?? 0} />
         <Metric label={`Verkäufe ${monthLabel}`} value={thisMonthQty} pct={pct} />
         <SpaeterVersandCard initialEntries={laterShipments} dueCount={dueCount} />
+        <UnprintedLabelsCard shipments={unprintedShipments} />
         {/* Offene Bestellungen — temporär ausgeblendet
         <Panel className="p-5">
           <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Offene Bestellungen</div>
