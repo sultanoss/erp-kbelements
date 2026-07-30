@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import KalenderMedia from "./KalenderMedia";
 
 type Eintrag = {
   id: string;
@@ -230,6 +231,7 @@ export default function KalenderClient({
                     </div>
                   </div>
                 ) : (
+                  <>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{e.title}</p>
@@ -251,6 +253,8 @@ export default function KalenderClient({
                       </button>
                     </div>
                   </div>
+                  <KalenderMedia eintragsId={e.id} userId={userId} />
+                  </>
                 )}
               </li>
             ))}

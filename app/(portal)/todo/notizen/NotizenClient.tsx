@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import NotizenMedia from "./NotizenMedia";
 
 type Notiz = {
   id: string;
@@ -193,6 +194,7 @@ export default function NotizenClient({
                   hour: "2-digit", minute: "2-digit",
                 })}
               </p>
+              <NotizenMedia noteId={n.id} userId={userId} />
 
               {/* Delete confirm */}
               {deleteId === n.id && (
