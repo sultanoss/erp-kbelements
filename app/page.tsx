@@ -4,6 +4,7 @@ import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { VersandFertigButton } from "@/components/versand-fertig";
 import { VersandAbgeschlossenButton } from "@/components/versand-abgeschlossen-button";
+import { SpaeterVersandCard } from "@/app/spaeter-versand/SpaeterVersandCard";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, rawOpenItems] = await Promise.all([
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, rawOpenItems, laterShipments] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
@@ -48,6 +49,7 @@ export default async function DashboardPage() {
         order: { select: { marketplace: true, orderNumber: true, id: true } },
       },
     }),
+    prisma.laterShipment.findMany({ orderBy: { shippingDate: "asc" } }),
   ]);
 
   // Build day-by-day map for chart
@@ -82,6 +84,11 @@ export default async function DashboardPage() {
   }
   const portalBreakdown = [...portalMap.entries()].sort((a, b) => b[1] - a[1]);
 
+  const todayDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const dueCount = laterShipments.filter(
+    (e) => e.shippingDate.toISOString().slice(0, 10) === todayDateStr
+  ).length;
+
   return (
     <AppShell>
       <PageHeader title="Dashboard" eyebrow="Übersicht" />
@@ -91,11 +98,12 @@ export default async function DashboardPage() {
         <VersandAbgeschlossenButton />
       </div>
 
-      {/* Zeile 1: 3 Metriken */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+      {/* Zeile 1: 4 Metriken */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} />
         <Metric label="Herdsets heute" value={herdsetToday._sum.quantity ?? 0} />
         <Metric label={`Verkäufe ${monthLabel}`} value={thisMonthQty} pct={pct} />
+        <SpaeterVersandCard initialEntries={laterShipments} dueCount={dueCount} />
         {/* Offene Bestellungen — temporär ausgeblendet
         <Panel className="p-5">
           <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Offene Bestellungen</div>

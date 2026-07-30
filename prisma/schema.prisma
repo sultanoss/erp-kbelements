@@ -368,6 +368,15 @@ model Setting {
   value String
 }
 
+model LaterShipment {
+  id           String   @id @default(cuid())
+  orderNumber  String
+  note         String?
+  shippingDate DateTime @db.Date
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model ActivityLog {
   id        String       @id @default(cuid())
   type      ActivityType
