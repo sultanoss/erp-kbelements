@@ -105,6 +105,8 @@ create table if not exists kalender_eintraege (
   date date not null,
   title text not null,
   description text,
+  reminder_at timestamptz,
+  reminder_sent boolean not null default false,
   user_id uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -125,6 +127,18 @@ create table if not exists notizen (
 );
 alter table notizen enable row level security;
 create policy "own rows only" on notizen
+  for all to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- User Settings (ntfy topic per user)
+create table if not exists user_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  ntfy_topic text,
+  updated_at timestamptz default now()
+);
+alter table user_settings enable row level security;
+create policy "own row only" on user_settings
   for all to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
