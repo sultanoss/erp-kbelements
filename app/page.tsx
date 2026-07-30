@@ -85,12 +85,11 @@ export default async function DashboardPage() {
         <VersandAbgeschlossenButton />
       </div>
 
-      {/* Zeile 1: 3 Metriken */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Zeile 1: 4 Metriken */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Metric label="Verkäufe heute" value={salesToday._sum.quantity ?? 0} />
         <Metric label="Herdsets heute" value={herdsetToday._sum.quantity ?? 0} />
         <Metric label={`Verkäufe ${monthLabel}`} value={thisMonthQty} pct={pct} />
-        {/* Offene Bestellungen — ausgeblendet, Daten werden bereits geladen
         <Panel className="p-5">
           <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Offene Bestellungen</div>
           <div className="font-mono text-4xl font-black tabular-nums" style={{ color: "#d97706" }}>{totalOpenUnits}</div>
@@ -108,7 +107,6 @@ export default async function DashboardPage() {
             </details>
           )}
         </Panel>
-        */}
       </div>
 
       {/* Zeile 2: Niedrig-Bestand + Top-Verkäufe */}
