@@ -456,8 +456,7 @@ export async function createGutschrift(originalInvoiceId: string, formData: Form
   redirect(`/gutschrift/${invoice.id}`);
 }
 
-export async function stornoInvoice(id: string) {
-  await requireUser();
+export async function applyInvoiceStorno(id: string) {
   const inv = await prisma.invoice.findUnique({
     where: { id },
     include: { items: { include: { skus: true } } },
@@ -483,7 +482,11 @@ export async function stornoInvoice(id: string) {
       }
     }
   });
+}
 
+export async function stornoInvoice(id: string) {
+  await requireUser();
+  await applyInvoiceStorno(id);
   revalidatePath("/buchhaltung");
   revalidatePath("/inventory");
   revalidatePath("/");

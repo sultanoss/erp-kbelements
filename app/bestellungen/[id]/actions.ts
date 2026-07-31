@@ -13,7 +13,7 @@ import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
 import { cancelDHLShipment } from "@/lib/shipping/dhl";
-import { stornoInvoice } from "@/app/actions";
+import { stornoInvoice, applyInvoiceStorno } from "@/app/actions";
 import type { Marketplace } from "@prisma/client";
 
 export async function updateOrderNote(orderId: string, note: string) {
@@ -395,7 +395,7 @@ export async function storniereBestellung(formData: FormData) {
     where: { orderId: id, status: "aktiv" },
   });
   if (invoice) {
-    await stornoInvoice(invoice.id);
+    await applyInvoiceStorno(invoice.id);
   } else if (shipment?.items.length) {
     for (const item of shipment.items) {
       await prisma.item.update({
