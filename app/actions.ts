@@ -456,6 +456,13 @@ export async function createGutschrift(originalInvoiceId: string, formData: Form
   redirect(`/gutschrift/${invoice.id}`);
 }
 
+export async function markInvoiceStorniert(id: string) {
+  await prisma.invoice.update({
+    where: { id },
+    data: { status: "storniert", storniertAt: new Date() },
+  });
+}
+
 export async function applyInvoiceStorno(id: string, lagerOverride?: string) {
   const inv = await prisma.invoice.findUnique({
     where: { id },

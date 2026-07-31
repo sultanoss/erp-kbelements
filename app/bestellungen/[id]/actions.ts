@@ -13,7 +13,7 @@ import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
 import { cancelDHLShipment } from "@/lib/shipping/dhl";
-import { stornoInvoice, applyInvoiceStorno } from "@/app/actions";
+import { stornoInvoice, applyInvoiceStorno, markInvoiceStorniert } from "@/app/actions";
 import type { Marketplace } from "@prisma/client";
 
 export async function updateOrderNote(orderId: string, note: string) {
@@ -395,9 +395,13 @@ export async function storniereBestellung(formData: FormData) {
   const invoice = await prisma.invoice.findFirst({
     where: { orderId: id, status: "aktiv" },
   });
+  // Mark invoice storniert (without redirecting or touching stock)
   if (invoice) {
-    await applyInvoiceStorno(invoice.id, lager);
-  } else if (shipment?.items.length) {
+    await markInvoiceStorniert(invoice.id);
+  }
+
+  // Always restore stock from shipment items using the chosen lager
+  if (shipment?.items.length) {
     for (const item of shipment.items) {
       await prisma.item.update({
         where: { sku: item.internalSku },
