@@ -456,7 +456,7 @@ export async function createGutschrift(originalInvoiceId: string, formData: Form
   redirect(`/gutschrift/${invoice.id}`);
 }
 
-export async function applyInvoiceStorno(id: string) {
+export async function applyInvoiceStorno(id: string, lagerOverride?: string) {
   const inv = await prisma.invoice.findUnique({
     where: { id },
     include: { items: { include: { skus: true } } },
@@ -474,7 +474,8 @@ export async function applyInvoiceStorno(id: string) {
         if (!s.sku) continue;
         const item = await tx.item.findUnique({ where: { sku: s.sku } });
         if (!item) continue;
-        if (s.lager === "ns") {
+        const lager = lagerOverride ?? s.lager;
+        if (lager === "ns") {
           await tx.item.update({ where: { sku: s.sku }, data: { stockNS: item.stockNS + qty } });
         } else {
           await tx.item.update({ where: { sku: s.sku }, data: { stock: item.stock + qty } });

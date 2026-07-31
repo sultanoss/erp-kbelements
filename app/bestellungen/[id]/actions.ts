@@ -377,6 +377,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
 
 export async function storniereBestellung(formData: FormData) {
   const id = formData.get("id") as string;
+  const lager = (formData.get("lager") as string) || "neuware";
   if (!id) return;
 
   const order = await prisma.order.findUnique({
@@ -395,12 +396,12 @@ export async function storniereBestellung(formData: FormData) {
     where: { orderId: id, status: "aktiv" },
   });
   if (invoice) {
-    await applyInvoiceStorno(invoice.id);
+    await applyInvoiceStorno(invoice.id, lager);
   } else if (shipment?.items.length) {
     for (const item of shipment.items) {
       await prisma.item.update({
         where: { sku: item.internalSku },
-        data: item.warehouse === "ns"
+        data: lager === "ns"
           ? { stockNS: { increment: item.quantity } }
           : { stock: { increment: item.quantity } },
       });
