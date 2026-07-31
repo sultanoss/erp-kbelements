@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { fetchEbayInventorySkus } from "@/lib/connectors/ebay";
 import SyncClient from "./SyncClient";
 
 export default async function PortaleBestandSyncPage() {
-  const [mappings, ebaySkus, ebayOutletSkus] = await Promise.all([
+  const [mappings, orderEbaySkus, orderOutletSkus, apiEbaySkus, apiOutletSkus] = await Promise.all([
     prisma.skuMapping.findMany({
       orderBy: [{ marketplace: "asc" }, { marketplaceSku: "asc" }],
       include: {
@@ -11,21 +12,33 @@ export default async function PortaleBestandSyncPage() {
         },
       },
     }),
-    // All distinct eBay SKUs from orders
     prisma.orderItem.findMany({
       where: { order: { marketplace: "EBAY" } },
       select: { marketplaceSku: true, title: true },
       distinct: ["marketplaceSku"],
-      orderBy: { marketplaceSku: "asc" },
     }),
-    // All distinct eBay Outlet SKUs from orders
     prisma.orderItem.findMany({
       where: { order: { marketplace: "EBAY_OUTLET" } },
       select: { marketplaceSku: true, title: true },
       distinct: ["marketplaceSku"],
-      orderBy: { marketplaceSku: "asc" },
     }),
+    fetchEbayInventorySkus("main").catch(() => []),
+    fetchEbayInventorySkus("outlet").catch(() => []),
   ]);
+
+  // Merge API SKUs with order SKUs — API takes priority for title, deduplicate by marketplaceSku
+  function mergeSkus(
+    apiSkus: { marketplaceSku: string; title: string | null }[],
+    orderSkus: { marketplaceSku: string; title: string | null }[]
+  ) {
+    const map = new Map<string, { marketplaceSku: string; title: string | null }>();
+    for (const s of orderSkus) map.set(s.marketplaceSku, s);
+    for (const s of apiSkus) map.set(s.marketplaceSku, s); // API overwrites order entries
+    return Array.from(map.values()).sort((a, b) => a.marketplaceSku.localeCompare(b.marketplaceSku));
+  }
+
+  const ebaySkus = mergeSkus(apiEbaySkus, orderEbaySkus);
+  const ebayOutletSkus = mergeSkus(apiOutletSkus, orderOutletSkus);
 
   return (
     <div className="max-w-5xl mx-auto">

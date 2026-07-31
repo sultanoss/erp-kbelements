@@ -229,6 +229,42 @@ async function getInventoryAccessToken(creds: EbayCreds): Promise<string> {
   return data.access_token;
 }
 
+export type EbayInventorySku = { marketplaceSku: string; title: string | null };
+
+export async function fetchEbayInventorySkus(account: "main" | "outlet" = "main"): Promise<EbayInventorySku[]> {
+  const creds = account === "main" ? mainCreds() : outletCreds();
+  const token = await getInventoryAccessToken(creds);
+  const skus: EbayInventorySku[] = [];
+  let offset = 0;
+  const limit = 25;
+
+  for (;;) {
+    const url = new URL(`${EBAY_API}/sell/inventory/v1/inventory_item`);
+    url.searchParams.set("limit", String(limit));
+    url.searchParams.set("offset", String(offset));
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) break;
+
+    type InvResp = { inventoryItems?: Array<{ sku: string; product?: { title?: string } }>; total?: number };
+    const data = (await res.json()) as InvResp;
+    const items = data.inventoryItems ?? [];
+    if (items.length === 0) break;
+
+    for (const item of items) {
+      skus.push({ marketplaceSku: item.sku, title: item.product?.title ?? null });
+    }
+
+    if (items.length < limit) break;
+    offset += limit;
+  }
+
+  return skus;
+}
+
 export type StockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
 
 export async function pushEbayStock(
