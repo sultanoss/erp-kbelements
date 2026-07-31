@@ -13,10 +13,14 @@ const inputClass = "h-8 rounded-lg border border-grey-border bg-white px-2 font-
 export default async function CorrectionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ von?: string; bis?: string; austausch?: string; grund?: string }>;
+  searchParams: Promise<{ von?: string; bis?: string; austausch?: string; grund?: string; saved?: string }>;
 }) {
-  const { von, bis, austausch: austauschFilter, grund: grundFilter } = await searchParams;
-  const hasFilter = !!(von || bis || austauschFilter || grundFilter);
+  const { von, bis, austausch: austauschFilter, grund: grundFilter, saved } = await searchParams;
+  const today = new Date().toISOString().slice(0, 10);
+  // After saving, auto-filter to today so the new correction is visible
+  const effectiveVon = von ?? (saved ? today : undefined);
+  const effectiveBis = bis ?? (saved ? today : undefined);
+  const hasFilter = !!(effectiveVon || effectiveBis || austauschFilter || grundFilter);
 
   const [items, corrections] = await Promise.all([
     prisma.item.findMany({ orderBy: { createdAt: "asc" } }),
@@ -24,10 +28,10 @@ export default async function CorrectionsPage({
       take: hasFilter ? 500 : 30,
       orderBy: { date: "desc" },
       where: {
-        ...(von || bis ? {
+        ...(effectiveVon || effectiveBis ? {
           date: {
-            ...(von ? { gte: new Date(`${von}T00:00:00`) } : {}),
-            ...(bis ? { lte: new Date(`${bis}T23:59:59`) } : {}),
+            ...(effectiveVon ? { gte: new Date(`${effectiveVon}T00:00:00`) } : {}),
+            ...(effectiveBis ? { lte: new Date(`${effectiveBis}T23:59:59`) } : {}),
           },
         } : {}),
         ...(austauschFilter === "ja" ? { austausch: true } : {}),
@@ -45,6 +49,14 @@ export default async function CorrectionsPage({
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Bestand importieren</div>
         <StockImport />
       </Panel>
+      {saved && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+          <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Korrektur gespeichert — Lagerbestand wurde aktualisiert.
+        </div>
+      )}
       <Panel className="mb-6 p-5">
         <div className="mb-4 border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Korrektur eintragen</div>
         <form action={createCorrection} className="grid gap-4 md:grid-cols-7">
@@ -71,11 +83,11 @@ export default async function CorrectionsPage({
           <form method="GET" className="ml-auto flex flex-wrap items-center gap-2">
             <label className="flex items-center gap-1.5">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Von</span>
-              <input type="date" name="von" defaultValue={von ?? ""} className={inputClass} />
+              <input type="date" name="von" defaultValue={effectiveVon ?? ""} className={inputClass} />
             </label>
             <label className="flex items-center gap-1.5">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bis</span>
-              <input type="date" name="bis" defaultValue={bis ?? ""} className={inputClass} />
+              <input type="date" name="bis" defaultValue={effectiveBis ?? ""} className={inputClass} />
             </label>
             <label className="flex items-center gap-1.5">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Austausch</span>

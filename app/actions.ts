@@ -219,6 +219,7 @@ export async function createCorrection(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/corrections");
   revalidatePath("/inventory");
+  redirect("/corrections?saved=1");
 }
 
 export async function updateCorrection(formData: FormData) {
