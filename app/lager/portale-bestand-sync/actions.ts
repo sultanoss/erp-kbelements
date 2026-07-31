@@ -16,6 +16,32 @@ export type SyncResult = {
   skipped?: string;
 };
 
+export async function saveBulkMappings(
+  entries: Array<{ marketplace: string; marketplaceSku: string; internalSkus: string }>
+) {
+  await requireUser();
+  for (const entry of entries) {
+    const skus = entry.internalSkus.split(",").map((s) => s.trim()).filter(Boolean);
+    if (skus.length === 0) continue;
+    await prisma.skuMapping.upsert({
+      where: { marketplace_marketplaceSku: { marketplace: entry.marketplace, marketplaceSku: entry.marketplaceSku } },
+      create: {
+        marketplace: entry.marketplace,
+        marketplaceSku: entry.marketplaceSku,
+        items: { create: skus.map((sku) => ({ internalSku: sku })) },
+      },
+      update: {
+        active: true,
+        items: {
+          deleteMany: {},
+          create: skus.map((sku) => ({ internalSku: sku })),
+        },
+      },
+    });
+  }
+  revalidatePath("/lager/portale-bestand-sync");
+}
+
 export async function saveSkuMapping(formData: FormData) {
   await requireUser();
   const marketplace = formData.get("marketplace") as string;

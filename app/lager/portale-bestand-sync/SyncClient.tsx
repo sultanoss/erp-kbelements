@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { saveSkuMapping, deleteSkuMapping, toggleSkuMappingActive, syncStock, type SyncResult } from "./actions";
+import { saveSkuMapping, deleteSkuMapping, toggleSkuMappingActive, syncStock, saveBulkMappings, type SyncResult } from "./actions";
 import { useRouter } from "next/navigation";
 
 type Mapping = {
@@ -10,10 +10,10 @@ type Mapping = {
   marketplaceSku: string;
   label: string | null;
   active: boolean;
-  items: { id: string; internalSku: string; item: { stock: number } }[];
+  items: { id: string; internalSku: string; item: { stock: number; sku: string } }[];
 };
 
-const MARKETPLACES = ["EBAY", "EBAY_OUTLET", "OTTO", "SHOPIFY", "KAUFLAND", "MEDIAMARKT"];
+type MarketplaceSku = { marketplaceSku: string; title: string | null };
 
 const MP_LABEL: Record<string, string> = {
   EBAY: "eBay",
@@ -33,34 +33,39 @@ const MP_COLOR: Record<string, string> = {
   MEDIAMARKT: "bg-purple-100 text-purple-800",
 };
 
-export default function SyncClient({ mappings }: { mappings: Mapping[] }) {
+export default function SyncClient({
+  mappings,
+  ebaySkus,
+  ebayOutletSkus,
+}: {
+  mappings: Mapping[];
+  ebaySkus: MarketplaceSku[];
+  ebayOutletSkus: MarketplaceSku[];
+}) {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
-  const [showForm, setShowForm] = useState(false);
-  const [marketplace, setMarketplace] = useState("EBAY");
-  const [marketplaceSku, setMarketplaceSku] = useState("");
-  const [label, setLabel] = useState("");
-  const [internalSkus, setInternalSkus] = useState("");
-  const [saving, setSaving] = useState(false);
-
   const [syncing, setSyncing] = useState(false);
   const [syncResults, setSyncResults] = useState<SyncResult[] | null>(null);
-
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  async function handleSave() {
-    if (!marketplaceSku.trim() || !internalSkus.trim()) return;
-    setSaving(true);
-    const fd = new FormData();
-    fd.append("marketplace", marketplace);
-    fd.append("marketplaceSku", marketplaceSku);
-    fd.append("label", label);
-    fd.append("internalSkus", internalSkus);
-    await saveSkuMapping(fd);
-    setMarketplaceSku(""); setLabel(""); setInternalSkus(""); setShowForm(false);
-    setSaving(false);
-    startTransition(() => router.refresh());
+  // Quick-map inputs: { [marketplace_sku]: internalSkus string }
+  const [overrides, setOverrides] = useState<Record<string, string>>({});
+
+  // Build a lookup of existing mappings: "MARKETPLACE:marketplaceSku" -> Mapping
+  const mappingLookup = new Map<string, Mapping>();
+  for (const m of mappings) {
+    mappingLookup.set(`${m.marketplace}:${m.marketplaceSku}`, m);
+  }
+
+  async function handleSync() {
+    setSyncing(true);
+    setSyncResults(null);
+    const activeMPs = [...new Set(mappings.filter((m) => m.active).map((m) => m.marketplace))];
+    const results = await syncStock(activeMPs);
+    setSyncResults(results);
+    setSyncing(false);
   }
 
   async function handleDelete(id: string) {
@@ -75,16 +80,98 @@ export default function SyncClient({ mappings }: { mappings: Mapping[] }) {
     startTransition(() => router.refresh());
   }
 
-  async function handleSync() {
-    setSyncing(true);
-    setSyncResults(null);
-    const activeMPs = [...new Set(mappings.filter((m) => m.active).map((m) => m.marketplace))];
-    const results = await syncStock(activeMPs);
-    setSyncResults(results);
-    setSyncing(false);
+  async function handleSaveAll(marketplace: string, skus: MarketplaceSku[]) {
+    setSaving(true);
+    const entries = skus.map((s) => ({
+      marketplace,
+      marketplaceSku: s.marketplaceSku,
+      internalSkus: overrides[`${marketplace}:${s.marketplaceSku}`]?.trim() || s.marketplaceSku,
+    }));
+    await saveBulkMappings(entries);
+    setSaving(false);
+    startTransition(() => router.refresh());
   }
 
   const activeCount = mappings.filter((m) => m.active).length;
+
+  function renderSkuTable(marketplace: string, skus: MarketplaceSku[]) {
+    if (skus.length === 0) return <p className="text-sm text-gray-400 py-4">Keine Bestellungen für dieses Portal gefunden.</p>;
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b border-gray-100">
+            <tr className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              <th className="text-left px-4 py-2.5">Marketplace-SKU</th>
+              <th className="text-left px-4 py-2.5">Produktname</th>
+              <th className="text-left px-4 py-2.5">Interne SKU(s)</th>
+              <th className="text-left px-4 py-2.5">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {skus.map((s) => {
+              const key = `${marketplace}:${s.marketplaceSku}`;
+              const existing = mappingLookup.get(key);
+              const override = overrides[key] ?? "";
+
+              return (
+                <tr key={s.marketplaceSku} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-2.5 font-mono text-xs text-gray-700 whitespace-nowrap">{s.marketplaceSku}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-500 max-w-[200px] truncate">{s.title ?? "–"}</td>
+                  <td className="px-4 py-2.5">
+                    {existing ? (
+                      <div className="flex flex-wrap gap-1">
+                        {existing.items.map((i) => (
+                          <span key={i.id} className="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-600">
+                            {i.internalSku} ({i.item.stock})
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={override}
+                        onChange={(e) => setOverrides((prev) => ({ ...prev, [key]: e.target.value }))}
+                        placeholder={s.marketplaceSku}
+                        className="input text-xs py-1 w-full max-w-[240px] font-mono"
+                      />
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {existing ? (
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${existing.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {existing.active ? "Aktiv" : "Inaktiv"}
+                        </span>
+                        <button onClick={() => handleToggle(existing.id, !existing.active)} className="text-xs text-gray-400 hover:text-gray-600">
+                          {existing.active ? "Deaktiv." : "Aktivieren"}
+                        </button>
+                        <button onClick={() => handleDelete(existing.id)} disabled={deletingId === existing.id} className="text-xs text-red-400 hover:text-red-600 disabled:opacity-50">
+                          Löschen
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">Nicht gemappt</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+          <p className="text-xs text-gray-400">Leeres Feld = Marketplace-SKU wird direkt als interne SKU verwendet · Kombi-Produkte: SKUs kommagetrennt eingeben</p>
+          <button
+            onClick={() => handleSaveAll(marketplace, skus)}
+            disabled={saving}
+            className="btn-primary text-sm py-1.5 px-4 disabled:opacity-50"
+          >
+            {saving ? "Speichern…" : "Alle speichern"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -113,7 +200,6 @@ export default function SyncClient({ mappings }: { mappings: Mapping[] }) {
           </button>
         </div>
 
-        {/* Sync Results */}
         {syncResults && (
           <div className="mt-4 border-t border-gray-100 pt-4 space-y-2">
             {syncResults.map((r) => (
@@ -152,113 +238,28 @@ export default function SyncClient({ mappings }: { mappings: Mapping[] }) {
         </div>
       </div>
 
-      {/* Mapping Table */}
+      {/* eBay SKU Mapping */}
       <div className="card">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">SKU-Mappings ({mappings.length})</h2>
-          <button onClick={() => setShowForm((v) => !v)} className="btn-primary text-sm py-1.5 px-3">
-            {showForm ? "Abbrechen" : "+ Mapping hinzufügen"}
-          </button>
+        <div className="p-5 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${MP_COLOR.EBAY}`}>eBay</span>
+            <h2 className="font-semibold text-gray-900">SKU-Mappings ({ebaySkus.length} Produkte)</h2>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Alle SKUs aus eBay-Bestellungen. Interne SKU leer lassen wenn identisch mit Marketplace-SKU.</p>
         </div>
+        {renderSkuTable("EBAY", ebaySkus)}
+      </div>
 
-        {/* Add Form */}
-        {showForm && (
-          <div className="p-5 border-b border-gray-100 bg-gray-50 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <label className="grid gap-1">
-                <span className="text-xs font-medium text-gray-500">Portal</span>
-                <select value={marketplace} onChange={(e) => setMarketplace(e.target.value)} className="input">
-                  {MARKETPLACES.map((m) => <option key={m} value={m}>{MP_LABEL[m]}</option>)}
-                </select>
-              </label>
-              <label className="grid gap-1">
-                <span className="text-xs font-medium text-gray-500">Marketplace-SKU *</span>
-                <input type="text" value={marketplaceSku} onChange={(e) => setMarketplaceSku(e.target.value)}
-                  placeholder="z.B. ELK75EV1P/ELK60CR1" className="input" />
-              </label>
-            </div>
-            <label className="grid gap-1">
-              <span className="text-xs font-medium text-gray-500">Interne SKUs * (kommagetrennt bei Kombi-Produkten)</span>
-              <input type="text" value={internalSkus} onChange={(e) => setInternalSkus(e.target.value)}
-                placeholder="z.B. ELK75EV1P,ELK60CR1" className="input" />
-              <span className="text-xs text-gray-400">Bei Kombis: Menge = Minimum aller beteiligten SKUs</span>
-            </label>
-            <label className="grid gap-1">
-              <span className="text-xs font-medium text-gray-500">Bezeichnung (optional)</span>
-              <input type="text" value={label} onChange={(e) => setLabel(e.target.value)}
-                placeholder="z.B. Herdset Klein" className="input" />
-            </label>
-            <div className="flex gap-2">
-              <button onClick={handleSave} disabled={saving || !marketplaceSku.trim() || !internalSkus.trim()}
-                className="btn-primary text-sm py-1.5 px-4 disabled:opacity-50">
-                {saving ? "Speichern…" : "Speichern"}
-              </button>
-            </div>
+      {/* eBay Outlet SKU Mapping */}
+      <div className="card">
+        <div className="p-5 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${MP_COLOR.EBAY_OUTLET}`}>eBay Outlet</span>
+            <h2 className="font-semibold text-gray-900">SKU-Mappings ({ebayOutletSkus.length} Produkte)</h2>
           </div>
-        )}
-
-        {/* Table */}
-        {mappings.length === 0 ? (
-          <p className="p-8 text-center text-sm text-gray-400">Noch keine Mappings. Füge das erste Mapping hinzu.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-gray-100">
-                <tr className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  <th className="text-left px-5 py-3">Portal</th>
-                  <th className="text-left px-5 py-3">Marketplace-SKU</th>
-                  <th className="text-left px-5 py-3">Interne SKUs</th>
-                  <th className="text-right px-5 py-3">Bestand</th>
-                  <th className="text-left px-5 py-3">Bezeichnung</th>
-                  <th className="px-5 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {mappings.map((m) => {
-                  const quantity = Math.min(...m.items.map((i) => i.item.stock));
-                  return (
-                    <tr key={m.id} className={`hover:bg-gray-50 transition-colors ${!m.active ? "opacity-50" : ""}`}>
-                      <td className="px-5 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${MP_COLOR[m.marketplace] ?? "bg-gray-100 text-gray-700"}`}>
-                          {MP_LABEL[m.marketplace] ?? m.marketplace}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs text-gray-700">{m.marketplaceSku}</td>
-                      <td className="px-5 py-3">
-                        <div className="flex flex-wrap gap-1">
-                          {m.items.map((item) => (
-                            <span key={item.id} className="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-600">
-                              {item.internalSku} ({item.item.stock})
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 text-right font-semibold tabular-nums">
-                        {quantity}
-                      </td>
-                      <td className="px-5 py-3 text-gray-500 text-xs">{m.label ?? "–"}</td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => handleToggle(m.id, !m.active)}
-                            className="text-xs text-gray-400 hover:text-gray-600">
-                            {m.active ? "Deaktivieren" : "Aktivieren"}
-                          </button>
-                          <button onClick={() => handleDelete(m.id)} disabled={deletingId === m.id}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+          <p className="text-xs text-gray-400 mt-1">Alle SKUs aus eBay Outlet-Bestellungen.</p>
+        </div>
+        {renderSkuTable("EBAY_OUTLET", ebayOutletSkus)}
       </div>
     </div>
   );
