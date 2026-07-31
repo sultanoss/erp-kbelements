@@ -26,7 +26,7 @@ export default async function CorrectionsPage({
     prisma.item.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.correction.findMany({
       take: hasFilter ? 500 : 30,
-      orderBy: { date: "desc" },
+      orderBy: { createdAt: "desc" },
       where: {
         ...(effectiveVon || effectiveBis ? {
           date: {
