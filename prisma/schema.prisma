@@ -72,6 +72,7 @@ model Item {
   purchasePriceHistory PurchasePriceHistory[]
   priceColumnValues    PriceColumnValue[]
   image                ItemImage?
+  skuMappingItems      SkuMappingItem[]
 }
 
 model ItemImage {
@@ -338,6 +339,26 @@ model PriceColumnValue {
 
   @@unique([priceColumnId, sku])
   @@index([sku])
+}
+
+model SkuMapping {
+  id             String           @id @default(cuid())
+  marketplace    String
+  marketplaceSku String
+  label          String?
+  active         Boolean          @default(true)
+  items          SkuMappingItem[]
+  createdAt      DateTime         @default(now())
+
+  @@unique([marketplace, marketplaceSku])
+}
+
+model SkuMappingItem {
+  id          String     @id @default(cuid())
+  mappingId   String
+  internalSku String
+  mapping     SkuMapping @relation(fields: [mappingId], references: [id], onDelete: Cascade)
+  item        Item       @relation(fields: [internalSku], references: [sku])
 }
 
 model B2cCustomer {

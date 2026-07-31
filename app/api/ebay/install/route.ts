@@ -12,7 +12,7 @@ export async function GET() {
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("redirect_uri", ruName);
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope", "https://api.ebay.com/oauth/api_scope/sell.fulfillment");
+  url.searchParams.set("scope", "https://api.ebay.com/oauth/api_scope/sell.fulfillment https://api.ebay.com/oauth/api_scope/sell.inventory");
   url.searchParams.set("prompt", "login");
 
   return NextResponse.redirect(url.toString());

@@ -202,3 +202,79 @@ export async function sendEbayShipment(params: SendEbayShipmentParams): Promise<
 export async function sendEbayOutletShipment(params: SendEbayShipmentParams): Promise<void> {
   return sendShipmentWithCreds(params, outletCreds());
 }
+
+async function getInventoryAccessToken(creds: EbayCreds): Promise<string> {
+  if (!creds.clientId || !creds.clientSecret || !creds.refreshToken) {
+    throw new Error("eBay-Credentials unvollständig");
+  }
+  const credentials = Buffer.from(`${creds.clientId}:${creds.clientSecret}`).toString("base64");
+  const res = await fetch(`${EBAY_API}/identity/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: creds.refreshToken,
+      scope: "https://api.ebay.com/oauth/api_scope/sell.inventory",
+    }).toString(),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`eBay Inventory Token-Fehler ${res.status}: ${text}`);
+  }
+  const data = (await res.json()) as { access_token?: string };
+  if (!data.access_token) throw new Error("eBay: Kein Inventory access_token — bitte eBay neu verbinden");
+  return data.access_token;
+}
+
+export type StockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
+
+export async function pushEbayStock(
+  items: Array<{ marketplaceSku: string; quantity: number }>,
+  account: "main" | "outlet" = "main"
+): Promise<StockPushResult[]> {
+  const creds = account === "main" ? mainCreds() : outletCreds();
+  const token = await getInventoryAccessToken(creds);
+  const results: StockPushResult[] = [];
+
+  // eBay allows max 25 per request
+  for (let i = 0; i < items.length; i += 25) {
+    const chunk = items.slice(i, i + 25);
+    const res = await fetch(`${EBAY_API}/sell/inventory/v1/bulk_update_price_quantity`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "X-EBAY-C-MARKETPLACE-ID": "EBAY_DE",
+      },
+      body: JSON.stringify({
+        requests: chunk.map((item) => ({
+          sku: item.marketplaceSku,
+          shipToLocationAvailability: { quantity: item.quantity },
+        })),
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      for (const item of chunk) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `HTTP ${res.status}: ${text.slice(0, 100)}` });
+      }
+      continue;
+    }
+
+    type BulkResp = { responses?: Array<{ sku: string; statusCode: number; errors?: Array<{ message: string }> }> };
+    const data = (await res.json()) as BulkResp;
+    for (const r of data.responses ?? []) {
+      results.push({
+        marketplaceSku: r.sku,
+        ok: r.statusCode === 200,
+        error: r.errors?.[0]?.message,
+      });
+    }
+  }
+
+  return results;
+}
