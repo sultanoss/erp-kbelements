@@ -138,9 +138,18 @@ export default function SyncClient({ mappings }: { mappings: Mapping[] }) {
         )}
       </div>
 
-      {/* eBay re-auth notice */}
+      {/* eBay re-auth */}
       <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
-        <strong>Wichtig:</strong> Für eBay Inventory-Zugriff muss eBay einmalig neu verbunden werden (Admin → eBay verbinden), damit der neue Scope aktiv wird.
+        <p className="font-semibold mb-2">eBay einmalig neu verbinden (für Inventory-Zugriff)</p>
+        <p className="mb-3 text-amber-700">Der Bestand-Sync benötigt einen erweiterten eBay-Scope. Bitte einmal auf "Neu verbinden" klicken — du wirst zu eBay weitergeleitet und danach automatisch zurückgeleitet.</p>
+        <div className="flex gap-3">
+          <a href="/api/ebay/install" className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors">
+            eBay Hauptkonto neu verbinden
+          </a>
+          <a href="/api/ebay-outlet/install" className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors">
+            eBay Outlet neu verbinden
+          </a>
+        </div>
       </div>
 
       {/* Mapping Table */}
