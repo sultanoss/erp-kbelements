@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-utils";
+import { requireUser } from "@/lib/auth-guards";
 import { pushEbayStock } from "@/lib/connectors/ebay";
 import { revalidatePath } from "next/cache";
 
