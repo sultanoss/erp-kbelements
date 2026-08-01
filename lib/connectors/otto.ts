@@ -249,39 +249,22 @@ export async function pushOttoStock(
   const token = await getToken("");
   const results: OttoStockPushResult[] = [];
 
-  // Otto: update quantities in batches of 100
-  for (let i = 0; i < items.length; i += 100) {
-    const chunk = items.slice(i, i + 100);
-    const body = chunk.map((item) => ({
-      sku: item.marketplaceSku,
-      availableQuantity: item.quantity,
-    }));
-
-    const res = await fetch(`${OTTO_PRODUCTS_URL}/active-status`, {
+  for (const item of items) {
+    const sku = encodeURIComponent(item.marketplaceSku);
+    const res = await fetch(`${OTTO_PRODUCTS_URL}/${sku}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ availableQuantity: item.quantity }),
     });
 
     if (!res.ok) {
       const text = await res.text();
-      for (const item of chunk) {
-        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 100)}` });
-      }
-      continue;
-    }
-
-    const data = await res.json() as { success?: string[]; failed?: Array<{ sku: string; errorMessage?: string }> };
-    const failedMap = new Map((data.failed ?? []).map((f) => [f.sku, f.errorMessage ?? "Fehler"]));
-    for (const item of chunk) {
-      if (failedMap.has(item.marketplaceSku)) {
-        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: failedMap.get(item.marketplaceSku) });
-      } else {
-        results.push({ marketplaceSku: item.marketplaceSku, ok: true });
-      }
+      results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 120)}` });
+    } else {
+      results.push({ marketplaceSku: item.marketplaceSku, ok: true });
     }
   }
 
