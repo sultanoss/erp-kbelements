@@ -299,7 +299,7 @@ export async function pushEbayStock(
   account: "main" | "outlet" = "main"
 ): Promise<StockPushResult[]> {
   const creds = account === "main" ? mainCreds() : outletCreds();
-  const token = await getInventoryAccessToken(creds);
+  const token = await getAccessToken(creds);
   const results: StockPushResult[] = [];
 
   // Fetch all active listings to get ItemID per custom label (SKU)
