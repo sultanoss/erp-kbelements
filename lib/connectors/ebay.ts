@@ -229,37 +229,61 @@ async function getInventoryAccessToken(creds: EbayCreds): Promise<string> {
   return data.access_token;
 }
 
-export type EbayInventorySku = { marketplaceSku: string; title: string | null };
+export type EbayInventorySku = { marketplaceSku: string; title: string | null; itemId?: string };
 
+// Fetch all active eBay listings via Trading API (supports traditional/Seller Hub listings)
 export async function fetchEbayInventorySkus(account: "main" | "outlet" = "main"): Promise<EbayInventorySku[]> {
   const creds = account === "main" ? mainCreds() : outletCreds();
   const token = await getInventoryAccessToken(creds);
   const skus: EbayInventorySku[] = [];
-  let offset = 0;
-  const limit = 25;
+  let page = 1;
 
   for (;;) {
-    const url = new URL(`${EBAY_API}/sell/inventory/v1/inventory_item`);
-    url.searchParams.set("limit", String(limit));
-    url.searchParams.set("offset", String(offset));
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<GetMyeBaySelling xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RequesterCredentials><eBayAuthToken>${token}</eBayAuthToken></RequesterCredentials>
+  <ActiveList>
+    <Include>true</Include>
+    <IncludeNotes>false</IncludeNotes>
+    <Pagination><EntriesPerPage>200</EntriesPerPage><PageNumber>${page}</PageNumber></Pagination>
+  </ActiveList>
+  <OutputSelector>ItemID</OutputSelector>
+  <OutputSelector>SKU</OutputSelector>
+  <OutputSelector>Title</OutputSelector>
+  <OutputSelector>PaginationResult</OutputSelector>
+</GetMyeBaySelling>`;
 
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    const res = await fetch("https://api.ebay.com/ws/api.dll", {
+      method: "POST",
+      headers: {
+        "X-EBAY-API-CALL-NAME": "GetMyeBaySelling",
+        "X-EBAY-API-SITEID": "77",
+        "X-EBAY-API-COMPATIBILITY-LEVEL": "967",
+        "X-EBAY-API-IAF-TOKEN": token,
+        "Content-Type": "text/xml",
+      },
+      body: xml,
     });
 
     if (!res.ok) break;
+    const text = await res.text();
 
-    type InvResp = { inventoryItems?: Array<{ sku: string; product?: { title?: string } }>; total?: number };
-    const data = (await res.json()) as InvResp;
-    const items = data.inventoryItems ?? [];
-    if (items.length === 0) break;
-
-    for (const item of items) {
-      skus.push({ marketplaceSku: item.sku, title: item.product?.title ?? null });
+    // Parse ItemID, SKU (custom label), Title from XML
+    const itemMatches = text.matchAll(/<Item>([\s\S]*?)<\/Item>/g);
+    let count = 0;
+    for (const match of itemMatches) {
+      const block = match[1];
+      const itemId = block.match(/<ItemID>([^<]+)<\/ItemID>/)?.[1] ?? "";
+      const sku = block.match(/<SKU>([^<]+)<\/SKU>/)?.[1] ?? "";
+      const title = block.match(/<Title>([^<]+)<\/Title>/)?.[1] ?? null;
+      if (sku) skus.push({ marketplaceSku: sku, title, itemId });
+      count++;
     }
 
-    if (items.length < limit) break;
-    offset += limit;
+    // Check if more pages
+    const totalPages = parseInt(text.match(/<TotalNumberOfPages>(\d+)<\/TotalNumberOfPages>/)?.[1] ?? "1");
+    if (page >= totalPages || count === 0) break;
+    page++;
   }
 
   return skus;
@@ -275,40 +299,64 @@ export async function pushEbayStock(
   const token = await getInventoryAccessToken(creds);
   const results: StockPushResult[] = [];
 
-  // eBay allows max 25 per request
-  for (let i = 0; i < items.length; i += 25) {
-    const chunk = items.slice(i, i + 25);
-    const res = await fetch(`${EBAY_API}/sell/inventory/v1/bulk_update_price_quantity`, {
+  // Fetch all active listings to get ItemID per custom label (SKU)
+  const listings = await fetchEbayInventorySkus(account);
+  const skuToItemId = new Map(listings.map((l) => [l.marketplaceSku, l.itemId]));
+
+  // Trading API ReviseInventoryStatus — max 4 items per call
+  for (let i = 0; i < items.length; i += 4) {
+    const chunk = items.slice(i, i + 4);
+    const inventoryNodes = chunk
+      .map((item) => {
+        const itemId = skuToItemId.get(item.marketplaceSku);
+        if (!itemId) return null;
+        return `<InventoryStatus><ItemID>${itemId}</ItemID><Quantity>${item.quantity}</Quantity></InventoryStatus>`;
+      })
+      .filter(Boolean);
+
+    // Items with no ItemID → not found
+    for (const item of chunk) {
+      if (!skuToItemId.get(item.marketplaceSku)) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: "Kein eBay-Listing mit dieser SKU gefunden" });
+      }
+    }
+    if (inventoryNodes.length === 0) continue;
+
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<ReviseInventoryStatusRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RequesterCredentials><eBayAuthToken>${token}</eBayAuthToken></RequesterCredentials>
+  ${inventoryNodes.join("\n  ")}
+</ReviseInventoryStatusRequest>`;
+
+    const res = await fetch("https://api.ebay.com/ws/api.dll", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "X-EBAY-C-MARKETPLACE-ID": "EBAY_DE",
+        "X-EBAY-API-CALL-NAME": "ReviseInventoryStatus",
+        "X-EBAY-API-SITEID": "77",
+        "X-EBAY-API-COMPATIBILITY-LEVEL": "967",
+        "X-EBAY-API-IAF-TOKEN": token,
+        "Content-Type": "text/xml",
       },
-      body: JSON.stringify({
-        requests: chunk.map((item) => ({
-          sku: item.marketplaceSku,
-          shipToLocationAvailability: { quantity: item.quantity },
-        })),
-      }),
+      body: xml,
     });
 
-    if (!res.ok) {
-      const text = await res.text();
+    const text = await res.text();
+    const ack = text.match(/<Ack>([^<]+)<\/Ack>/)?.[1];
+
+    if (!res.ok || ack === "Failure") {
+      const errMsg = text.match(/<LongMessage>([^<]+)<\/LongMessage>/)?.[1] ?? `HTTP ${res.status}`;
       for (const item of chunk) {
-        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `HTTP ${res.status}: ${text.slice(0, 100)}` });
+        if (skuToItemId.get(item.marketplaceSku)) {
+          results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: errMsg });
+        }
       }
       continue;
     }
 
-    type BulkResp = { responses?: Array<{ sku: string; statusCode: number; errors?: Array<{ message: string }> }> };
-    const data = (await res.json()) as BulkResp;
-    for (const r of data.responses ?? []) {
-      results.push({
-        marketplaceSku: r.sku,
-        ok: r.statusCode === 200,
-        error: r.errors?.[0]?.message,
-      });
+    for (const item of chunk) {
+      if (skuToItemId.get(item.marketplaceSku)) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: true });
+      }
     }
   }
 
