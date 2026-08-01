@@ -345,9 +345,14 @@ export async function pushEbayStock(
 
     if (!res.ok || ack === "Failure") {
       const errMsg = text.match(/<LongMessage>([^<]+)<\/LongMessage>/)?.[1] ?? `HTTP ${res.status}`;
+      // eBay reports "same quantity" as a Failure — treat as success (nothing to change)
+      const isSameQty =
+        errMsg.toLowerCase().includes("identisch") ||
+        errMsg.toLowerCase().includes("same as") ||
+        errMsg.toLowerCase().includes("not revised");
       for (const item of chunk) {
         if (skuToItemId.get(item.marketplaceSku)) {
-          results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: errMsg });
+          results.push(isSameQty ? { marketplaceSku: item.marketplaceSku, ok: true } : { marketplaceSku: item.marketplaceSku, ok: false, error: errMsg });
         }
       }
       continue;
