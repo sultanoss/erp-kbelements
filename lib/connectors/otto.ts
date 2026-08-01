@@ -1,6 +1,7 @@
 const OTTO_TOKEN_URL = "https://api.otto.market/oauth2/token";
 const OTTO_ORDERS_URL = "https://api.otto.market/v4/orders";
 const OTTO_SHIPMENTS_URL = "https://api.otto.market/v1/shipments";
+const OTTO_PRODUCTS_URL = "https://api.otto.market/v2/products";
 
 export interface NormalizedOrder {
   externalId: string;
@@ -208,4 +209,79 @@ export async function sendOttoShipmentNotification(params: {
     const text = await res.text();
     throw new Error(`Otto Versandmeldung Fehler ${res.status}: ${text}`);
   }
+}
+
+export type OttoInventorySku = { marketplaceSku: string; title: string | null };
+
+export async function fetchOttoSkus(): Promise<OttoInventorySku[]> {
+  const token = await getToken("products");
+  const skus: OttoInventorySku[] = [];
+  let nextLink: string | null = `${OTTO_PRODUCTS_URL}?productLifeCycle=ACTIVE&limit=100`;
+
+  while (nextLink) {
+    const res = await fetch(nextLink, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) break;
+    const data = await res.json() as {
+      resources?: Array<{ sku?: string; productTitle?: string; productDescription?: { productTitle?: string } }>;
+      links?: Array<{ rel: string; href: string }>;
+    };
+    for (const p of data.resources ?? []) {
+      const sku = p.sku;
+      const title = p.productTitle ?? p.productDescription?.productTitle ?? null;
+      if (sku) skus.push({ marketplaceSku: sku, title });
+    }
+    const next = data.links?.find((l) => l.rel === "next");
+    nextLink = next ? next.href : null;
+  }
+
+  return skus;
+}
+
+export type OttoStockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
+
+export async function pushOttoStock(
+  items: Array<{ marketplaceSku: string; quantity: number }>
+): Promise<OttoStockPushResult[]> {
+  const token = await getToken("products");
+  const results: OttoStockPushResult[] = [];
+
+  // Otto: update quantities in batches of 100
+  for (let i = 0; i < items.length; i += 100) {
+    const chunk = items.slice(i, i + 100);
+    const body = chunk.map((item) => ({
+      sku: item.marketplaceSku,
+      availableQuantity: item.quantity,
+    }));
+
+    const res = await fetch(`${OTTO_PRODUCTS_URL}/active-status`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      for (const item of chunk) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 100)}` });
+      }
+      continue;
+    }
+
+    const data = await res.json() as { success?: string[]; failed?: Array<{ sku: string; errorMessage?: string }> };
+    const failedMap = new Map((data.failed ?? []).map((f) => [f.sku, f.errorMessage ?? "Fehler"]));
+    for (const item of chunk) {
+      if (failedMap.has(item.marketplaceSku)) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: failedMap.get(item.marketplaceSku) });
+      } else {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: true });
+      }
+    }
+  }
+
+  return results;
 }

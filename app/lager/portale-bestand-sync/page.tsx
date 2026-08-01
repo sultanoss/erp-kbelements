@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { fetchEbayInventorySkus } from "@/lib/connectors/ebay";
+import { fetchOttoSkus } from "@/lib/connectors/otto";
 import SyncClient from "./SyncClient";
 
 function suggestInternalSkus(marketplaceSku: string, allSkus: string[]): string {
@@ -27,7 +28,7 @@ function suggestInternalSkus(marketplaceSku: string, allSkus: string[]): string 
 }
 
 export default async function PortaleBestandSyncPage() {
-  const [mappings, orderEbaySkus, orderOutletSkus, apiEbaySkus, apiOutletSkus, allItems] = await Promise.all([
+  const [mappings, orderEbaySkus, orderOutletSkus, orderOttoSkus, apiEbaySkus, apiOutletSkus, apiOttoSkus, allItems] = await Promise.all([
     prisma.skuMapping.findMany({
       orderBy: [{ marketplace: "asc" }, { marketplaceSku: "asc" }],
       include: {
@@ -46,8 +47,14 @@ export default async function PortaleBestandSyncPage() {
       select: { marketplaceSku: true, title: true },
       distinct: ["marketplaceSku"],
     }),
+    prisma.orderItem.findMany({
+      where: { order: { marketplace: "OTTO" } },
+      select: { marketplaceSku: true, title: true },
+      distinct: ["marketplaceSku"],
+    }),
     fetchEbayInventorySkus("main").catch(() => []),
     fetchEbayInventorySkus("outlet").catch((e) => { console.error("eBay Outlet API Fehler:", e.message); return []; }),
+    fetchOttoSkus().catch((e) => { console.error("Otto API Fehler:", e.message); return []; }),
     prisma.item.findMany({ select: { sku: true } }),
   ]);
 
@@ -66,12 +73,13 @@ export default async function PortaleBestandSyncPage() {
 
   const ebaySkus = mergeSkus(apiEbaySkus, orderEbaySkus);
   const ebayOutletSkus = mergeSkus(apiOutletSkus, orderOutletSkus);
+  const ottoSkus = mergeSkus(apiOttoSkus, orderOttoSkus);
 
   // Pre-compute suggestions for unmapped SKUs
   const mappingSet = new Set(mappings.map((m) => `${m.marketplace}:${m.marketplaceSku}`));
 
   const suggestions: Record<string, string> = {};
-  for (const [mp, skuList] of [["EBAY", ebaySkus], ["EBAY_OUTLET", ebayOutletSkus]] as const) {
+  for (const [mp, skuList] of [["EBAY", ebaySkus], ["EBAY_OUTLET", ebayOutletSkus], ["OTTO", ottoSkus]] as const) {
     for (const s of skuList) {
       const key = `${mp}:${s.marketplaceSku}`;
       if (!mappingSet.has(key)) {
@@ -88,6 +96,7 @@ export default async function PortaleBestandSyncPage() {
         mappings={mappings}
         ebaySkus={ebaySkus}
         ebayOutletSkus={ebayOutletSkus}
+        ottoSkus={ottoSkus}
         suggestions={suggestions}
       />
     </div>

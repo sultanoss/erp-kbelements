@@ -19,17 +19,20 @@ type MarketplaceSku = { marketplaceSku: string; title: string | null };
 const MP_COLOR: Record<string, string> = {
   EBAY: "bg-yellow-100 text-yellow-800",
   EBAY_OUTLET: "bg-orange-100 text-orange-800",
+  OTTO: "bg-red-100 text-red-800",
 };
 
 export default function SyncClient({
   mappings,
   ebaySkus,
   ebayOutletSkus,
+  ottoSkus,
   suggestions = {},
 }: {
   mappings: Mapping[];
   ebaySkus: MarketplaceSku[];
   ebayOutletSkus: MarketplaceSku[];
+  ottoSkus: MarketplaceSku[];
   suggestions?: Record<string, string>;
 }) {
   const router = useRouter();
@@ -313,6 +316,7 @@ export default function SyncClient({
 
       {renderPortal("EBAY", "eBay", ebaySkus, "Neuware-Lager · Alle aktiven eBay-Listings")}
       {renderPortal("EBAY_OUTLET", "eBay Outlet", ebayOutletSkus, "NS-Lager · Alle aktiven eBay Outlet-Listings")}
+      {renderPortal("OTTO", "Otto", ottoSkus, "Neuware-Lager · Alle aktiven Otto-Produkte")}
     </div>
   );
 }
