@@ -276,7 +276,9 @@ export async function fetchEbayInventorySkus(account: "main" | "outlet" = "main"
       const itemId = block.match(/<ItemID>([^<]+)<\/ItemID>/)?.[1] ?? "";
       const sku = block.match(/<SKU>([^<]+)<\/SKU>/)?.[1] ?? "";
       const title = block.match(/<Title>([^<]+)<\/Title>/)?.[1] ?? null;
-      if (sku) skus.push({ marketplaceSku: sku, title, itemId });
+      // Listings ohne Custom Label: ItemID als Kennung verwenden
+      const marketplaceSku = sku || itemId;
+      if (marketplaceSku) skus.push({ marketplaceSku, title, itemId });
       count++;
     }
 
