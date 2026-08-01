@@ -2,6 +2,7 @@ const OTTO_TOKEN_URL = "https://api.otto.market/oauth2/token";
 const OTTO_ORDERS_URL = "https://api.otto.market/v4/orders";
 const OTTO_SHIPMENTS_URL = "https://api.otto.market/v1/shipments";
 const OTTO_PRODUCTS_URL = "https://api.otto.market/v2/products";
+const OTTO_AVAILABILITY_URL = "https://api.otto.market/v1/availability/quantities";
 
 export interface NormalizedOrder {
   externalId: string;
@@ -246,25 +247,32 @@ export type OttoStockPushResult = { marketplaceSku: string; ok: boolean; error?:
 export async function pushOttoStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<OttoStockPushResult[]> {
-  const token = await getToken("");
+  const token = await getToken("availability");
   const results: OttoStockPushResult[] = [];
 
-  for (const item of items) {
-    const sku = encodeURIComponent(item.marketplaceSku);
-    const res = await fetch(`${OTTO_PRODUCTS_URL}/${sku}`, {
-      method: "PATCH",
+  // POST /v1/availability/quantities — max 200 SKUs pro Request
+  for (let i = 0; i < items.length; i += 200) {
+    const chunk = items.slice(i, i + 200);
+    const body = chunk.map((item) => ({ sku: item.marketplaceSku, quantity: item.quantity }));
+
+    const res = await fetch(OTTO_AVAILABILITY_URL, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ availableQuantity: item.quantity }),
+      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
       const text = await res.text();
-      results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 120)}` });
+      for (const item of chunk) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 120)}` });
+      }
     } else {
-      results.push({ marketplaceSku: item.marketplaceSku, ok: true });
+      for (const item of chunk) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: true });
+      }
     }
   }
 
