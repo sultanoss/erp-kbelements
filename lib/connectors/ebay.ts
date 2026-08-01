@@ -234,7 +234,8 @@ export type EbayInventorySku = { marketplaceSku: string; title: string | null; i
 // Fetch all active eBay listings via Trading API (supports traditional/Seller Hub listings)
 export async function fetchEbayInventorySkus(account: "main" | "outlet" = "main"): Promise<EbayInventorySku[]> {
   const creds = account === "main" ? mainCreds() : outletCreds();
-  const token = await getInventoryAccessToken(creds);
+  // sell.fulfillment reicht für GetMyeBaySelling (Trading API)
+  const token = await getAccessToken(creds);
   const skus: EbayInventorySku[] = [];
   let page = 1;
 
