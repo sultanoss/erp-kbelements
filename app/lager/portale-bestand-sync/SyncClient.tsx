@@ -37,10 +37,12 @@ export default function SyncClient({
   mappings,
   ebaySkus,
   ebayOutletSkus,
+  suggestions = {},
 }: {
   mappings: Mapping[];
   ebaySkus: MarketplaceSku[];
   ebayOutletSkus: MarketplaceSku[];
+  suggestions?: Record<string, string>;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -51,8 +53,8 @@ export default function SyncClient({
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
-  // Quick-map inputs: { [marketplace_sku]: internalSkus string }
-  const [overrides, setOverrides] = useState<Record<string, string>>({});
+  // Quick-map inputs: pre-filled with auto-suggestions, editable by user
+  const [overrides, setOverrides] = useState<Record<string, string>>(suggestions);
 
   // Build a lookup of existing mappings: "MARKETPLACE:marketplaceSku" -> Mapping
   const mappingLookup = new Map<string, Mapping>();
@@ -131,13 +133,18 @@ export default function SyncClient({
                         ))}
                       </div>
                     ) : (
-                      <input
-                        type="text"
-                        value={override}
-                        onChange={(e) => setOverrides((prev) => ({ ...prev, [key]: e.target.value }))}
-                        placeholder={s.marketplaceSku}
-                        className="input text-xs py-1 w-full max-w-[240px] font-mono"
-                      />
+                      <div className="space-y-0.5">
+                        <input
+                          type="text"
+                          value={override}
+                          onChange={(e) => setOverrides((prev) => ({ ...prev, [key]: e.target.value }))}
+                          placeholder={s.marketplaceSku}
+                          className={`input text-xs py-1 w-full max-w-[240px] font-mono ${suggestions[key] && override === suggestions[key] ? "border-blue-300 bg-blue-50" : ""}`}
+                        />
+                        {suggestions[key] && override === suggestions[key] && (
+                          <p className="text-[10px] text-blue-500">Automatischer Vorschlag — bitte prüfen</p>
+                        )}
+                      </div>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
