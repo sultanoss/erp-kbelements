@@ -1155,7 +1155,7 @@ export async function getVersandAbgeschlossenStatus(): Promise<{ confirmed: bool
   ]);
   if (datumSetting?.value !== today) return { confirmed: false };
   const timeLabel = zeitSetting
-    ? new Date(zeitSetting.value).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr"
+    ? new Date(zeitSetting.value).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }) + " Uhr"
     : undefined;
   return { confirmed: true, timeLabel };
 }
@@ -1167,7 +1167,7 @@ export async function confirmVersandAbgeschlossen(): Promise<{ confirmed: boolea
     prisma.setting.upsert({ where: { key: "versandAbgeschlossenDatum" }, update: { value: today }, create: { key: "versandAbgeschlossenDatum", value: today } }),
     prisma.setting.upsert({ where: { key: "versandAbgeschlossenZeit" }, update: { value: now.toISOString() }, create: { key: "versandAbgeschlossenZeit", value: now.toISOString() } }),
   ]);
-  const timeLabel = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr";
+  const timeLabel = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }) + " Uhr";
   return { confirmed: true, timeLabel };
 }
 
