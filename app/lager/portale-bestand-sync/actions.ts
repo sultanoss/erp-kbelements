@@ -104,7 +104,7 @@ export async function syncStock(marketplaces: string[]): Promise<SyncResult[]> {
   for (const mp of marketplaces) {
     const mappings = await prisma.skuMapping.findMany({
       where: { marketplace: mp, active: true },
-      include: { items: { include: { item: { select: { stock: true, sku: true } } } } },
+      include: { items: { include: { item: { select: { stock: true, stockNS: true, sku: true } } } } },
     });
 
     if (mappings.length === 0) {
@@ -112,10 +112,11 @@ export async function syncStock(marketplaces: string[]): Promise<SyncResult[]> {
       continue;
     }
 
-    // Calculate quantity = min of all internal SKU stocks
+    // eBay Outlet → NS-Lager, alle anderen → Neuware-Lager
+    const useNS = mp === "EBAY_OUTLET";
     const pushItems = mappings.map((m) => ({
       marketplaceSku: m.marketplaceSku,
-      quantity: Math.min(...m.items.map((i) => i.item.stock)),
+      quantity: Math.min(...m.items.map((i) => useNS ? i.item.stockNS : i.item.stock)),
     }));
 
     if (mp === "EBAY" || mp === "EBAY_OUTLET") {
