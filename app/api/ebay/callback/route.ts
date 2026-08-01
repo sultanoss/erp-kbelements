@@ -34,15 +34,40 @@ export async function GET(request: Request) {
     return new Response(`Token-Austausch fehlgeschlagen: ${tokenRes.status} ${text}`, { status: 500 });
   }
 
-  const data = (await tokenRes.json()) as {
-    access_token?: string;
-    refresh_token?: string;
-    error?: string;
-  };
+  const data = (await tokenRes.json()) as { access_token?: string; refresh_token?: string; error?: string };
 
   if (!data.refresh_token) {
     return new Response(`Kein refresh_token erhalten: ${JSON.stringify(data)}`, { status: 500 });
   }
+
+  // Automatisch in Vercel speichern
+  let vercelOk = false;
+  try {
+    const vercelToken = process.env.VERCEL_API_TOKEN;
+    const teamId = process.env.VERCEL_TEAM_ID;
+    const projectId = process.env.VERCEL_PROJECT_ID;
+    const envId = "u41ae8z1iZIDSYNh"; // EBAY_REFRESH_TOKEN
+
+    if (vercelToken && teamId && projectId) {
+      const patchRes = await fetch(
+        `https://api.vercel.com/v9/projects/${projectId}/env/${envId}?teamId=${teamId}`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${vercelToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ value: data.refresh_token }),
+        }
+      );
+      if (patchRes.ok) {
+        // Trigger redeploy
+        await fetch(`https://api.vercel.com/v13/deployments?teamId=${teamId}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${vercelToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "erp-kbelements", projectId, target: "production" }),
+        });
+        vercelOk = true;
+      }
+    }
+  } catch { /* ignore */ }
 
   const html = `<!DOCTYPE html>
 <html lang="de">
@@ -50,19 +75,17 @@ export async function GET(request: Request) {
 <style>body{font-family:monospace;background:#f5f5f5;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
 .box{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:2rem;max-width:600px;width:100%}
 h1{color:#16a34a;font-size:1rem;margin:0 0 1rem}
+.ok{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;padding:0.75rem;font-size:0.8rem;color:#15803d;margin:1rem 0}
 .token{background:#f5f5f5;border:1px solid #e5e5e5;border-radius:4px;padding:1rem;word-break:break-all;font-size:0.75rem;margin:1rem 0}
-.step{margin:0.5rem 0;font-size:0.8rem;color:#555}
-.warning{color:#c0182a;font-size:0.75rem;margin-top:1rem}</style>
+.step{margin:0.5rem 0;font-size:0.8rem;color:#555}</style>
 </head>
 <body>
 <div class="box">
-  <h1>&#10003; eBay erfolgreich verbunden!</h1>
-  <p class="step">Trage diesen Refresh Token als <strong>EBAY_REFRESH_TOKEN</strong> in Vercel ein:</p>
-  <div class="token">${data.refresh_token}</div>
-  <p class="step">1. Vercel Dashboard → Projekt erp-kbelements → Settings → Environment Variables</p>
-  <p class="step">2. EBAY_REFRESH_TOKEN = Wert oben</p>
-  <p class="step">3. Neu deployen</p>
-  <p class="warning">&#9888; Diesen Token jetzt kopieren!</p>
+  <h1>&#10003; eBay Hauptkonto erfolgreich verbunden!</h1>
+  ${vercelOk
+    ? `<div class="ok">&#10003; Token wurde automatisch in Vercel gespeichert und Redeploy gestartet.</div>`
+    : `<p class="step">Token manuell als <strong>EBAY_REFRESH_TOKEN</strong> in Vercel eintragen:</p><div class="token">${data.refresh_token}</div>`
+  }
 </div>
 </body>
 </html>`;

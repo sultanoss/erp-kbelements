@@ -35,6 +35,7 @@ export default function SyncClient({
   const [, startTransition] = useTransition();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [collapsedMP, setCollapsedMP] = useState<Record<string, boolean>>({});
 
   // Per-portal state
   const [savingMP, setSavingMP] = useState<string | null>(null);
@@ -105,18 +106,30 @@ export default function SyncClient({
     const isSaving = savingMP === marketplace;
     const syncResult = syncResultMap[marketplace];
     const saveMsg = saveMsgMap[marketplace];
+    const isCollapsed = collapsedMP[marketplace] ?? false;
 
     return (
       <div className="card">
         {/* Header */}
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${MP_COLOR[marketplace] ?? "bg-gray-100 text-gray-700"}`}>{label}</span>
-                <h2 className="font-semibold text-gray-900">SKU-Mappings ({skus.length} Produkte)</h2>
+            <div className="flex items-start gap-2">
+              <button
+                onClick={() => setCollapsedMP((prev) => ({ ...prev, [marketplace]: !isCollapsed }))}
+                className="mt-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+                title={isCollapsed ? "Aufklappen" : "Einklappen"}
+              >
+                <svg className={`w-4 h-4 transition-transform ${isCollapsed ? "-rotate-90" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${MP_COLOR[marketplace] ?? "bg-gray-100 text-gray-700"}`}>{label}</span>
+                  <h2 className="font-semibold text-gray-900">SKU-Mappings ({skus.length} Produkte · {activeCount} aktiv)</h2>
+                </div>
+                <p className="text-xs text-gray-400">{description}</p>
               </div>
-              <p className="text-xs text-gray-400">{description}</p>
             </div>
             <div className="flex flex-col items-end gap-1.5 shrink-0">
               <button
@@ -142,7 +155,7 @@ export default function SyncClient({
         </div>
 
         {/* SKU Table */}
-        {skus.length === 0 ? (
+        {isCollapsed ? null : skus.length === 0 ? (
           <p className="text-sm text-gray-400 p-5">Keine Produkte gefunden.</p>
         ) : (
           <div className="overflow-x-auto">
