@@ -32,7 +32,7 @@ export default async function PortaleBestandSyncPage() {
       orderBy: [{ marketplace: "asc" }, { marketplaceSku: "asc" }],
       include: {
         items: {
-          include: { item: { select: { stock: true, sku: true } } },
+          include: { item: { select: { stock: true, stockNS: true, sku: true } } },
         },
       },
     }),
@@ -47,7 +47,7 @@ export default async function PortaleBestandSyncPage() {
       distinct: ["marketplaceSku"],
     }),
     fetchEbayInventorySkus("main").catch(() => []),
-    fetchEbayInventorySkus("outlet").catch(() => []),
+    fetchEbayInventorySkus("outlet").catch((e) => { console.error("eBay Outlet API Fehler:", e.message); return []; }),
     prisma.item.findMany({ select: { sku: true } }),
   ]);
 
