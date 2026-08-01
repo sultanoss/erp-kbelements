@@ -38,15 +38,17 @@ async function getToken(scope: string = "orders"): Promise<string> {
   const clientSecret = process.env.OTTO_CLIENT_SECRET;
   if (!clientId || !clientSecret) throw new Error("OTTO_CLIENT_ID oder OTTO_CLIENT_SECRET fehlt");
 
+  const params: Record<string, string> = {
+    grant_type: "client_credentials",
+    client_id: clientId,
+    client_secret: clientSecret,
+  };
+  if (scope) params.scope = scope;
+
   const res = await fetch(OTTO_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: clientId,
-      client_secret: clientSecret,
-      scope,
-    }),
+    body: new URLSearchParams(params),
   });
 
   if (!res.ok) {
@@ -214,7 +216,7 @@ export async function sendOttoShipmentNotification(params: {
 export type OttoInventorySku = { marketplaceSku: string; title: string | null };
 
 export async function fetchOttoSkus(): Promise<OttoInventorySku[]> {
-  const token = await getToken("products");
+  const token = await getToken("");
   const skus: OttoInventorySku[] = [];
   let nextLink: string | null = `${OTTO_PRODUCTS_URL}?productLifeCycle=ACTIVE&limit=100`;
 
@@ -244,7 +246,7 @@ export type OttoStockPushResult = { marketplaceSku: string; ok: boolean; error?:
 export async function pushOttoStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<OttoStockPushResult[]> {
-  const token = await getToken("products");
+  const token = await getToken("");
   const results: OttoStockPushResult[] = [];
 
   // Otto: update quantities in batches of 100
