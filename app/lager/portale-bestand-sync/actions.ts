@@ -20,8 +20,17 @@ export async function saveBulkMappings(
   entries: Array<{ marketplace: string; marketplaceSku: string; internalSkus: string }>
 ) {
   await requireUser();
+
+  // Load all valid SKUs once to filter out non-existing ones
+  const allItems = await prisma.item.findMany({ select: { sku: true } });
+  const validSkus = new Set(allItems.map((i) => i.sku));
+
+  let saved = 0;
   for (const entry of entries) {
-    const skus = entry.internalSkus.split(",").map((s) => s.trim()).filter(Boolean);
+    const skus = entry.internalSkus
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s && validSkus.has(s)); // only SKUs that exist in ERP
     if (skus.length === 0) continue;
     await prisma.skuMapping.upsert({
       where: { marketplace_marketplaceSku: { marketplace: entry.marketplace, marketplaceSku: entry.marketplaceSku } },
@@ -38,8 +47,10 @@ export async function saveBulkMappings(
         },
       },
     });
+    saved++;
   }
   revalidatePath("/lager/portale-bestand-sync");
+  return { saved };
 }
 
 export async function saveSkuMapping(formData: FormData) {

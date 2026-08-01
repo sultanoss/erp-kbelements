@@ -49,6 +49,7 @@ export default function SyncClient({
   const [syncResults, setSyncResults] = useState<SyncResult[] | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   // Quick-map inputs: { [marketplace_sku]: internalSkus string }
   const [overrides, setOverrides] = useState<Record<string, string>>({});
@@ -82,13 +83,15 @@ export default function SyncClient({
 
   async function handleSaveAll(marketplace: string, skus: MarketplaceSku[]) {
     setSaving(true);
+    setSaveMsg(null);
     const entries = skus.map((s) => ({
       marketplace,
       marketplaceSku: s.marketplaceSku,
       internalSkus: overrides[`${marketplace}:${s.marketplaceSku}`]?.trim() || s.marketplaceSku,
     }));
-    await saveBulkMappings(entries);
+    const result = await saveBulkMappings(entries);
     setSaving(false);
+    setSaveMsg(`${result.saved} Mapping${result.saved !== 1 ? "s" : ""} gespeichert`);
     startTransition(() => router.refresh());
   }
 
@@ -159,15 +162,20 @@ export default function SyncClient({
             })}
           </tbody>
         </table>
-        <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-4">
           <p className="text-xs text-gray-400">Leeres Feld = Marketplace-SKU wird direkt als interne SKU verwendet · Kombi-Produkte: SKUs kommagetrennt eingeben</p>
-          <button
-            onClick={() => handleSaveAll(marketplace, skus)}
-            disabled={saving}
-            className="btn-primary text-sm py-1.5 px-4 disabled:opacity-50"
-          >
-            {saving ? "Speichern…" : "Alle speichern"}
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            {saveMsg && (
+              <span className="text-xs text-green-600 font-medium">✓ {saveMsg}</span>
+            )}
+            <button
+              onClick={() => handleSaveAll(marketplace, skus)}
+              disabled={saving}
+              className="btn-primary text-sm py-1.5 px-4 disabled:opacity-50"
+            >
+              {saving ? "Speichern…" : "Alle speichern"}
+            </button>
+          </div>
         </div>
       </div>
     );
