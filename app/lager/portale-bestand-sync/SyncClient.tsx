@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { deleteSkuMapping, toggleSkuMappingActive, syncStock, saveBulkMappings, type SyncResult } from "./actions";
+import { saveEbayToken } from "./token-actions";
 import { useRouter } from "next/navigation";
 
 type Mapping = {
@@ -36,6 +37,10 @@ export default function SyncClient({
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [collapsedMP, setCollapsedMP] = useState<Record<string, boolean>>({});
+  const [tokenInputs, setTokenInputs] = useState<Record<string, string>>({});
+  const [tokenStatus, setTokenStatus] = useState<Record<string, { ok: boolean; message: string }>>({});
+  const [savingToken, setSavingToken] = useState<string | null>(null);
+  const [showTokenSection, setShowTokenSection] = useState(false);
 
   // Per-portal state
   const [savingMP, setSavingMP] = useState<string | null>(null);
@@ -245,18 +250,65 @@ export default function SyncClient({
 
   return (
     <div className="space-y-6">
-      {/* eBay re-auth */}
-      <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
-        <p className="font-semibold mb-1">eBay Konten verbinden</p>
-        <p className="mb-3 text-amber-700 text-xs">Falls der Sync nicht funktioniert, bitte Konto neu verbinden.</p>
-        <div className="flex gap-3">
-          <a href="/api/ebay/install" className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors">
-            eBay Hauptkonto neu verbinden
-          </a>
-          <a href="/api/ebay-outlet/install" className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors">
-            eBay Outlet neu verbinden
-          </a>
-        </div>
+      {/* eBay Token Einstellungen */}
+      <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm">
+        <button
+          onClick={() => setShowTokenSection((v) => !v)}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium text-sm"
+        >
+          <svg className={`w-4 h-4 transition-transform ${showTokenSection ? "" : "-rotate-90"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+          eBay Konten verbinden / Token manuell eintragen
+        </button>
+
+        {showTokenSection && (
+          <div className="mt-4 space-y-4">
+            <div className="flex gap-3">
+              <a href="/api/ebay/install" className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors">
+                eBay Hauptkonto neu verbinden
+              </a>
+              <a href="/api/ebay-outlet/install" className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors">
+                eBay Outlet neu verbinden
+              </a>
+            </div>
+
+            {[
+              { label: "eBay Hauptkonto Refresh Token", envKey: "EBAY_REFRESH_TOKEN" },
+              { label: "eBay Outlet Refresh Token", envKey: "EBAY_OUTLET_REFRESH_TOKEN" },
+            ].map(({ label, envKey }) => (
+              <div key={envKey} className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600">{label}</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={tokenInputs[envKey] ?? ""}
+                    onChange={(e) => setTokenInputs((prev) => ({ ...prev, [envKey]: e.target.value }))}
+                    placeholder="v^1.1#i^1#r^1#..."
+                    className="input text-xs font-mono flex-1"
+                  />
+                  <button
+                    onClick={async () => {
+                      setSavingToken(envKey);
+                      const result = await saveEbayToken(envKey, tokenInputs[envKey] ?? "");
+                      setTokenStatus((prev) => ({ ...prev, [envKey]: result }));
+                      setSavingToken(null);
+                    }}
+                    disabled={savingToken === envKey || !tokenInputs[envKey]?.trim()}
+                    className="btn-primary text-xs px-3 disabled:opacity-50 shrink-0"
+                  >
+                    {savingToken === envKey ? "Speichern…" : "Speichern"}
+                  </button>
+                </div>
+                {tokenStatus[envKey] && (
+                  <p className={`text-xs ${tokenStatus[envKey].ok ? "text-green-600" : "text-red-600"}`}>
+                    {tokenStatus[envKey].ok ? "✓" : "✗"} {tokenStatus[envKey].message}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {renderPortal("EBAY", "eBay", ebaySkus, "Neuware-Lager · Alle aktiven eBay-Listings")}
