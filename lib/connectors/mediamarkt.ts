@@ -215,8 +215,8 @@ export async function fetchMediaMarktSkus(): Promise<MediaMarktInventorySku[]> {
 export async function pushMediaMarktStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<MediaMarktStockPushResult[]> {
-  // Mirakl Offers Import: Spaltenname "all-stocks" (Mirakl-Standard für Bestand)
-  const lines = ["shop-sku;all-stocks", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
+  // Mirakl Offers Import
+  const lines = ["shop-sku;quantity", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
   const csv = lines.join("\n");
 
   const formData = new FormData();
@@ -231,16 +231,26 @@ export async function pushMediaMarktStock(
   const responseText = await res.text();
 
   if (!res.ok) {
-    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${responseText.slice(0, 120)}` }));
+    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${responseText.slice(0, 500)}` }));
   }
 
-  // Mirakl verarbeitet den Import asynchron — Import-ID im Fehlertext für Debugging
-  let importInfo = "";
+  // Mirakl verarbeitet Imports asynchron — Import-Status prüfen
   try {
-    const data = JSON.parse(responseText) as { import_id?: number; has_error_report?: boolean };
-    if (data.import_id) importInfo = ` (Import-ID: ${data.import_id})`;
-    if (data.has_error_report) {
-      return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import-Fehler${importInfo}` }));
+    const data = JSON.parse(responseText) as { import_id?: number; has_error_report?: boolean; import_status?: string };
+    const importId = data.import_id;
+
+    if (data.has_error_report && importId) {
+      // Fehlerreport abrufen
+      const reportRes = await fetch(`${BASE}/offers/imports/${importId}/tracking_report`, {
+        headers: authHeaders(),
+      });
+      const reportText = await reportRes.text();
+      return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} Fehler: ${reportText.slice(0, 300)}` }));
+    }
+
+    if (importId) {
+      // Import angenommen — als OK melden
+      return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
     }
   } catch { /* kein JSON */ }
 
