@@ -231,6 +231,10 @@ export async function fetchOttoSkus(): Promise<OttoInventorySku[]> {
       resources?: Array<OttoVariant & { variants?: OttoVariant[]; productVariants?: OttoVariant[] }>;
       links?: Array<{ rel: string; href: string }>;
     };
+    if (skus.length === 0 && data.resources?.[0]) {
+      console.log("[Otto] Erstes Produkt Struktur:", JSON.stringify(Object.keys(data.resources[0])));
+      console.log("[Otto] Erstes Produkt:", JSON.stringify(data.resources[0]).slice(0, 500));
+    }
     for (const p of data.resources ?? []) {
       const sku = p.sku;
       const title = p.productTitle ?? p.productDescription?.productTitle ?? null;
