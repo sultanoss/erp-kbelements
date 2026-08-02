@@ -73,7 +73,17 @@ export default async function PortaleBestandSyncPage() {
 
   const ebaySkus = mergeSkus(apiEbaySkus, orderEbaySkus);
   const ebayOutletSkus = mergeSkus(apiOutletSkus, orderOutletSkus);
-  const ottoSkus = mergeSkus(apiOttoSkus, orderOttoSkus);
+
+  // Für Otto: API liefert alle SKUs inkl. inaktive.
+  // Nur API-SKUs zeigen, die in Bestellungen vorkommen ODER Varianten eines Bestellungs-SKUs sind (Präfix-Match).
+  const orderOttoSkuSet = new Set(orderOttoSkus.map((s) => s.marketplaceSku));
+  const mappedOttoSkuSet = new Set(mappings.filter((m) => m.marketplace === "OTTO").map((m) => m.marketplaceSku));
+  const filteredApiOttoSkus = apiOttoSkus.filter((s) => {
+    if (orderOttoSkuSet.has(s.marketplaceSku)) return true;
+    if (mappedOttoSkuSet.has(s.marketplaceSku)) return true;
+    return orderOttoSkus.some((o) => s.marketplaceSku.startsWith(o.marketplaceSku + "/"));
+  });
+  const ottoSkus = mergeSkus(filteredApiOttoSkus, orderOttoSkus);
 
   // Pre-compute suggestions for unmapped SKUs
   const mappingSet = new Set(mappings.map((m) => `${m.marketplace}:${m.marketplaceSku}`));
