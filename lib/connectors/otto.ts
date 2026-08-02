@@ -226,14 +226,20 @@ export async function fetchOttoSkus(): Promise<OttoInventorySku[]> {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) break;
+    type OttoVariant = { sku?: string; productTitle?: string; productDescription?: { productTitle?: string } };
     const data = await res.json() as {
-      resources?: Array<{ sku?: string; productTitle?: string; productDescription?: { productTitle?: string } }>;
+      resources?: Array<OttoVariant & { variants?: OttoVariant[]; productVariants?: OttoVariant[] }>;
       links?: Array<{ rel: string; href: string }>;
     };
     for (const p of data.resources ?? []) {
       const sku = p.sku;
       const title = p.productTitle ?? p.productDescription?.productTitle ?? null;
       if (sku) skus.push({ marketplaceSku: sku, title });
+      for (const v of p.variants ?? p.productVariants ?? []) {
+        const vSku = v.sku;
+        const vTitle = v.productTitle ?? v.productDescription?.productTitle ?? title;
+        if (vSku && vSku !== sku) skus.push({ marketplaceSku: vSku, title: vTitle });
+      }
     }
     const next = data.links?.find((l) => l.rel === "next");
     nextLink = next ? next.href : null;
