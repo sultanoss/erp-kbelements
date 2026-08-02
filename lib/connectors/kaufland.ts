@@ -234,7 +234,7 @@ export async function fetchKauflandSkus(): Promise<KauflandInventorySku[]> {
     };
     const page = data.data ?? [];
     for (const u of page) {
-      if (u.id_offer) skus.push({ marketplaceSku: u.id_offer, title: null });
+      if (u.id_offer) skus.push({ marketplaceSku: u.id_offer.trim(), title: null });
     }
     const total = data.pagination?.total ?? 0;
     offset += page.length;
@@ -262,7 +262,7 @@ export async function pushKauflandStock(
     };
     const page = data.data ?? [];
     for (const u of page) {
-      if (u.id_offer && u.id_unit) offerToUnit.set(u.id_offer, u.id_unit);
+      if (u.id_offer && u.id_unit) offerToUnit.set(u.id_offer.trim(), u.id_unit);
     }
     const total = data.pagination?.total ?? 0;
     offset += page.length;
@@ -277,11 +277,11 @@ export async function pushKauflandStock(
   for (let i = 0; i < found.length; i += 150) {
     const chunk = found.slice(i, i + 150);
     const bodyArr = chunk.map((item) => ({
-      unit_id: offerToUnit.get(item.marketplaceSku)!,
+      id_unit: offerToUnit.get(item.marketplaceSku)!,
       unit_data: { amount: item.quantity },
     }));
     const bodyStr = JSON.stringify(bodyArr);
-    const url = `${BASE}/units/bulk`;
+    const url = `${BASE}/units/bulk?storefront=${sf}`;
 
     const res = await fetch(url, {
       method: "POST",
@@ -295,10 +295,11 @@ export async function pushKauflandStock(
         results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 120)}` });
       }
     } else {
-      // 207 Multi-Status — individuellen Status pro Unit prüfen
-      const bulkData = await res.json() as Array<{ status?: number }>;
+      // 207 Multi-Status — individuellen Status pro Unit prüfen (status_code, nicht status)
+      const bulkData = await res.json() as { data?: Array<{ status_code?: number }> };
+      const items = bulkData.data ?? [];
       for (let j = 0; j < chunk.length; j++) {
-        const itemStatus = bulkData[j]?.status ?? 200;
+        const itemStatus = items[j]?.status_code ?? 200;
         const ok = itemStatus >= 200 && itemStatus < 300;
         results.push({
           marketplaceSku: chunk[j].marketplaceSku,
