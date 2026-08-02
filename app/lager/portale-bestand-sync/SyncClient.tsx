@@ -21,6 +21,7 @@ const MP_COLOR: Record<string, string> = {
   EBAY_OUTLET: "bg-orange-100 text-orange-800",
   OTTO: "bg-red-100 text-red-800",
   MEDIAMARKT: "bg-blue-100 text-blue-800",
+  KAUFLAND: "bg-teal-100 text-teal-800",
 };
 
 export default function SyncClient({
@@ -29,6 +30,7 @@ export default function SyncClient({
   ebayOutletSkus,
   ottoSkus,
   mediamarktSkus,
+  kauflandSkus,
   suggestions = {},
 }: {
   mappings: Mapping[];
@@ -36,6 +38,7 @@ export default function SyncClient({
   ebayOutletSkus: MarketplaceSku[];
   ottoSkus: MarketplaceSku[];
   mediamarktSkus: MarketplaceSku[];
+  kauflandSkus: MarketplaceSku[];
   suggestions?: Record<string, string>;
 }) {
   const router = useRouter();
@@ -266,6 +269,7 @@ export default function SyncClient({
       {renderPortal("EBAY_OUTLET", "eBay Outlet", ebayOutletSkus, "NS-Lager · Alle aktiven eBay Outlet-Listings")}
       {renderPortal("OTTO", "Otto", ottoSkus, "Neuware-Lager · Alle aktiven Otto-Produkte")}
       {renderPortal("MEDIAMARKT", "MediaMarkt", mediamarktSkus, "Neuware-Lager · Alle aktiven MediaMarkt-Angebote")}
+      {renderPortal("KAUFLAND", "Kaufland", kauflandSkus, "Neuware-Lager · Alle aktiven Kaufland-Angebote")}
     </div>
   );
 }

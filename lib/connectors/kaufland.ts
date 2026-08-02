@@ -215,6 +215,107 @@ export async function sendKauflandShipmentNotification(params: {
   }
 }
 
+export type KauflandInventorySku = { marketplaceSku: string; title: string | null };
+export type KauflandStockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
+
+export async function fetchKauflandSkus(): Promise<KauflandInventorySku[]> {
+  const sf = (process.env.KAUFLAND_STOREFRONT ?? "de").split(",")[0].trim();
+  const skus: KauflandInventorySku[] = [];
+  let offset = 0;
+  const limit = 100;
+
+  while (true) {
+    const url = `${BASE}/units?storefront=${sf}&limit=${limit}&offset=${offset}`;
+    const res = await fetch(url, { headers: signedHeaders("GET", url, "") });
+    if (!res.ok) break;
+    const data = await res.json() as {
+      data?: Array<{ id_offer?: string; id_unit?: number }>;
+      pagination?: { total?: number };
+    };
+    const page = data.data ?? [];
+    for (const u of page) {
+      if (u.id_offer) skus.push({ marketplaceSku: u.id_offer, title: null });
+    }
+    const total = data.pagination?.total ?? 0;
+    offset += page.length;
+    if (offset >= total || page.length === 0) break;
+  }
+
+  return skus;
+}
+
+export async function pushKauflandStock(
+  items: Array<{ marketplaceSku: string; quantity: number }>
+): Promise<KauflandStockPushResult[]> {
+  const sf = (process.env.KAUFLAND_STOREFRONT ?? "de").split(",")[0].trim();
+
+  // id_offer → id_unit Mapping aufbauen
+  const offerToUnit = new Map<string, number>();
+  let offset = 0;
+  while (true) {
+    const url = `${BASE}/units?storefront=${sf}&limit=100&offset=${offset}`;
+    const res = await fetch(url, { headers: signedHeaders("GET", url, "") });
+    if (!res.ok) break;
+    const data = await res.json() as {
+      data?: Array<{ id_offer?: string; id_unit?: number }>;
+      pagination?: { total?: number };
+    };
+    const page = data.data ?? [];
+    for (const u of page) {
+      if (u.id_offer && u.id_unit) offerToUnit.set(u.id_offer, u.id_unit);
+    }
+    const total = data.pagination?.total ?? 0;
+    offset += page.length;
+    if (offset >= total || page.length === 0) break;
+  }
+
+  const results: KauflandStockPushResult[] = [];
+  const found = items.filter((i) => offerToUnit.has(i.marketplaceSku));
+  const notFound = items.filter((i) => !offerToUnit.has(i.marketplaceSku));
+
+  // Bulk-Update in Batches à 150
+  for (let i = 0; i < found.length; i += 150) {
+    const chunk = found.slice(i, i + 150);
+    const bodyArr = chunk.map((item) => ({
+      unit_id: offerToUnit.get(item.marketplaceSku)!,
+      unit_data: { amount: item.quantity },
+    }));
+    const bodyStr = JSON.stringify(bodyArr);
+    const url = `${BASE}/units/bulk`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: signedHeaders("POST", url, bodyStr),
+      body: bodyStr,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      for (const item of chunk) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 120)}` });
+      }
+    } else {
+      // 207 Multi-Status — individuellen Status pro Unit prüfen
+      const bulkData = await res.json() as Array<{ status?: number }>;
+      for (let j = 0; j < chunk.length; j++) {
+        const itemStatus = bulkData[j]?.status ?? 200;
+        const ok = itemStatus >= 200 && itemStatus < 300;
+        results.push({
+          marketplaceSku: chunk[j].marketplaceSku,
+          ok,
+          error: ok ? undefined : `Bulk-Status ${itemStatus}`,
+        });
+      }
+    }
+  }
+
+  for (const item of notFound) {
+    results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: "Nicht in Kaufland gefunden" });
+  }
+
+  return results;
+}
+
 export async function uploadKauflandInvoice(
   idOrder: string,
   pdfBytes: Uint8Array,

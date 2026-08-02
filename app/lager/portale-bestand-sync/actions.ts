@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth-guards";
 import { pushEbayStock } from "@/lib/connectors/ebay";
 import { pushOttoStock } from "@/lib/connectors/otto";
 import { pushMediaMarktStock } from "@/lib/connectors/mediamarkt";
+import { pushKauflandStock } from "@/lib/connectors/kaufland";
 import { revalidatePath } from "next/cache";
 
 const SUPPORTED_MARKETPLACES = ["EBAY", "EBAY_OUTLET", "OTTO", "SHOPIFY", "KAUFLAND", "MEDIAMARKT"] as const;
@@ -164,6 +165,23 @@ export async function syncStock(marketplaces: string[]): Promise<SyncResult[]> {
     if (mp === "MEDIAMARKT") {
       try {
         const res = await pushMediaMarktStock(pushItems);
+        const okItems = res.filter((r) => r.ok);
+        const errItems = res.filter((r) => !r.ok);
+        results.push({
+          marketplace: mp,
+          ok: okItems.length,
+          error: errItems.length,
+          errors: errItems.map((r) => ({ sku: r.marketplaceSku, message: r.error ?? "Unbekannter Fehler" })),
+        });
+      } catch (e) {
+        results.push({ marketplace: mp, ok: 0, error: pushItems.length, errors: [{ sku: "–", message: (e as Error).message }] });
+      }
+      continue;
+    }
+
+    if (mp === "KAUFLAND") {
+      try {
+        const res = await pushKauflandStock(pushItems);
         const okItems = res.filter((r) => r.ok);
         const errItems = res.filter((r) => !r.ok);
         results.push({
