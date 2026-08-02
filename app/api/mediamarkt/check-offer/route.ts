@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   if (!key) return NextResponse.json({ error: "MEDIAMARKT_API_KEY fehlt" }, { status: 500 });
 
   const url = sku
-    ? `https://mediamarktsaturn.mirakl.net/api/offers?shop_skus=${encodeURIComponent(sku)}&max=10`
+    ? `https://mediamarktsaturn.mirakl.net/api/offers?shop_sku=${encodeURIComponent(sku)}&max=10`
     : `https://mediamarktsaturn.mirakl.net/api/offers?max=5`;
 
   const res = await fetch(url, {
