@@ -215,26 +215,25 @@ export async function fetchMediaMarktSkus(): Promise<MediaMarktInventorySku[]> {
 export async function pushMediaMarktStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<MediaMarktStockPushResult[]> {
-  // Mirakl Offers Import
-  const lines = ["shop-sku;quantity", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
-  const csv = lines.join("\n");
-
-  const formData = new FormData();
-  formData.append("file", new Blob([csv], { type: "text/csv" }), "stock.csv");
-
-  const res = await fetch(`${BASE}/offers/imports?import_mode=PARTIAL_UPDATE`, {
+  // OF24: REST JSON — kein CSV, direkt shop_sku + quantity
+  const res = await fetch(`${BASE}/offers`, {
     method: "POST",
-    headers: authHeaders(),
-    body: formData,
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({
+      offers: items.map((i) => ({
+        shop_sku: i.marketplaceSku,
+        quantity: i.quantity,
+        update_delete: "update",
+      })),
+    }),
   });
 
   const responseText = await res.text();
 
   if (!res.ok) {
-    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${responseText.slice(0, 500)}` }));
+    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${responseText.slice(0, 300)}` }));
   }
 
-  // Mirakl verarbeitet Imports asynchron — auf Ergebnis warten
   let importId: number | undefined;
   try {
     const data = JSON.parse(responseText) as { import_id?: number };
@@ -242,29 +241,27 @@ export async function pushMediaMarktStock(
   } catch { /* kein JSON */ }
 
   if (!importId) {
-    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Kein import_id in Antwort: ${responseText.slice(0, 200)}` }));
+    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Kein import_id: ${responseText.slice(0, 200)}` }));
   }
 
-  // Bis zu 30 Sek. auf Verarbeitung warten
+  // Asynchron auf Verarbeitung warten (bis 30s)
   for (let attempt = 0; attempt < 6; attempt++) {
     await new Promise((r) => setTimeout(r, 5000));
     const statusRes = await fetch(`${BASE}/offers/imports/${importId}`, { headers: authHeaders() });
     if (!statusRes.ok) break;
-    const status = await statusRes.json() as { import_status?: string; has_error_report?: boolean; lines_read?: number; lines_in_success?: number; lines_in_error?: number };
+    const status = await statusRes.json() as { import_status?: string; has_error_report?: boolean };
 
     if (status.import_status === "COMPLETE" || status.import_status === "FAILED" || status.has_error_report) {
       if (status.has_error_report) {
-        const reportRes = await fetch(`${BASE}/offers/imports/${importId}/tracking_report`, { headers: authHeaders() });
+        const reportRes = await fetch(`${BASE}/offers/imports/${importId}/error_report`, { headers: authHeaders() });
         const reportText = await reportRes.text();
-        return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId}: ${reportText.slice(0, 300)}` }));
+        return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} Fehler: ${reportText.slice(0, 300)}` }));
       }
-      // Erfolgreich
       return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
     }
   }
 
-  // Timeout — Import wurde angenommen aber Status unklar
-  return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} läuft noch — Status unklar nach 30s` }));
+  return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} — Status nach 30s noch offen` }));
 }
 
 export async function uploadMediaMarktInvoice(
