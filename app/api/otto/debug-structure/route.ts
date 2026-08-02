@@ -17,8 +17,7 @@ export async function GET() {
   const r = await fetch("https://api.otto.market/v2/products?productLifeCycle=ACTIVE&limit=2", {
     headers: { Authorization: `Bearer ${access_token}` },
   });
-  const data = await r.json() as { resources?: unknown[] };
+  const raw = await r.text();
 
-  // Return raw first 2 products so we can see all fields
-  return NextResponse.json({ first2: data.resources?.slice(0, 2) }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ status: r.status, raw: raw.slice(0, 2000) }, { headers: { "Cache-Control": "no-store" } });
 }
