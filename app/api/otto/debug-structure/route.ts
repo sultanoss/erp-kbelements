@@ -19,19 +19,12 @@ async function getToken(scope: string): Promise<string | null> {
 }
 
 export async function GET() {
-  const scopes = ["", "availability", "orders", "shipments", "receipts", "returns"];
-  const results = [];
+  const token = await getToken("availability");
+  if (!token) return NextResponse.json({ error: "kein Token" });
 
-  for (const scope of scopes) {
-    const token = await getToken(scope);
-    if (!token) { results.push({ scope: scope || "(kein)", tokenOk: false }); continue; }
-
-    const r = await fetch("https://api.otto.market/v2/products?productLifeCycle=ACTIVE&limit=1", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const raw = await r.text();
-    results.push({ scope: scope || "(kein)", tokenOk: true, status: r.status, snippet: raw.slice(0, 200) });
-  }
-
-  return NextResponse.json(results, { headers: { "Cache-Control": "no-store" } });
+  const r = await fetch("https://api.otto.market/v1/availability/quantities?limit=5", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const raw = await r.text();
+  return NextResponse.json({ status: r.status, body: raw.slice(0, 2000) }, { headers: { "Cache-Control": "no-store" } });
 }
