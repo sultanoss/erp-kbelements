@@ -222,7 +222,7 @@ export async function pushMediaMarktStock(
   const formData = new FormData();
   formData.append("file", new Blob([csv], { type: "text/csv" }), "stock.csv");
 
-  const res = await fetch(`${BASE}/offers/imports`, {
+  const res = await fetch(`${BASE}/offers/imports?import_mode=PARTIAL_UPDATE`, {
     method: "POST",
     headers: authHeaders(),
     body: formData,
