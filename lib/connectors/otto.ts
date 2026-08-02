@@ -217,36 +217,23 @@ export async function sendOttoShipmentNotification(params: {
 export type OttoInventorySku = { marketplaceSku: string; title: string | null };
 
 export async function fetchOttoSkus(): Promise<OttoInventorySku[]> {
-  const token = await getToken("");
+  const token = await getToken("availability");
   const skus: OttoInventorySku[] = [];
-  let nextLink: string | null = `${OTTO_PRODUCTS_URL}?productLifeCycle=ACTIVE&limit=100`;
+  let nextLink: string | null = `${OTTO_AVAILABILITY_URL}?limit=200`;
 
   while (nextLink) {
-    const res = await fetch(nextLink, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const url = nextLink.startsWith("http") ? nextLink : `https://api.otto.market${nextLink}`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) break;
-    type OttoVariant = { sku?: string; productTitle?: string; productDescription?: { productTitle?: string } };
     const data = await res.json() as {
-      resources?: Array<OttoVariant & { variants?: OttoVariant[]; productVariants?: OttoVariant[] }>;
+      resources?: { variations?: Array<{ sku?: string }> };
       links?: Array<{ rel: string; href: string }>;
     };
-    if (skus.length === 0 && data.resources?.[0]) {
-      console.log("[Otto] Erstes Produkt Struktur:", JSON.stringify(Object.keys(data.resources[0])));
-      console.log("[Otto] Erstes Produkt:", JSON.stringify(data.resources[0]).slice(0, 500));
-    }
-    for (const p of data.resources ?? []) {
-      const sku = p.sku;
-      const title = p.productTitle ?? p.productDescription?.productTitle ?? null;
-      if (sku) skus.push({ marketplaceSku: sku, title });
-      for (const v of p.variants ?? p.productVariants ?? []) {
-        const vSku = v.sku;
-        const vTitle = v.productTitle ?? v.productDescription?.productTitle ?? title;
-        if (vSku && vSku !== sku) skus.push({ marketplaceSku: vSku, title: vTitle });
-      }
+    for (const v of data.resources?.variations ?? []) {
+      if (v.sku) skus.push({ marketplaceSku: v.sku, title: null });
     }
     const next = data.links?.find((l) => l.rel === "next");
-    nextLink = next ? next.href : null;
+    nextLink = next?.href ?? null;
   }
 
   return skus;
