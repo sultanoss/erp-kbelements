@@ -215,17 +215,14 @@ export async function fetchMediaMarktSkus(): Promise<MediaMarktInventorySku[]> {
 export async function pushMediaMarktStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<MediaMarktStockPushResult[]> {
-  // Mirakl Offers Import: Tab-separiert (Mirakl-Standard)
-  const lines = ["shop-sku\tquantity", ...items.map((i) => `${i.marketplaceSku}\t${i.quantity}`)];
-  const tsv = lines.join("\n");
-
-  const formData = new FormData();
-  formData.append("file", new Blob([tsv], { type: "text/plain" }), "stock.tsv");
+  // Mirakl Offers Import: CSV direkt als Body (kein Multipart)
+  const lines = ["shop-sku;quantity", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
+  const csv = lines.join("\n");
 
   const res = await fetch(`${BASE}/offers/imports?import_mode=PARTIAL_UPDATE`, {
     method: "POST",
-    headers: authHeaders(),
-    body: formData,
+    headers: { ...authHeaders(), "Content-Type": "text/csv; charset=utf-8" },
+    body: csv,
   });
 
   if (!res.ok) {
