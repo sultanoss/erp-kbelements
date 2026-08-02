@@ -215,8 +215,8 @@ export async function fetchMediaMarktSkus(): Promise<MediaMarktInventorySku[]> {
 export async function pushMediaMarktStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<MediaMarktStockPushResult[]> {
-  // Mirakl Offers Import: Multipart mit text/csv MIME-Typ
-  const lines = ["shop-sku;quantity", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
+  // Mirakl Offers Import: Spaltenname "all-stocks" (Mirakl-Standard für Bestand)
+  const lines = ["shop-sku;all-stocks", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
   const csv = lines.join("\n");
 
   const formData = new FormData();
@@ -228,12 +228,22 @@ export async function pushMediaMarktStock(
     body: formData,
   });
 
+  const responseText = await res.text();
+
   if (!res.ok) {
-    const text = await res.text();
-    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 120)}` }));
+    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${responseText.slice(0, 120)}` }));
   }
 
-  // Mirakl gibt async Import-Job zurück — wir behandeln HTTP 2xx als Erfolg
+  // Mirakl verarbeitet den Import asynchron — Import-ID im Fehlertext für Debugging
+  let importInfo = "";
+  try {
+    const data = JSON.parse(responseText) as { import_id?: number; has_error_report?: boolean };
+    if (data.import_id) importInfo = ` (Import-ID: ${data.import_id})`;
+    if (data.has_error_report) {
+      return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import-Fehler${importInfo}` }));
+    }
+  } catch { /* kein JSON */ }
+
   return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
 }
 
