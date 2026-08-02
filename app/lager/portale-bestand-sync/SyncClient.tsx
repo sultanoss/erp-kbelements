@@ -114,7 +114,7 @@ export default function SyncClient({
     const isSaving = savingMP === marketplace;
     const syncResult = syncResultMap[marketplace];
     const saveMsg = saveMsgMap[marketplace];
-    const isCollapsed = collapsedMP[marketplace] ?? false;
+    const isCollapsed = collapsedMP[marketplace] ?? true;
 
     return (
       <div className="card">
