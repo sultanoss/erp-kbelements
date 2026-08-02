@@ -215,17 +215,17 @@ export async function fetchMediaMarktSkus(): Promise<MediaMarktInventorySku[]> {
 export async function pushMediaMarktStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<MediaMarktStockPushResult[]> {
-  // OF24: REST JSON — kein CSV, direkt shop_sku + quantity
-  const res = await fetch(`${BASE}/offers`, {
+  // STO01: Dedizierter Bestand-Import (offer-sku + quantity, nichts sonst)
+  const lines = ["offer-sku;quantity", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
+  const csv = lines.join("\n");
+
+  const formData = new FormData();
+  formData.append("file", new Blob([csv], { type: "text/csv" }), "stock.csv");
+
+  const res = await fetch(`${BASE}/offers/stock/imports`, {
     method: "POST",
-    headers: { ...authHeaders(), "Content-Type": "application/json" },
-    body: JSON.stringify({
-      offers: items.map((i) => ({
-        shop_sku: i.marketplaceSku,
-        quantity: i.quantity,
-        update_delete: "update",
-      })),
-    }),
+    headers: authHeaders(),
+    body: formData,
   });
 
   const responseText = await res.text();
@@ -244,24 +244,24 @@ export async function pushMediaMarktStock(
     return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Kein import_id: ${responseText.slice(0, 200)}` }));
   }
 
-  // Asynchron auf Verarbeitung warten (bis 30s)
+  // STO01 async — Status via /offers/stock/imports/{id}/status prüfen
   for (let attempt = 0; attempt < 6; attempt++) {
     await new Promise((r) => setTimeout(r, 5000));
-    const statusRes = await fetch(`${BASE}/offers/imports/${importId}`, { headers: authHeaders() });
+    const statusRes = await fetch(`${BASE}/offers/stock/imports/${importId}/status`, { headers: authHeaders() });
     if (!statusRes.ok) break;
-    const status = await statusRes.json() as { import_status?: string; has_error_report?: boolean };
+    const status = await statusRes.json() as { status?: string; has_error_report?: boolean; lines_in_success?: number; lines_in_error?: number };
 
-    if (status.import_status === "COMPLETE" || status.import_status === "FAILED" || status.has_error_report) {
+    if (status.status === "COMPLETE" || status.status === "FAILED" || status.has_error_report !== undefined) {
       if (status.has_error_report) {
-        const reportRes = await fetch(`${BASE}/offers/imports/${importId}/error_report`, { headers: authHeaders() });
+        const reportRes = await fetch(`${BASE}/offers/stock/imports/${importId}/error_report`, { headers: authHeaders() });
         const reportText = await reportRes.text();
-        return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} Fehler: ${reportText.slice(0, 300)}` }));
+        return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `STO01 #${importId}: ${reportText.slice(0, 300)}` }));
       }
       return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
     }
   }
 
-  return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} — Status nach 30s noch offen` }));
+  return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `STO01 #${importId} — Status nach 30s offen` }));
 }
 
 export async function uploadMediaMarktInvoice(
