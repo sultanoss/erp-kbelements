@@ -19,3 +19,5 @@ test-*.mjs
 .env.production.local
 
 .env*
+
+query-order.cjs
