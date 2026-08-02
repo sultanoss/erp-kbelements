@@ -234,27 +234,37 @@ export async function pushMediaMarktStock(
     return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${responseText.slice(0, 500)}` }));
   }
 
-  // Mirakl verarbeitet Imports asynchron — Import-Status prüfen
+  // Mirakl verarbeitet Imports asynchron — auf Ergebnis warten
+  let importId: number | undefined;
   try {
-    const data = JSON.parse(responseText) as { import_id?: number; has_error_report?: boolean; import_status?: string };
-    const importId = data.import_id;
-
-    if (data.has_error_report && importId) {
-      // Fehlerreport abrufen
-      const reportRes = await fetch(`${BASE}/offers/imports/${importId}/tracking_report`, {
-        headers: authHeaders(),
-      });
-      const reportText = await reportRes.text();
-      return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} Fehler: ${reportText.slice(0, 300)}` }));
-    }
-
-    if (importId) {
-      // Import angenommen — als OK melden
-      return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
-    }
+    const data = JSON.parse(responseText) as { import_id?: number };
+    importId = data.import_id;
   } catch { /* kein JSON */ }
 
-  return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
+  if (!importId) {
+    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Kein import_id in Antwort: ${responseText.slice(0, 200)}` }));
+  }
+
+  // Bis zu 30 Sek. auf Verarbeitung warten
+  for (let attempt = 0; attempt < 6; attempt++) {
+    await new Promise((r) => setTimeout(r, 5000));
+    const statusRes = await fetch(`${BASE}/offers/imports/${importId}`, { headers: authHeaders() });
+    if (!statusRes.ok) break;
+    const status = await statusRes.json() as { import_status?: string; has_error_report?: boolean; lines_read?: number; lines_in_success?: number; lines_in_error?: number };
+
+    if (status.import_status === "COMPLETE" || status.import_status === "FAILED" || status.has_error_report) {
+      if (status.has_error_report) {
+        const reportRes = await fetch(`${BASE}/offers/imports/${importId}/tracking_report`, { headers: authHeaders() });
+        const reportText = await reportRes.text();
+        return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId}: ${reportText.slice(0, 300)}` }));
+      }
+      // Erfolgreich
+      return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
+    }
+  }
+
+  // Timeout — Import wurde angenommen aber Status unklar
+  return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `Import #${importId} läuft noch — Status unklar nach 30s` }));
 }
 
 export async function uploadMediaMarktInvoice(
