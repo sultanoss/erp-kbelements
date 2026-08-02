@@ -183,6 +183,60 @@ export async function sendMediaMarktShipmentNotification(params: {
   }
 }
 
+export type MediaMarktInventorySku = { marketplaceSku: string; title: string | null };
+export type MediaMarktStockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
+
+export async function fetchMediaMarktSkus(): Promise<MediaMarktInventorySku[]> {
+  const skus: MediaMarktInventorySku[] = [];
+  let offset = 0;
+  const max = 100;
+
+  while (true) {
+    const url = `${BASE}/offers?max=${max}&offset=${offset}`;
+    const res = await fetch(url, { headers: authHeaders() });
+    if (!res.ok) break;
+    const data = await res.json() as {
+      offers?: Array<{ shop_sku?: string; offer_sku?: string; product_title?: string }>;
+      total_count?: number;
+    };
+    const page = data.offers ?? [];
+    for (const o of page) {
+      const sku = o.shop_sku ?? o.offer_sku;
+      if (sku) skus.push({ marketplaceSku: sku, title: o.product_title ?? null });
+    }
+    const total = data.total_count ?? 0;
+    offset += page.length;
+    if (offset >= total || page.length === 0) break;
+  }
+
+  return skus;
+}
+
+export async function pushMediaMarktStock(
+  items: Array<{ marketplaceSku: string; quantity: number }>
+): Promise<MediaMarktStockPushResult[]> {
+  // Mirakl Offers Import: TSV-Datei mit shop-sku und quantity
+  const lines = ["shop-sku;quantity", ...items.map((i) => `${i.marketplaceSku};${i.quantity}`)];
+  const csv = lines.join("\n");
+
+  const formData = new FormData();
+  formData.append("file", new Blob([csv], { type: "text/csv" }), "stock.csv");
+
+  const res = await fetch(`${BASE}/offers/imports`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: `${res.status}: ${text.slice(0, 120)}` }));
+  }
+
+  // Mirakl gibt async Import-Job zurück — wir behandeln HTTP 2xx als Erfolg
+  return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: true }));
+}
+
 export async function uploadMediaMarktInvoice(
   orderId: string,
   pdfBytes: Uint8Array,
