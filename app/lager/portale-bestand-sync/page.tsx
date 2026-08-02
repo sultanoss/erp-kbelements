@@ -109,7 +109,15 @@ export default async function PortaleBestandSyncPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Portale Bestand Sync</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <a href="/lager" className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Lager
+        </a>
+        <h1 className="text-2xl font-bold text-gray-900">Portale Bestand Sync</h1>
+      </div>
       <SyncClient
         mappings={mappings}
         ebaySkus={ebaySkus}
