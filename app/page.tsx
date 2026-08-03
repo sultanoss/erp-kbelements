@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, rawOpenItems, laterShipments, unprintedShipments] = await Promise.all([
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
@@ -37,6 +37,11 @@ export default async function DashboardPage() {
     prisma.sale.groupBy({
       by: ["date"],
       where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } },
+      _sum: { quantity: true },
+    }),
+    prisma.herdsetSale.groupBy({
+      by: ["date"],
+      where: { date: { gte: monthStart, lte: monthEnd } },
       _sum: { quantity: true },
     }),
     prisma.orderItem.findMany({
@@ -70,9 +75,14 @@ export default async function DashboardPage() {
     const day = new Date(row.date).getDate();
     dayMap.set(day, (dayMap.get(day) ?? 0) + (row._sum.quantity ?? 0));
   }
+  const herdsetDayMap = new Map<number, number>();
+  for (const row of dailyHerdsets) {
+    const day = new Date(row.date).getDate();
+    herdsetDayMap.set(day, (herdsetDayMap.get(day) ?? 0) + (row._sum.quantity ?? 0));
+  }
   const lowStockItems = lowStock.filter((i) => i.stock < i.minStock);
-  const chartData = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, qty: dayMap.get(i + 1) ?? 0 }));
-  const maxQty = Math.max(...chartData.map((d) => d.qty), 1);
+  const chartData = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, qty: dayMap.get(i + 1) ?? 0, herdsets: herdsetDayMap.get(i + 1) ?? 0 }));
+  const maxQty = Math.max(...chartData.map((d) => d.qty + d.herdsets), 1);
   const monthLabel = MONTH_NAMES[now.getMonth()];
   const thisMonthQty = salesMonth._sum.quantity ?? 0;
   const lastMonthQty = salesLastMonth._sum.quantity ?? 0;
@@ -238,7 +248,7 @@ function Metric({ label, value, pct }: { label: string; value: number; pct?: num
   );
 }
 
-function SalesChart({ data, maxQty }: { data: { day: number; qty: number }[]; maxQty: number }) {
+function SalesChart({ data, maxQty }: { data: { day: number; qty: number; herdsets: number }[]; maxQty: number }) {
   const W = 800;
   const H = 180;
   const padL = 32;
@@ -247,51 +257,73 @@ function SalesChart({ data, maxQty }: { data: { day: number; qty: number }[]; ma
   const padB = 28;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
-  const barW = Math.max(4, chartW / data.length - 3);
+  const slotW = chartW / data.length;
+  const gap = 1;
+  const barW = Math.max(3, slotW / 2 - gap);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 180 }}>
-      {/* Y-Achse Hilfslinien */}
-      {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
-        const y = padT + chartH * (1 - frac);
-        const val = Math.round(maxQty * frac);
-        return (
-          <g key={frac}>
-            <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="#e5e5e5" strokeWidth="1" />
-            {frac > 0 && (
-              <text x={padL - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#666" fontFamily="monospace">
-                {val}
-              </text>
-            )}
-          </g>
-        );
-      })}
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 180 }}>
+        {/* Y-Achse Hilfslinien */}
+        {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
+          const y = padT + chartH * (1 - frac);
+          const val = Math.round(maxQty * frac);
+          return (
+            <g key={frac}>
+              <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="#e5e5e5" strokeWidth="1" />
+              {frac > 0 && (
+                <text x={padL - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#666" fontFamily="monospace">
+                  {val}
+                </text>
+              )}
+            </g>
+          );
+        })}
 
-      {/* Balken */}
-      {data.map(({ day, qty }) => {
-        const x = padL + ((day - 1) / data.length) * chartW + (chartW / data.length - barW) / 2;
-        const barH = qty === 0 ? 0 : Math.max(3, (qty / maxQty) * chartH);
-        const y = padT + chartH - barH;
-        return (
-          <g key={day}>
-            {qty > 0 && (
-              <rect x={x} y={y} width={barW} height={barH} fill="#C0182A" rx="2" />
-            )}
-            {/* X-Achse: nur jeden 5. Tag oder wenn Wert > 0 */}
-            {(day % 5 === 0 || day === 1 || qty > 0) && (
-              <text x={x + barW / 2} y={H - 8} textAnchor="middle" fontSize="9" fill="#666" fontFamily="monospace">
-                {day}
-              </text>
-            )}
-            {/* Wert über Balken */}
-            {qty > 0 && (
-              <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize="9" fill="#C0182A" fontWeight="700" fontFamily="monospace">
-                {qty}
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
+        {/* Balken */}
+        {data.map(({ day, qty, herdsets }) => {
+          const slotX = padL + (day - 1) * slotW;
+          const centerX = slotX + slotW / 2;
+          const xLeft = centerX - barW - gap / 2;
+          const xRight = centerX + gap / 2;
+
+          const barHQty = qty === 0 ? 0 : Math.max(3, (qty / maxQty) * chartH);
+          const barHHerd = herdsets === 0 ? 0 : Math.max(3, (herdsets / maxQty) * chartH);
+          const yQty = padT + chartH - barHQty;
+          const yHerd = padT + chartH - barHHerd;
+          const hasAny = qty > 0 || herdsets > 0;
+
+          return (
+            <g key={day}>
+              {qty > 0 && <rect x={xLeft} y={yQty} width={barW} height={barHQty} fill="#C0182A" rx="2" />}
+              {herdsets > 0 && <rect x={xRight} y={yHerd} width={barW} height={barHHerd} fill="#ea580c" rx="2" />}
+
+              {/* X-Achse Label */}
+              {(day % 5 === 0 || day === 1 || hasAny) && (
+                <text x={centerX} y={H - 8} textAnchor="middle" fontSize="9" fill="#666" fontFamily="monospace">
+                  {day}
+                </text>
+              )}
+
+              {/* Werte über Balken */}
+              {qty > 0 && (
+                <text x={xLeft + barW / 2} y={yQty - 3} textAnchor="middle" fontSize="9" fill="#C0182A" fontWeight="700" fontFamily="monospace">
+                  {qty}
+                </text>
+              )}
+              {herdsets > 0 && (
+                <text x={xRight + barW / 2} y={yHerd - 3} textAnchor="middle" fontSize="9" fill="#ea580c" fontWeight="700" fontFamily="monospace">
+                  {herdsets}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-2 flex items-center gap-4 px-1 font-mono text-[10px] text-grey-mid">
+        <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-brand-red" />Verkäufe</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "#ea580c" }} />Herdsets</span>
+      </div>
+    </div>
   );
 }
