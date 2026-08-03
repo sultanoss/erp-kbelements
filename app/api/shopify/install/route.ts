@@ -12,7 +12,7 @@ export async function GET() {
 
   const url = new URL(`https://${store}/admin/oauth/authorize`);
   url.searchParams.set("client_id", clientId);
-  url.searchParams.set("scope", "read_orders,write_fulfillments,read_fulfillments");
+  url.searchParams.set("scope", "read_orders,write_fulfillments,read_fulfillments,read_products,read_inventory,write_inventory");
   url.searchParams.set("redirect_uri", redirectUri);
   url.searchParams.set("grant_options[]", "offline");
 
