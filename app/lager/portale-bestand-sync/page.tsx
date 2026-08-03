@@ -3,6 +3,7 @@ import { fetchEbayInventorySkus } from "@/lib/connectors/ebay";
 import { fetchOttoSkus } from "@/lib/connectors/otto";
 import { fetchMediaMarktSkus } from "@/lib/connectors/mediamarkt";
 import { fetchKauflandSkus } from "@/lib/connectors/kaufland";
+import { fetchShopifySkus } from "@/lib/connectors/shopify";
 import SyncClient from "./SyncClient";
 
 function suggestInternalSkus(marketplaceSku: string, allSkus: string[]): string {
@@ -30,7 +31,7 @@ function suggestInternalSkus(marketplaceSku: string, allSkus: string[]): string 
 }
 
 export default async function PortaleBestandSyncPage() {
-  const [mappings, orderEbaySkus, orderOutletSkus, orderOttoSkus, orderMediaMarktSkus, orderKauflandSkus, apiEbaySkus, apiOutletSkus, apiOttoSkus, apiMediaMarktSkus, apiKauflandSkus, allItems] = await Promise.all([
+  const [mappings, orderEbaySkus, orderOutletSkus, orderOttoSkus, orderMediaMarktSkus, orderKauflandSkus, orderShopifySkus, apiEbaySkus, apiOutletSkus, apiOttoSkus, apiMediaMarktSkus, apiKauflandSkus, apiShopifySkus, allItems] = await Promise.all([
     prisma.skuMapping.findMany({
       orderBy: [{ marketplace: "asc" }, { marketplaceSku: "asc" }],
       include: {
@@ -64,11 +65,17 @@ export default async function PortaleBestandSyncPage() {
       select: { marketplaceSku: true, title: true },
       distinct: ["marketplaceSku"],
     }),
+    prisma.orderItem.findMany({
+      where: { order: { marketplace: "SHOPIFY" } },
+      select: { marketplaceSku: true, title: true },
+      distinct: ["marketplaceSku"],
+    }),
     fetchEbayInventorySkus("main").catch(() => []),
     fetchEbayInventorySkus("outlet").catch((e) => { console.error("eBay Outlet API Fehler:", e.message); return []; }),
     fetchOttoSkus().catch((e) => { console.error("Otto API Fehler:", e.message); return []; }),
     fetchMediaMarktSkus().catch((e) => { console.error("MediaMarkt API Fehler:", e.message); return []; }),
     fetchKauflandSkus().catch((e) => { console.error("Kaufland API Fehler:", e.message); return []; }),
+    fetchShopifySkus().catch((e) => { console.error("Shopify API Fehler:", e.message); return []; }),
     prisma.item.findMany({ select: { sku: true } }),
   ]);
 
@@ -100,12 +107,13 @@ export default async function PortaleBestandSyncPage() {
   const ottoSkus = mergeSkus(filteredApiOttoSkus, orderOttoSkus);
   const mediamarktSkus = mergeSkus(apiMediaMarktSkus, orderMediaMarktSkus);
   const kauflandSkus = mergeSkus(apiKauflandSkus, orderKauflandSkus);
+  const shopifySkus = mergeSkus(apiShopifySkus, orderShopifySkus);
 
   // Pre-compute suggestions for unmapped SKUs
   const mappingSet = new Set(mappings.map((m) => `${m.marketplace}:${m.marketplaceSku}`));
 
   const suggestions: Record<string, string> = {};
-  for (const [mp, skuList] of [["EBAY", ebaySkus], ["EBAY_OUTLET", ebayOutletSkus], ["OTTO", ottoSkus], ["MEDIAMARKT", mediamarktSkus], ["KAUFLAND", kauflandSkus]] as const) {
+  for (const [mp, skuList] of [["EBAY", ebaySkus], ["EBAY_OUTLET", ebayOutletSkus], ["OTTO", ottoSkus], ["MEDIAMARKT", mediamarktSkus], ["KAUFLAND", kauflandSkus], ["SHOPIFY", shopifySkus]] as const) {
     for (const s of skuList) {
       const key = `${mp}:${s.marketplaceSku}`;
       if (!mappingSet.has(key)) {
@@ -133,6 +141,7 @@ export default async function PortaleBestandSyncPage() {
         ottoSkus={ottoSkus}
         mediamarktSkus={mediamarktSkus}
         kauflandSkus={kauflandSkus}
+        shopifySkus={shopifySkus}
         suggestions={suggestions}
       />
     </div>

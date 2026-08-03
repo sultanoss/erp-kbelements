@@ -210,3 +210,122 @@ export async function sendShopifyFulfillment(params: {
     throw new Error(`Shopify Fulfillment: ${errors.map((e) => e.message).join(", ")}`);
   }
 }
+
+export type ShopifyInventorySku = { marketplaceSku: string; title: string | null };
+export type ShopifyStockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
+
+const VARIANTS_QUERY = `
+  query getVariants($cursor: String) {
+    productVariants(first: 250, after: $cursor) {
+      pageInfo { hasNextPage endCursor }
+      edges {
+        node {
+          sku
+          displayName
+          inventoryItem { id }
+        }
+      }
+    }
+  }
+`;
+
+type VariantsResponse = {
+  productVariants: {
+    pageInfo: { hasNextPage: boolean; endCursor: string };
+    edges: { node: { sku: string | null; displayName: string; inventoryItem: { id: string } } }[];
+  };
+};
+
+export async function fetchShopifySkus(): Promise<ShopifyInventorySku[]> {
+  const skus: ShopifyInventorySku[] = [];
+  let cursor: string | null = null;
+
+  for (;;) {
+    const data: VariantsResponse = await shopifyGql<VariantsResponse>(VARIANTS_QUERY, cursor ? { cursor } : {});
+    for (const { node } of data.productVariants.edges) {
+      if (!node.sku) continue;
+      skus.push({ marketplaceSku: node.sku, title: node.displayName });
+    }
+    if (!data.productVariants.pageInfo.hasNextPage) break;
+    cursor = data.productVariants.pageInfo.endCursor;
+  }
+
+  return skus;
+}
+
+const SET_QUANTITIES_MUTATION = `
+  mutation setQuantities($input: InventorySetQuantitiesInput!) {
+    inventorySetQuantities(input: $input) {
+      userErrors { field message }
+    }
+  }
+`;
+
+export async function pushShopifyStock(
+  items: Array<{ marketplaceSku: string; quantity: number }>
+): Promise<ShopifyStockPushResult[]> {
+  // Schritt 1: Primären Lagerort laden
+  const locData = await shopifyGql<{
+    locations: { edges: { node: { id: string } }[] };
+  }>(`{ locations(first: 1, includeLegacy: false, includeInactive: false) { edges { node { id } } } }`);
+
+  const locationId = locData.locations.edges[0]?.node.id;
+  if (!locationId) {
+    return items.map((i) => ({ marketplaceSku: i.marketplaceSku, ok: false, error: "Kein Shopify-Lagerort gefunden" }));
+  }
+
+  // Schritt 2: SKU → inventoryItemId Mapping aufbauen
+  const skuToItemId = new Map<string, string>();
+  let cursor: string | null = null;
+  for (;;) {
+    const data: VariantsResponse = await shopifyGql<VariantsResponse>(VARIANTS_QUERY, cursor ? { cursor } : {});
+    for (const { node } of data.productVariants.edges) {
+      if (node.sku) skuToItemId.set(node.sku, node.inventoryItem.id);
+    }
+    if (!data.productVariants.pageInfo.hasNextPage) break;
+    cursor = data.productVariants.pageInfo.endCursor;
+  }
+
+  const results: ShopifyStockPushResult[] = [];
+  const found = items.filter((i) => skuToItemId.has(i.marketplaceSku));
+  const notFound = items.filter((i) => !skuToItemId.has(i.marketplaceSku));
+
+  // Schritt 3: inventorySetQuantities in Batches à 100
+  for (let i = 0; i < found.length; i += 100) {
+    const chunk = found.slice(i, i + 100);
+    const quantities = chunk.map((item) => ({
+      inventoryItemId: skuToItemId.get(item.marketplaceSku)!,
+      locationId,
+      quantity: item.quantity,
+    }));
+
+    const res = await shopifyGql<{
+      inventorySetQuantities: { userErrors: { field: string; message: string }[] };
+    }>(SET_QUANTITIES_MUTATION, {
+      input: {
+        name: "available",
+        reason: "correction",
+        ignoreCompareQuantity: true,
+        quantities,
+      },
+    });
+
+    const userErrors = res.inventorySetQuantities.userErrors;
+    if (userErrors.length > 0) {
+      const msg = userErrors.map((e) => e.message).join(", ");
+      for (const item of chunk) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: msg });
+      }
+    } else {
+      for (const item of chunk) {
+        results.push({ marketplaceSku: item.marketplaceSku, ok: true });
+      }
+    }
+  }
+
+  for (const item of notFound) {
+    results.push({ marketplaceSku: item.marketplaceSku, ok: false, error: "Nicht in Shopify gefunden" });
+  }
+
+  return results;
+}
