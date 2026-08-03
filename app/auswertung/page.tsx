@@ -19,7 +19,7 @@ const MARKETPLACE_LABELS: Record<string, string> = {
 function getMonthRange() {
   const now = new Date();
   const from = new Date(now.getFullYear(), now.getMonth(), 1);
-  const to = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const to = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
   return { from, to };
 }
 
