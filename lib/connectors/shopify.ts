@@ -214,14 +214,29 @@ export async function sendShopifyFulfillment(params: {
 export type ShopifyInventorySku = { marketplaceSku: string; title: string | null };
 export type ShopifyStockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
 
-const VARIANTS_QUERY = `
-  query getVariants($cursor: String) {
+// Nur sku + displayName — braucht nur read_products, kein read_inventory
+const VARIANTS_DISPLAY_QUERY = `
+  query getVariantsDisplay($cursor: String) {
     productVariants(first: 250, after: $cursor) {
       pageInfo { hasNextPage endCursor }
       edges {
         node {
           sku
           displayName
+        }
+      }
+    }
+  }
+`;
+
+// Mit inventoryItem — braucht read_inventory (nur für pushShopifyStock)
+const VARIANTS_INVENTORY_QUERY = `
+  query getVariantsInventory($cursor: String) {
+    productVariants(first: 250, after: $cursor) {
+      pageInfo { hasNextPage endCursor }
+      edges {
+        node {
+          sku
           inventoryItem { id }
         }
       }
@@ -229,10 +244,17 @@ const VARIANTS_QUERY = `
   }
 `;
 
-type VariantsResponse = {
+type VariantsDisplayResponse = {
   productVariants: {
     pageInfo: { hasNextPage: boolean; endCursor: string };
-    edges: { node: { sku: string | null; displayName: string; inventoryItem: { id: string } } }[];
+    edges: { node: { sku: string | null; displayName: string } }[];
+  };
+};
+
+type VariantsInventoryResponse = {
+  productVariants: {
+    pageInfo: { hasNextPage: boolean; endCursor: string };
+    edges: { node: { sku: string | null; inventoryItem: { id: string } } }[];
   };
 };
 
@@ -241,7 +263,7 @@ export async function fetchShopifySkus(): Promise<ShopifyInventorySku[]> {
   let cursor: string | null = null;
 
   for (;;) {
-    const data: VariantsResponse = await shopifyGql<VariantsResponse>(VARIANTS_QUERY, cursor ? { cursor } : {});
+    const data: VariantsDisplayResponse = await shopifyGql<VariantsDisplayResponse>(VARIANTS_DISPLAY_QUERY, cursor ? { cursor } : {});
     for (const { node } of data.productVariants.edges) {
       if (!node.sku) continue;
       skus.push({ marketplaceSku: node.sku, title: node.displayName });
@@ -278,7 +300,7 @@ export async function pushShopifyStock(
   const skuToItemId = new Map<string, string>();
   let cursor: string | null = null;
   for (;;) {
-    const data: VariantsResponse = await shopifyGql<VariantsResponse>(VARIANTS_QUERY, cursor ? { cursor } : {});
+    const data: VariantsInventoryResponse = await shopifyGql<VariantsInventoryResponse>(VARIANTS_INVENTORY_QUERY, cursor ? { cursor } : {});
     for (const { node } of data.productVariants.edges) {
       if (node.sku) skuToItemId.set(node.sku, node.inventoryItem.id);
     }
