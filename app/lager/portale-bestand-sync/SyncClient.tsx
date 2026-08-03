@@ -33,6 +33,7 @@ export default function SyncClient({
   mediamarktSkus,
   kauflandSkus,
   shopifySkus,
+  shopifyApiError,
   suggestions = {},
 }: {
   mappings: Mapping[];
@@ -42,6 +43,7 @@ export default function SyncClient({
   mediamarktSkus: MarketplaceSku[];
   kauflandSkus: MarketplaceSku[];
   shopifySkus: MarketplaceSku[];
+  shopifyApiError?: string;
   suggestions?: Record<string, string>;
 }) {
   const router = useRouter();
@@ -273,7 +275,7 @@ export default function SyncClient({
       {renderPortal("OTTO", "Otto", ottoSkus, "Neuware-Lager · Alle aktiven Otto-Produkte")}
       {renderPortal("MEDIAMARKT", "MediaMarkt", mediamarktSkus, "Neuware-Lager · Alle aktiven MediaMarkt-Angebote")}
       {renderPortal("KAUFLAND", "Kaufland", kauflandSkus, "Neuware-Lager · Alle aktiven Kaufland-Angebote")}
-      {renderPortal("SHOPIFY", "Shopify", shopifySkus, "Neuware-Lager · Alle aktiven Shopify-Produkte")}
+      {renderPortal("SHOPIFY", "Shopify", shopifySkus, shopifyApiError ? `⚠ API-Fehler: ${shopifyApiError}` : "Neuware-Lager · Alle aktiven Shopify-Produkte")}
     </div>
   );
 }

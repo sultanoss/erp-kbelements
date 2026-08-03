@@ -31,7 +31,7 @@ function suggestInternalSkus(marketplaceSku: string, allSkus: string[]): string 
 }
 
 export default async function PortaleBestandSyncPage() {
-  const [mappings, orderEbaySkus, orderOutletSkus, orderOttoSkus, orderMediaMarktSkus, orderKauflandSkus, orderShopifySkus, apiEbaySkus, apiOutletSkus, apiOttoSkus, apiMediaMarktSkus, apiKauflandSkus, apiShopifySkus, allItems] = await Promise.all([
+  const [mappings, orderEbaySkus, orderOutletSkus, orderOttoSkus, orderMediaMarktSkus, orderKauflandSkus, orderShopifySkus, apiEbaySkus, apiOutletSkus, apiOttoSkus, apiMediaMarktSkus, apiKauflandSkus, allItems] = await Promise.all([
     prisma.skuMapping.findMany({
       orderBy: [{ marketplace: "asc" }, { marketplaceSku: "asc" }],
       include: {
@@ -75,9 +75,18 @@ export default async function PortaleBestandSyncPage() {
     fetchOttoSkus().catch((e) => { console.error("Otto API Fehler:", e.message); return []; }),
     fetchMediaMarktSkus().catch((e) => { console.error("MediaMarkt API Fehler:", e.message); return []; }),
     fetchKauflandSkus().catch((e) => { console.error("Kaufland API Fehler:", e.message); return []; }),
-    fetchShopifySkus().catch((e) => { console.error("Shopify API Fehler:", e.message); return []; }),
     prisma.item.findMany({ select: { sku: true } }),
   ]);
+
+  // Shopify separat laden um Fehler anzuzeigen
+  let shopifyApiError = "";
+  let apiShopifySkus: { marketplaceSku: string; title: string | null }[] = [];
+  try {
+    apiShopifySkus = await fetchShopifySkus();
+  } catch (e) {
+    shopifyApiError = (e as Error).message;
+    console.error("Shopify API Fehler:", shopifyApiError);
+  }
 
   const allSkus = allItems.map((i) => i.sku);
 
@@ -142,6 +151,7 @@ export default async function PortaleBestandSyncPage() {
         mediamarktSkus={mediamarktSkus}
         kauflandSkus={kauflandSkus}
         shopifySkus={shopifySkus}
+        shopifyApiError={shopifyApiError}
         suggestions={suggestions}
       />
     </div>
