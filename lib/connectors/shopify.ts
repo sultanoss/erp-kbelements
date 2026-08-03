@@ -19,6 +19,21 @@ async function shopifyGql<T>(query: string, variables?: Record<string, unknown>)
   return json.data as T;
 }
 
+async function shopifyInventoryGql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
+  const res = await fetch(BASE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shopify-Access-Token": clean(process.env.SHOPIFY_INVENTORY_TOKEN),
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!res.ok) throw new Error(`Shopify GQL ${res.status}: ${await res.text()}`);
+  const json = await res.json() as { data?: T; errors?: { message: string }[] };
+  if (json.errors?.length) throw new Error(`Shopify GQL: ${json.errors.map((e) => e.message).join(", ")}`);
+  return json.data as T;
+}
+
 const ORDERS_QUERY = `
   query FetchOrders($cursor: String) {
     orders(first: 50, query: "fulfillment_status:unfulfilled financial_status:paid", after: $cursor) {
@@ -263,7 +278,7 @@ export async function fetchShopifySkus(): Promise<ShopifyInventorySku[]> {
   let cursor: string | null = null;
 
   for (;;) {
-    const data: VariantsDisplayResponse = await shopifyGql<VariantsDisplayResponse>(VARIANTS_DISPLAY_QUERY, cursor ? { cursor } : {});
+    const data: VariantsDisplayResponse = await shopifyInventoryGql<VariantsDisplayResponse>(VARIANTS_DISPLAY_QUERY, cursor ? { cursor } : {});
     for (const { node } of data.productVariants.edges) {
       if (!node.sku) continue;
       skus.push({ marketplaceSku: node.sku, title: node.displayName });
@@ -287,7 +302,7 @@ export async function pushShopifyStock(
   items: Array<{ marketplaceSku: string; quantity: number }>
 ): Promise<ShopifyStockPushResult[]> {
   // Schritt 1: Primären Lagerort laden
-  const locData = await shopifyGql<{
+  const locData = await shopifyInventoryGql<{
     locations: { edges: { node: { id: string } }[] };
   }>(`{ locations(first: 1, includeLegacy: false, includeInactive: false) { edges { node { id } } } }`);
 
@@ -300,7 +315,7 @@ export async function pushShopifyStock(
   const skuToItemId = new Map<string, string>();
   let cursor: string | null = null;
   for (;;) {
-    const data: VariantsInventoryResponse = await shopifyGql<VariantsInventoryResponse>(VARIANTS_INVENTORY_QUERY, cursor ? { cursor } : {});
+    const data: VariantsInventoryResponse = await shopifyInventoryGql<VariantsInventoryResponse>(VARIANTS_INVENTORY_QUERY, cursor ? { cursor } : {});
     for (const { node } of data.productVariants.edges) {
       if (node.sku) skuToItemId.set(node.sku, node.inventoryItem.id);
     }
@@ -321,7 +336,7 @@ export async function pushShopifyStock(
       quantity: item.quantity,
     }));
 
-    const res = await shopifyGql<{
+    const res = await shopifyInventoryGql<{
       inventorySetQuantities: { userErrors: { field: string; message: string }[] };
     }>(SET_QUANTITIES_MUTATION, {
       input: {
