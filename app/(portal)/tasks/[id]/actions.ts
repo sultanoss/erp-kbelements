@@ -16,6 +16,14 @@ export async function deleteTask(taskId: string) {
   redirect("/tasks");
 }
 
+export async function archiveTask(taskId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await adminSupabase.from("tasks").update({ archived_at: new Date().toISOString() }).eq("id", taskId);
+  redirect("/tasks");
+}
+
 export async function clearTaskBadge(taskId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

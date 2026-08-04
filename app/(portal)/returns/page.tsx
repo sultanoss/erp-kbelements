@@ -23,6 +23,7 @@ export default async function ReturnsPage({
   let query = supabase
     .from("returns")
     .select("*, return_items(sku, quantity, is_manual)")
+    .is("archived_at", null)
     .order("created_at", { ascending: false });
 
   if (params.q) {

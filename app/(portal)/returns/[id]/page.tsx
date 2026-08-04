@@ -7,6 +7,7 @@ import EditReturnModal from "./EditReturnModal";
 import ReturnImages from "./ReturnImages";
 import ReturnReplies from "./ReturnReplies";
 import ReturnDeleteButton from "./ReturnDeleteButton";
+import ReturnArchiveButton from "./ReturnArchiveButton";
 
 
 export default async function ReturnDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -80,6 +81,7 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
           {/* Aktionen */}
           <div className="flex gap-2 flex-wrap items-start">
             <ReturnDeleteButton returnId={id} />
+            <ReturnArchiveButton returnId={id} />
             <EditReturnModal
               returnId={id}
               currentStatus={ret.status}

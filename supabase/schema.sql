@@ -25,6 +25,7 @@ create table if not exists returns (
   resolved_by      text,
   resolution_notes text,
   tracking_number  text,
+  archived_at      timestamptz,
   created_at       timestamptz default now(),
   updated_at       timestamptz default now()
 );

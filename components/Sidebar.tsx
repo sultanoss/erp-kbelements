@@ -66,12 +66,18 @@ const todoSubItems = [
   { href: "/todo/notizen", label: "Notizen" },
 ];
 
+const archivSubItems = [
+  { href: "/archiv/retouren", label: "Retouren Archiv" },
+  { href: "/archiv/aufgaben", label: "Aufgaben Archiv" },
+];
+
 export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
   const [chinaOpen, setChinaOpen] = useState(pathname.startsWith("/china"));
   const [todoOpen, setTodoOpen] = useState(pathname.startsWith("/todo"));
+  const [archivOpen, setArchivOpen] = useState(pathname.startsWith("/archiv"));
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -204,6 +210,52 @@ export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose 
             {todoOpen && (
               <div className="mt-1 space-y-0.5">
                 {todoSubItems.map((sub) => {
+                  const isActive = pathname === sub.href || pathname.startsWith(sub.href + "/");
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      onClick={close}
+                      className={`flex items-center gap-2 pl-10 pr-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? "bg-stone-700 text-white"
+                          : "text-stone-400 hover:text-white hover:bg-stone-700"
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-current flex-shrink-0" />
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Archiv-Gruppe — alle User */}
+          <div>
+            <button
+              onClick={() => setArchivOpen((o) => !o)}
+              className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                pathname.startsWith("/archiv")
+                  ? "bg-brand-red text-white"
+                  : "text-stone-300 hover:text-white hover:bg-stone-700"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M10 12h4" />
+                </svg>
+                Archiv
+              </div>
+              <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${archivOpen ? "rotate-180" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {archivOpen && (
+              <div className="mt-1 space-y-0.5">
+                {archivSubItems.map((sub) => {
                   const isActive = pathname === sub.href || pathname.startsWith(sub.href + "/");
                   return (
                     <Link

@@ -18,6 +18,14 @@ export async function deleteReturn(returnId: string) {
   redirect("/returns");
 }
 
+export async function archiveReturn(returnId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await adminSupabase.from("returns").update({ archived_at: new Date().toISOString() }).eq("id", returnId);
+  redirect("/returns");
+}
+
 export async function clearReturnBadge(returnId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

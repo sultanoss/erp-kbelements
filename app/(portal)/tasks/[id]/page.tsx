@@ -6,6 +6,7 @@ import { STATUS_LABELS, TASK_TYPE_LABELS, formatDate } from "@/lib/status";
 import TaskStatusModal from "./TaskStatusModal";
 import TaskEditModal from "./TaskEditModal";
 import TaskDeleteButton from "./TaskDeleteButton";
+import TaskArchiveButton from "./TaskArchiveButton";
 import TaskReplies from "./TaskReplies";
 import TaskMedia from "./TaskMedia";
 import TaskRealtimeRefresher from "./TaskRealtimeRefresher";
@@ -106,6 +107,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         </div>
         <div className="flex gap-2 flex-wrap flex-shrink-0">
           <TaskDeleteButton taskId={task.id} />
+          <TaskArchiveButton taskId={task.id} />
           <TaskEditModal
             taskId={task.id}
             currentTags={tags}
