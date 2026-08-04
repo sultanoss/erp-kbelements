@@ -3,15 +3,48 @@ import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, TASK_TYPE_LABELS, formatDate } from "@/lib/status";
 import { unarchiveTask } from "../actions";
 
-export default async function ArchivAufgabenPage() {
+interface SearchParams { q?: string; von?: string; bis?: string; }
+
+export default async function ArchivAufgabenPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const params = await searchParams;
   const supabase = await createClient();
 
-  const { data: tasks } = await supabase
+  const q = params.q?.trim() ?? "";
+  const von = params.von ?? "";
+  const bis = params.bis ?? "";
+
+  // Suche in Chatverlauf (separate Query, dann IDs zusammenführen)
+  let replyIds: string[] = [];
+  if (q) {
+    const { data: replies } = await supabase
+      .from("task_replies")
+      .select("task_id")
+      .ilike("content", `%${q}%`);
+    replyIds = [...new Set(replies?.map((r) => r.task_id) ?? [])];
+  }
+
+  let query = supabase
     .from("tasks")
     .select("*")
     .not("archived_at", "is", null)
     .order("archived_at", { ascending: false });
 
+  if (von) query = query.gte("created_at", von);
+  if (bis) query = query.lte("created_at", bis + "T23:59:59");
+
+  if (q) {
+    const orParts = [
+      `description.ilike.%${q}%`,
+      `created_by.ilike.%${q}%`,
+      `sendungsnummer.ilike.%${q}%`,
+    ];
+    if (replyIds.length > 0) orParts.push(`id.in.(${replyIds.join(",")})`);
+    query = query.or(orParts.join(","));
+  }
+
+  const { data: tasks } = await query;
+
+  const hasFilter = q || von || bis;
   const cell = "px-4 py-3";
 
   return (
@@ -19,12 +52,50 @@ export default async function ArchivAufgabenPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Aufgaben Archiv</h1>
-          <p className="text-stone-500 text-sm mt-0.5">{tasks?.length ?? 0} archivierte Einträge</p>
+          <p className="text-stone-500 text-sm mt-0.5">{tasks?.length ?? 0} Einträge</p>
         </div>
-        <Link href="/tasks" className="btn-secondary text-sm">
-          Zur Aufgabenliste
-        </Link>
+        <Link href="/tasks" className="btn-secondary text-sm">Zur Aufgabenliste</Link>
       </div>
+
+      {/* Filterleiste */}
+      <form method="GET" className="mb-6 flex flex-wrap items-end gap-3">
+        <label className="grid gap-1.5 flex-1 min-w-[200px]">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-500">Suche</span>
+          <input
+            name="q"
+            type="text"
+            defaultValue={q}
+            placeholder="Name, Beschreibung, Sendungsnummer, Chat..."
+            className="h-10 rounded-lg border border-stone-300 bg-white px-3 text-sm text-stone-800 focus:border-stone-500 focus:outline-none focus:ring-2 focus:ring-stone-200"
+          />
+        </label>
+        <label className="grid gap-1.5">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-500">Von</span>
+          <input
+            name="von"
+            type="date"
+            defaultValue={von}
+            className="h-10 rounded-lg border border-stone-300 bg-white px-3 text-sm text-stone-800 focus:border-stone-500 focus:outline-none focus:ring-2 focus:ring-stone-200"
+          />
+        </label>
+        <label className="grid gap-1.5">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-stone-500">Bis</span>
+          <input
+            name="bis"
+            type="date"
+            defaultValue={bis}
+            className="h-10 rounded-lg border border-stone-300 bg-white px-3 text-sm text-stone-800 focus:border-stone-500 focus:outline-none focus:ring-2 focus:ring-stone-200"
+          />
+        </label>
+        <button type="submit" className="h-10 rounded-lg bg-stone-800 px-4 text-sm font-semibold text-white hover:bg-stone-900 transition-colors">
+          Suchen
+        </button>
+        {hasFilter && (
+          <Link href="/archiv/aufgaben" className="h-10 inline-flex items-center rounded-lg border border-stone-300 bg-white px-4 text-sm font-medium text-stone-600 hover:bg-stone-50 transition-colors">
+            Zurücksetzen
+          </Link>
+        )}
+      </form>
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
@@ -43,7 +114,7 @@ export default async function ArchivAufgabenPage() {
               {!tasks?.length ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-stone-400">
-                    Keine archivierten Aufgaben vorhanden.
+                    {hasFilter ? "Keine Ergebnisse für diese Suche." : "Keine archivierten Aufgaben vorhanden."}
                   </td>
                 </tr>
               ) : (
@@ -82,10 +153,7 @@ export default async function ArchivAufgabenPage() {
                             Öffnen
                           </Link>
                           <form action={unarchiveWithId}>
-                            <button
-                              type="submit"
-                              className="inline-flex items-center rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 transition-colors whitespace-nowrap"
-                            >
+                            <button type="submit" className="inline-flex items-center rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 transition-colors whitespace-nowrap">
                               Wiederherstellen
                             </button>
                           </form>
