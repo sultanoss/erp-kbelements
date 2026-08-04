@@ -149,7 +149,11 @@ export default async function TasksPage({
                               </span>
                             )}
                             {tags.length > 0 ? tags.map((tag) => (
-                              <span key={tag} className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-stone-100 text-stone-700 whitespace-nowrap">
+                              <span key={tag} className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${
+                                tag === "warte_auf_kunde_antwort"
+                                  ? "bg-amber-50 text-amber-700 border border-dashed border-amber-400"
+                                  : "bg-stone-100 text-stone-700"
+                              }`}>
                                 {TASK_TYPE_LABELS[tag] ?? tag}
                               </span>
                             )) : (!urgent && !hasNewReply && <span className="text-stone-300">—</span>)}
