@@ -141,7 +141,7 @@ export default async function ReturnsPage({
                       <td className="p-0">
                         <Link href={href} className={cell}>
                           <div className="flex flex-col gap-1">
-                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${status.className}`}>
                               {status.label}
                             </span>
                             {r.is_outlet && (

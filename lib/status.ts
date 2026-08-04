@@ -7,7 +7,7 @@ export const STATUS_LABELS: Record<string, { label: string; className: string }>
   klaeren_mit_kunde: { label: "Klären mit Kunde",   className: "bg-sky-100 text-sky-700" },
   garantie:                { label: "Garantie",                className: "bg-teal-100 text-teal-700" },
   austausch:               { label: "Austausch",               className: "bg-indigo-100 text-indigo-700" },
-  warte_auf_kunde_antwort: { label: "Warte auf Kunden-Antwort", className: "bg-amber-50 text-amber-700 border border-dashed border-amber-400" },
+  warte_auf_kunde_antwort: { label: "Warte auf Antwort", className: "bg-amber-50 text-amber-700 border border-dashed border-amber-400" },
 };
 
 export const RESOLUTION_LABELS: Record<string, string> = {
@@ -30,7 +30,7 @@ export const TASK_TYPE_LABELS: Record<string, string> = {
   klaerung:                "Klärung",
   aktion:                  "Aktion",
   sonstiges:               "Sonstiges",
-  warte_auf_kunde_antwort: "Warte auf Kunden-Antwort",
+  warte_auf_kunde_antwort: "Warte auf Antwort",
 };
 
 export const TASK_TYPE_OPTIONS = Object.entries(TASK_TYPE_LABELS).map(([value, label]) => ({ value, label }));
