@@ -18,7 +18,7 @@ create table if not exists returns (
   order_number     text,
   description      text,
   status           text not null default 'eingegangen'
-                   check (status in ('eingegangen', 'in_bearbeitung', 'erledigt')),
+                   check (status in ('eingegangen', 'in_bearbeitung', 'erledigt', 'nicht_zustellbar', 'wieder_an_kunde', 'klaeren_mit_kunde', 'garantie', 'austausch', 'warte_auf_kunde_antwort')),
   resolution       text
                    check (resolution in ('neu', 'ns', 'garantie', 'bware') or resolution is null),
   resolved_at      timestamptz,
