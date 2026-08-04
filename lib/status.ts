@@ -5,8 +5,9 @@ export const STATUS_LABELS: Record<string, { label: string; className: string }>
   nicht_zustellbar:  { label: "Nicht zustellbar",   className: "bg-orange-100 text-orange-700" },
   wieder_an_kunde:   { label: "Wieder an Kunde",    className: "bg-purple-100 text-purple-700" },
   klaeren_mit_kunde: { label: "Klären mit Kunde",   className: "bg-sky-100 text-sky-700" },
-  garantie:          { label: "Garantie",            className: "bg-teal-100 text-teal-700" },
-  austausch:         { label: "Austausch",           className: "bg-indigo-100 text-indigo-700" },
+  garantie:                { label: "Garantie",                className: "bg-teal-100 text-teal-700" },
+  austausch:               { label: "Austausch",               className: "bg-indigo-100 text-indigo-700" },
+  warte_auf_kunde_antwort: { label: "Warte auf Kunden-Antwort", className: "bg-yellow-100 text-yellow-700" },
 };
 
 export const RESOLUTION_LABELS: Record<string, string> = {
@@ -24,11 +25,12 @@ export const RESOLUTION_OPTIONS = [
 ];
 
 export const TASK_TYPE_LABELS: Record<string, string> = {
-  technische_frage: "Technische Frage",
-  allgemeine_info: "Allgemeine Information",
-  klaerung: "Klärung",
-  aktion: "Aktion",
-  sonstiges: "Sonstiges",
+  technische_frage:        "Technische Frage",
+  allgemeine_info:         "Allgemeine Information",
+  klaerung:                "Klärung",
+  aktion:                  "Aktion",
+  sonstiges:               "Sonstiges",
+  warte_auf_kunde_antwort: "Warte auf Kunden-Antwort",
 };
 
 export const TASK_TYPE_OPTIONS = Object.entries(TASK_TYPE_LABELS).map(([value, label]) => ({ value, label }));

@@ -74,6 +74,14 @@ export default function TaskReplies({ taskId, userName, initialReplies }: Props)
       .update({ last_reply_at: data.created_at, last_reply_author: userName })
       .eq("id", taskId);
 
+    const { data: taskData } = await supabase.from("tasks").select("tags").eq("id", taskId).single();
+    if (taskData?.tags?.includes("warte_auf_kunde_antwort")) {
+      await supabase
+        .from("tasks")
+        .update({ tags: (taskData.tags as string[]).filter((t) => t !== "warte_auf_kunde_antwort") })
+        .eq("id", taskId);
+    }
+
     setReplies((prev) => [...prev, { id: data.id, content: content.trim(), author: userName, created_at: data.created_at }]);
     setContent("");
     setSaving(false);

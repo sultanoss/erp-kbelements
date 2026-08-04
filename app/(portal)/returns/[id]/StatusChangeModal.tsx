@@ -11,7 +11,7 @@ interface Props {
   userName: string;
 }
 
-type Mode = "in_bearbeitung" | "erledigt" | "nicht_zustellbar" | "wieder_an_kunde" | "klaeren_mit_kunde";
+type Mode = "in_bearbeitung" | "erledigt" | "nicht_zustellbar" | "wieder_an_kunde" | "klaeren_mit_kunde" | "warte_auf_kunde_antwort";
 
 export default function StatusChangeModal({ returnId, currentStatus, userName }: Props) {
   const [open, setOpen] = useState(false);
@@ -108,6 +108,21 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
         author: userName,
       });
 
+    } else if (mode === "warte_auf_kunde_antwort") {
+      const { error: e } = await supabase
+        .from("returns")
+        .update({ status: "warte_auf_kunde_antwort", updated_at: now })
+        .eq("id", returnId);
+
+      if (e) { setError(e.message); setSaving(false); return; }
+
+      await supabase.from("return_events").insert({
+        return_id: returnId,
+        event_type: "status_geaendert",
+        note: "Warte auf Kunden-Antwort",
+        author: userName,
+      });
+
     } else {
       if (!refundStatus) {
         setError("Bitte angeben ob Geld zurückerstattet wurde.");
@@ -155,17 +170,18 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
   }
 
   const modalTitle: Record<Mode, string> = {
-    in_bearbeitung:   "In Bearbeitung setzen",
-    erledigt:         "Retoure erledigen",
-    nicht_zustellbar: "Nicht zustellbar markieren",
-    wieder_an_kunde:  "Wieder an Kunde senden",
-    klaeren_mit_kunde:"Klären mit Kunde",
+    in_bearbeitung:          "In Bearbeitung setzen",
+    erledigt:                "Retoure erledigen",
+    nicht_zustellbar:        "Nicht zustellbar markieren",
+    wieder_an_kunde:         "Wieder an Kunde senden",
+    klaeren_mit_kunde:       "Klären mit Kunde",
+    warte_auf_kunde_antwort: "Warte auf Kunden-Antwort",
   };
 
   return (
     <>
       <div className="flex gap-2 flex-wrap">
-        {(currentStatus === "eingegangen" || currentStatus === "klaeren_mit_kunde") && (
+        {(currentStatus === "eingegangen" || currentStatus === "klaeren_mit_kunde" || currentStatus === "warte_auf_kunde_antwort") && (
           <button onClick={() => openModal("in_bearbeitung")} className="btn-secondary">
             In Bearbeitung setzen
           </button>
@@ -178,6 +194,11 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
         {(currentStatus === "eingegangen" || currentStatus === "in_bearbeitung") && (
           <button onClick={() => openModal("klaeren_mit_kunde")} className="btn-secondary">
             Klären mit Kunde
+          </button>
+        )}
+        {(currentStatus === "eingegangen" || currentStatus === "in_bearbeitung" || currentStatus === "klaeren_mit_kunde") && (
+          <button onClick={() => openModal("warte_auf_kunde_antwort")} className="btn-secondary">
+            Warte auf Kunden-Antwort
           </button>
         )}
         {currentStatus === "nicht_zustellbar" && (
@@ -207,6 +228,12 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
                 <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
+              )}
+
+              {mode === "warte_auf_kunde_antwort" && (
+                <p className="text-stone-600 text-sm">
+                  Der Status wird auf <strong>Warte auf Kunden-Antwort</strong> gesetzt. Das Hinweis-Badge &ldquo;Neue Antwort&rdquo; wird ausgeblendet bis eine neue Nachricht im Verlauf eingeht.
+                </p>
               )}
 
               {mode === "in_bearbeitung" && (

@@ -74,6 +74,12 @@ export default function ReturnReplies({ returnId, userName, initialReplies }: Pr
       .update({ last_reply_at: data.created_at, last_reply_author: userName })
       .eq("id", returnId);
 
+    await supabase
+      .from("returns")
+      .update({ status: "in_bearbeitung" })
+      .eq("id", returnId)
+      .eq("status", "warte_auf_kunde_antwort");
+
     setReplies((prev) => [...prev, { id: data.id, content: content.trim(), author: userName, created_at: data.created_at }]);
     setContent("");
     setSaving(false);

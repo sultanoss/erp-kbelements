@@ -129,7 +129,7 @@ export default async function TasksPage({
                   const tags: string[] = t.tags ?? [];
                   const assigned: string[] = t.assigned_to ?? [];
                   const urgent: boolean = t.is_urgent ?? false;
-                  const hasNewReply = !!t.last_reply_at && !!t.last_reply_author && t.last_reply_author !== currentUserName;
+                  const hasNewReply = !!t.last_reply_at && !!t.last_reply_author && t.last_reply_author !== currentUserName && !tags.includes("warte_auf_kunde_antwort");
 
                   return (
                     <tr key={t.id} className={`hover:bg-stone-50 transition-colors cursor-pointer ${urgent ? "border-l-2 border-l-red-500" : ""}`}>

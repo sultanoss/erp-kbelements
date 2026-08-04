@@ -112,7 +112,7 @@ export default async function ReturnsPage({
                   const status = STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-stone-100 text-stone-600" };
                   const resolution = r.resolution ? RESOLUTION_LABELS[r.resolution] : null;
                   const bearbeiter = r.status === "erledigt" ? r.resolved_by : r.received_by;
-                  const hasNewReply = !!r.last_reply_at && !!r.last_reply_author && r.last_reply_author !== currentUserName;
+                  const hasNewReply = !!r.last_reply_at && !!r.last_reply_author && r.last_reply_author !== currentUserName && r.status !== "warte_auf_kunde_antwort";
 
                   return (
                     <tr key={r.id} className="hover:bg-stone-50 transition-colors cursor-pointer">
