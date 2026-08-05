@@ -23,7 +23,9 @@ export async function GET(req: NextRequest) {
     log.push("Erstelle DHL Label für ELK25MB1...");
     const dhl = new DHLShippingProvider();
     const dhlResult = await dhl.createShipment({
+      orderId: ORDER_DB_ID,
       orderNumber: ORDER_NUMBER,
+      carrier: "DHL",
       weight: 12,
       consignee: {
         name: "Medak Miroslaw",
@@ -32,7 +34,7 @@ export async function GET(req: NextRequest) {
         city: "Laumersheim",
         country: "DEU",
       },
-      items: [{ internalSku: "ELK25MB1", title: "ELK25MB1 Mikrowelle", quantity: 1 }],
+      items: [{ internalSku: "ELK25MB1", quantity: 1, warehouse: "neuware" }],
     });
     log.push(`DHL Tracking: ${dhlResult.trackingNumber}`);
     log.push(`DHL Retoure: ${dhlResult.returnTrackingNumber}`);
