@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   if (!externalId) return NextResponse.json({ error: "missing id" }, { status: 400 });
 
   const order = await prisma.order.findFirst({
-    where: { externalId },
+    where: { OR: [{ externalId }, { orderNumber: externalId }] },
     include: { shipments: true, items: true },
   });
 
