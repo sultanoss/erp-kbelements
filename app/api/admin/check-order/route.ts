@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const externalId = new URL(request.url).searchParams.get("id");
+  const fix = new URL(request.url).searchParams.get("fix") === "1";
   if (!externalId) return NextResponse.json({ error: "id required" }, { status: 400 });
 
   const order = await prisma.order.findFirst({
@@ -11,6 +12,14 @@ export async function GET(request: Request) {
   });
 
   if (!order) return NextResponse.json({ error: "not found" }, { status: 404 });
+
+  // Fix: Bestellung auf ABGESCHLOSSEN setzen wenn alle Shipments PORTAL_NOTIFIED
+  if (fix && order.status === "NEU") {
+    const allNotified = order.shipments.length > 0 && order.shipments.every(s => s.status === "PORTAL_NOTIFIED");
+    if (allNotified) {
+      await prisma.order.update({ where: { id: order.id }, data: { status: "ABGESCHLOSSEN" } });
+    }
+  }
 
   return NextResponse.json({
     id: order.id,
@@ -21,7 +30,6 @@ export async function GET(request: Request) {
       marketplaceSku: i.marketplaceSku,
       internalSku: i.internalSku,
       positionItemId: i.positionItemId,
-      quantity: i.quantity,
     })),
     shipments: order.shipments.map(s => ({
       id: s.id,
@@ -29,7 +37,8 @@ export async function GET(request: Request) {
       status: s.status,
       trackingNumber: s.trackingNumber,
       positionItemIds: s.positionItemIds,
-      items: s.items.map(i => ({ sku: i.internalSku, qty: i.quantity })),
+      shipmentItems: s.items.map(i => i.internalSku),
     })),
+    fixed: fix ? "ABGESCHLOSSEN gesetzt" : undefined,
   });
 }

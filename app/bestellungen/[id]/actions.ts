@@ -140,32 +140,35 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   // OTTO: positionItemIds für diese Sendung bestimmen
   const usedPosIds = new Set(existingShipments.flatMap((s) => s.positionItemIds));
   const selectedSkus = new Set(items.map((i) => i.internalSku));
-  const thisShipmentPosIds: string[] =
+
+  // Match per internalSku ODER marketplaceSku (für Fälle wo internalSku null ist)
+  const matchedPosIds: string[] =
     order.marketplace === "OTTO"
       ? order.items
           .filter(
             (oi) =>
               oi.positionItemId &&
               !usedPosIds.has(oi.positionItemId) &&
-              selectedSkus.has(oi.internalSku ?? ""),
+              (selectedSkus.has(oi.internalSku ?? "__no_match__") ||
+                selectedSkus.has(oi.marketplaceSku)),
           )
           .map((oi) => oi.positionItemId!)
       : [];
 
-  // Fallback: wenn keine SKU-Matches aber noch offene positionItemIds → alle nehmen
+  // Fallback: wenn keine SKU-Matches → alle noch offenen positionItemIds nehmen
   const uncoveredPosIds = order.items
     .map((i) => i.positionItemId)
     .filter((pid): pid is string => !!pid && !usedPosIds.has(pid));
   const notifyPosIds =
     order.marketplace === "OTTO"
-      ? thisShipmentPosIds.length > 0
-        ? thisShipmentPosIds
+      ? matchedPosIds.length > 0
+        ? matchedPosIds
         : uncoveredPosIds
       : [];
 
   // Prüfen ob alle positionItemIds nach dieser Sendung abgedeckt sind
   const allOttoPosIds = order.items.map((i) => i.positionItemId).filter(Boolean) as string[];
-  const nowCovered = new Set([...usedPosIds, ...thisShipmentPosIds]);
+  const nowCovered = new Set([...usedPosIds, ...notifyPosIds]);
   const allOttoCovered = allOttoPosIds.length === 0 || allOttoPosIds.every((pid) => nowCovered.has(pid));
 
   // Validate stock
@@ -230,7 +233,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           returnTrackingNumber: shipmentResult.returnTrackingNumber,
           returnLabelUrl:       shipmentResult.returnLabelUrl,
           dhlShipmentId:        shipmentResult.dhlShipmentId,
-          positionItemIds:      thisShipmentPosIds,
+          positionItemIds:      notifyPosIds,
           weight,
           carrierResponse: shipmentResult.carrierResponse as never,
           items: {
