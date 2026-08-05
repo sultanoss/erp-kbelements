@@ -12,9 +12,24 @@ const POSITION_HERDSET = "dad1c9e3-db08-4e95-a880-22082fe8c8c5";
 const GEL_TRACKING = "5039742747";
 const EXISTING_SHIPMENT_ID = "cms2zhijp0005ld0488746jiy";
 
+const DHL_SHIPMENT_ID = "cmsfpew1x0001i2043xpzshbe";
+
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("s");
   if (secret !== "kb-tmp-9x2z") return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  // Wenn fix=1: nur DB-Statuse aktualisieren
+  if (req.nextUrl.searchParams.get("fix") === "1") {
+    await prisma.shipment.update({
+      where: { id: DHL_SHIPMENT_ID },
+      data: { status: "PORTAL_NOTIFIED", notifiedOttoAt: new Date() },
+    });
+    await prisma.shipment.update({
+      where: { id: EXISTING_SHIPMENT_ID },
+      data: { status: "PORTAL_NOTIFIED", notifiedOttoAt: new Date() },
+    });
+    return NextResponse.json({ success: true, message: "Beide Shipments auf PORTAL_NOTIFIED gesetzt" });
+  }
 
   const log: string[] = [];
 
