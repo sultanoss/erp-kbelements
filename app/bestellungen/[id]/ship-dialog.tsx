@@ -42,6 +42,7 @@ interface Props {
   marketplace: string;
   orderItems: OrderItemSummary[];
   consignee: Consignee;
+  label?: string;
 }
 
 const WEIGHT_CLASSES = [
@@ -57,7 +58,7 @@ const WEIGHT_CLASSES = [
 const inputClass =
   "h-9 w-full rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
 
-export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, consignee }: Props) {
+export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, consignee, label }: Props) {
   const [open, setOpen] = useState(false);
   const [carrier, setCarrier] = useState<"DHL" | "GEL">("DHL");
   const [weight, setWeight] = useState("");
@@ -188,7 +189,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
           <line x1="22" y1="2" x2="11" y2="13" />
           <polygon points="22 2 15 22 11 13 2 9 22 2" />
         </svg>
-        Versenden
+        {label ?? "Versenden"}
       </button>
 
       {open && (

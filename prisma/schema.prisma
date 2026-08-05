@@ -254,6 +254,7 @@ model Shipment {
   returnTrackingNumber String?
   returnLabelUrl       String?
   dhlShipmentId        String?
+  positionItemIds      String[]   @default([])
   weight          Float?
   carrierResponse Json?
   notifiedOttoAt  DateTime?

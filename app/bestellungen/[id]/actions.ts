@@ -126,9 +126,47 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   if (!order) return { ok: false, error: "Bestellung nicht gefunden" };
   if (order.status === "ABGESCHLOSSEN") return { ok: false, error: "Bestellung bereits abgeschlossen" };
 
-  // Check for existing shipment
-  const existingShipment = await prisma.shipment.findFirst({ where: { orderId: id } });
-  if (existingShipment) return { ok: false, error: "Für diese Bestellung wurde bereits ein Versand erstellt" };
+  // Vorhandene Sendungen laden
+  const existingShipments = await prisma.shipment.findMany({
+    where: { orderId: id },
+    select: { positionItemIds: true },
+  });
+
+  // Nicht-OTTO-Bestellungen: nur eine Sendung erlaubt
+  if (order.marketplace !== "OTTO" && existingShipments.length > 0) {
+    return { ok: false, error: "Für diese Bestellung wurde bereits ein Versand erstellt" };
+  }
+
+  // OTTO: positionItemIds für diese Sendung bestimmen
+  const usedPosIds = new Set(existingShipments.flatMap((s) => s.positionItemIds));
+  const selectedSkus = new Set(items.map((i) => i.internalSku));
+  const thisShipmentPosIds: string[] =
+    order.marketplace === "OTTO"
+      ? order.items
+          .filter(
+            (oi) =>
+              oi.positionItemId &&
+              !usedPosIds.has(oi.positionItemId) &&
+              selectedSkus.has(oi.internalSku ?? ""),
+          )
+          .map((oi) => oi.positionItemId!)
+      : [];
+
+  // Fallback: wenn keine SKU-Matches aber noch offene positionItemIds → alle nehmen
+  const uncoveredPosIds = order.items
+    .map((i) => i.positionItemId)
+    .filter((pid): pid is string => !!pid && !usedPosIds.has(pid));
+  const notifyPosIds =
+    order.marketplace === "OTTO"
+      ? thisShipmentPosIds.length > 0
+        ? thisShipmentPosIds
+        : uncoveredPosIds
+      : [];
+
+  // Prüfen ob alle positionItemIds nach dieser Sendung abgedeckt sind
+  const allOttoPosIds = order.items.map((i) => i.positionItemId).filter(Boolean) as string[];
+  const nowCovered = new Set([...usedPosIds, ...thisShipmentPosIds]);
+  const allOttoCovered = allOttoPosIds.length === 0 || allOttoPosIds.every((pid) => nowCovered.has(pid));
 
   // Validate stock
   for (const item of items) {
@@ -192,6 +230,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           returnTrackingNumber: shipmentResult.returnTrackingNumber,
           returnLabelUrl:       shipmentResult.returnLabelUrl,
           dhlShipmentId:        shipmentResult.dhlShipmentId,
+          positionItemIds:      thisShipmentPosIds,
           weight,
           carrierResponse: shipmentResult.carrierResponse as never,
           items: {
@@ -219,11 +258,14 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         }
       }
 
-      // Mark order as done
+      // Bestellstatus: ABGESCHLOSSEN wenn alle OTTO-Items abgedeckt (oder kein OTTO)
+      const newOrderStatus =
+        order.marketplace === "OTTO" && !allOttoCovered ? "NEU" : "ABGESCHLOSSEN";
+
       await tx.order.update({
         where: { id },
         data: {
-          status: "ABGESCHLOSSEN",
+          status: newOrderStatus,
           trackingNumber: shipmentResult.trackingNumber,
           isHerdset,
           herdsetLabel: isHerdset ? (order.items[0]?.marketplaceSku ?? null) : null,
@@ -239,11 +281,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
 
   // Otto notification (outside transaction — failure doesn't roll back the shipment)
   if (order.marketplace === "OTTO") {
-    const positionItemIds = order.items
-      .map((i) => i.positionItemId)
-      .filter((id): id is string => !!id);
-
-    if (positionItemIds.length > 0) {
+    if (notifyPosIds.length > 0) {
       try {
         const today = new Date().toISOString().slice(0, 10);
         await sendOttoShipmentNotification({
@@ -251,7 +289,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           carrier,
           trackingNumber: shipmentResult.trackingNumber,
           returnTrackingNumber: shipmentResult.returnTrackingNumber,
-          positionItemIds,
+          positionItemIds: notifyPosIds,
           shipDate: today,
         });
         await prisma.shipment.update({
@@ -386,23 +424,23 @@ export async function storniereBestellung(formData: FormData) {
   });
   if (!order || order.status === "STORNIERT") return;
 
-  const shipment = order.shipments[0];
-
-  if (shipment?.trackingNumber && shipment.carrier === "DHL") {
-    try { await cancelDHLShipment(shipment.trackingNumber); } catch { /* best-effort */ }
+  // DHL-Labels aller Sendungen stornieren
+  for (const s of order.shipments) {
+    if (s.trackingNumber && s.carrier === "DHL") {
+      try { await cancelDHLShipment(s.trackingNumber); } catch { /* best-effort */ }
+    }
   }
 
   const invoice = await prisma.invoice.findFirst({
     where: { orderId: id, status: "aktiv" },
   });
-  // Mark invoice storniert (without redirecting or touching stock)
   if (invoice) {
     await markInvoiceStorniert(invoice.id);
   }
 
-  // Always restore stock from shipment items using the chosen lager
-  if (shipment?.items.length) {
-    for (const item of shipment.items) {
+  // Lagerbestand aus allen Sendungen zurückbuchen
+  for (const s of order.shipments) {
+    for (const item of s.items) {
       await prisma.item.update({
         where: { sku: item.internalSku },
         data: lager === "ns"
@@ -413,8 +451,8 @@ export async function storniereBestellung(formData: FormData) {
   }
 
   await prisma.order.update({ where: { id }, data: { status: "STORNIERT" } });
-  if (shipment) {
-    await prisma.shipment.update({ where: { id: shipment.id }, data: { status: "STORNIERT" } });
+  for (const s of order.shipments) {
+    await prisma.shipment.update({ where: { id: s.id }, data: { status: "STORNIERT" } });
   }
 
   revalidatePath(`/bestellungen/${id}`);

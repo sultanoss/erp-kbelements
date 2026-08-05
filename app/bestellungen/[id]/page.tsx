@@ -111,57 +111,109 @@ export default async function BestellungDetailPage({
                   </div>
                 </div>
               </div>
-            ) : isAbgeschlossen ? (
-              <div className="flex flex-col gap-4 p-5">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-700">
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-grey-dark">Bestellung abgeschlossen</div>
-                    <div className="mt-0.5 font-mono text-xs text-grey-mid">
-                      Abgeschlossen am {new Date(order.updatedAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
-                    </div>
-                  </div>
-                </div>
-                <StorniereButton orderId={order.id} />
-              </div>
             ) : (
               <div className="flex flex-col gap-4 p-5">
-                <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                  <span className="mt-0.5 text-sm">📦</span>
-                  <div>
-                    <div className="font-mono text-[10px] font-bold text-amber-800">Bereit zum Versenden</div>
-                    <div className="mt-0.5 font-mono text-[10px] text-amber-700">
-                      Versandart und Artikel auswählen, dann Label erstellen.
-                    </div>
+                {/* Sendungsliste */}
+                {order.shipments.length > 0 && (
+                  <div className="divide-y divide-grey-border rounded-lg border border-grey-border overflow-hidden">
+                    {order.shipments.map((s, i) => (
+                      <div key={s.id} className="px-4 py-3 flex flex-col gap-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-xs font-bold text-grey-dark">
+                            Sendung {i + 1} — {s.carrier}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {order.marketplace === "OTTO" && (
+                              s.status === "PORTAL_NOTIFIED" ? (
+                                <span className="inline-flex items-center rounded border border-green-200 bg-green-50 px-2 py-0.5 font-mono text-[10px] font-bold text-green-700">Gemeldet</span>
+                              ) : s.status === "NOTIFY_FAILED" ? (
+                                <>
+                                  <span className="inline-flex items-center rounded border border-red-200 bg-red-50 px-2 py-0.5 font-mono text-[10px] font-bold text-red-700">Fehlgeschlagen</span>
+                                  <RetryOttoButton orderId={order.id} />
+                                </>
+                              ) : (
+                                <>
+                                  <span className="font-mono text-[10px] text-grey-mid">Nicht gemeldet</span>
+                                  <RetryOttoButton orderId={order.id} />
+                                </>
+                              )
+                            )}
+                            {s.labelUrl && (
+                              <PrintLabelButton url={s.labelUrl} crop={!!s.returnTrackingNumber} />
+                            )}
+                          </div>
+                        </div>
+                        {s.trackingNumber && (
+                          <div className="font-mono text-[10px] text-grey-mid">
+                            Track: <span className="text-grey-dark">{s.trackingNumber}</span>
+                          </div>
+                        )}
+                        {s.returnTrackingNumber && (
+                          <div className="font-mono text-[10px] text-grey-mid">
+                            Retoure: <span className="text-grey-dark">{s.returnTrackingNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <ShipDialog
-                  orderId={order.id}
-                  orderNumber={order.orderNumber}
-                  marketplace={order.marketplace}
-                  orderItems={order.items.map((i) => ({ marketplaceSku: i.marketplaceSku, quantity: i.quantity }))}
-                  consignee={{
-                    name: order.customerName,
-                    street: order.street ?? "",
-                    zip: order.zip ?? "",
-                    city: order.city ?? "",
-                    country: order.country ?? "DE",
-                  }}
-                />
-                <form action={markAsAbgeschlossen}>
-                  <input type="hidden" name="id" value={order.id} />
-                  <button
-                    type="submit"
-                    className="w-full rounded-lg border border-grey-border bg-white px-4 py-2 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
-                  >
-                    Ohne Versand abschließen (kein Lagerabzug)
-                  </button>
-                </form>
-                <StorniereButton orderId={order.id} />
+                )}
+
+                {isAbgeschlossen ? (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-700">
+                        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-grey-dark">Bestellung abgeschlossen</div>
+                        <div className="mt-0.5 font-mono text-xs text-grey-mid">
+                          Abgeschlossen am {new Date(order.updatedAt).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
+                        </div>
+                      </div>
+                    </div>
+                    <StorniereButton orderId={order.id} />
+                  </>
+                ) : (
+                  <>
+                    {order.shipments.length === 0 && (
+                      <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                        <span className="mt-0.5 text-sm">📦</span>
+                        <div>
+                          <div className="font-mono text-[10px] font-bold text-amber-800">Bereit zum Versenden</div>
+                          <div className="mt-0.5 font-mono text-[10px] text-amber-700">
+                            Versandart und Artikel auswählen, dann Label erstellen.
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <ShipDialog
+                      orderId={order.id}
+                      orderNumber={order.orderNumber}
+                      marketplace={order.marketplace}
+                      orderItems={order.items.map((i) => ({ marketplaceSku: i.marketplaceSku, quantity: i.quantity }))}
+                      consignee={{
+                        name: order.customerName,
+                        street: order.street ?? "",
+                        zip: order.zip ?? "",
+                        city: order.city ?? "",
+                        country: order.country ?? "DE",
+                      }}
+                      label={order.shipments.length > 0 ? "Weitere Sendung erstellen" : undefined}
+                    />
+                    <form action={markAsAbgeschlossen}>
+                      <input type="hidden" name="id" value={order.id} />
+                      <button
+                        type="submit"
+                        className="w-full rounded-lg border border-grey-border bg-white px-4 py-2 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
+                      >
+                        Ohne Versand abschließen (kein Lagerabzug)
+                      </button>
+                    </form>
+                    <StorniereButton orderId={order.id} />
+                  </>
+                )}
               </div>
             )}
           </Panel>
