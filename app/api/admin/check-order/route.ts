@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   if (!externalId) return NextResponse.json({ error: "id required" }, { status: 400 });
 
   const order = await prisma.order.findFirst({
-    where: { externalId },
+    where: { OR: [{ externalId }, { id: externalId }, { orderNumber: externalId }] },
     include: { items: true, shipments: { include: { items: true } } },
   });
 
