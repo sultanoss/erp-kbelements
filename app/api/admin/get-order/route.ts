@@ -22,6 +22,6 @@ export async function GET(request: Request) {
     city: order.city,
     country: order.country,
     items: order.items.map(i => ({ marketplaceSku: i.marketplaceSku, internalSku: i.internalSku, positionItemId: i.positionItemId, quantity: i.quantity, title: i.title })),
-    shipments: order.shipments.map(s => ({ carrier: s.carrier, status: s.status, trackingNumber: s.trackingNumber })),
+    shipments: order.shipments.map(s => ({ carrier: s.carrier, status: s.status, trackingNumber: s.trackingNumber, returnTrackingNumber: s.returnTrackingNumber })),
   });
 }
