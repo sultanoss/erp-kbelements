@@ -139,21 +139,26 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
 
   // OTTO: positionItemIds für diese Sendung bestimmen
   const usedPosIds = new Set(existingShipments.flatMap((s) => s.positionItemIds));
-  const selectedSkus = new Set(items.map((i) => i.internalSku));
 
-  // Match per internalSku ODER marketplaceSku (für Fälle wo internalSku null ist)
-  const matchedPosIds: string[] =
-    order.marketplace === "OTTO"
-      ? order.items
-          .filter(
-            (oi) =>
-              oi.positionItemId &&
-              !usedPosIds.has(oi.positionItemId) &&
-              (selectedSkus.has(oi.internalSku ?? "__no_match__") ||
-                selectedSkus.has(oi.marketplaceSku)),
-          )
-          .map((oi) => oi.positionItemId!)
-      : [];
+  // Match per internalSku ODER marketplaceSku, respektiert die gewählte Menge:
+  // qty=1 → nimmt nur 1 positionItemId; qty=2 → nimmt 2 (für Teillieferungen)
+  const matchedPosIds: string[] = [];
+  if (order.marketplace === "OTTO") {
+    for (const selectedItem of items) {
+      const sku = selectedItem.internalSku;
+      const want = selectedItem.quantity;
+      const candidates = order.items
+        .filter(
+          (oi) =>
+            oi.positionItemId &&
+            !usedPosIds.has(oi.positionItemId) &&
+            !matchedPosIds.includes(oi.positionItemId) &&
+            (oi.internalSku === sku || oi.marketplaceSku === sku),
+        )
+        .map((oi) => oi.positionItemId!);
+      matchedPosIds.push(...candidates.slice(0, want));
+    }
+  }
 
   // Fallback: wenn keine SKU-Matches → alle noch offenen positionItemIds nehmen
   const uncoveredPosIds = order.items

@@ -211,7 +211,19 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                 )}
                 {orderItems.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1">
-                    {orderItems.map((item) => (
+                    {Object.values(
+                      orderItems.reduce<Record<string, { marketplaceSku: string; quantity: number }>>(
+                        (acc, item) => {
+                          if (acc[item.marketplaceSku]) {
+                            acc[item.marketplaceSku].quantity += item.quantity;
+                          } else {
+                            acc[item.marketplaceSku] = { marketplaceSku: item.marketplaceSku, quantity: item.quantity };
+                          }
+                          return acc;
+                        },
+                        {},
+                      ),
+                    ).map((item) => (
                       <span key={item.marketplaceSku} className="inline-flex items-center rounded border border-grey-border bg-grey-light px-1.5 py-0.5 font-mono text-[10px] font-semibold text-grey-dark">
                         {item.marketplaceSku}
                         {item.quantity > 1 && <span className="ml-1 text-grey-mid">×{item.quantity}</span>}

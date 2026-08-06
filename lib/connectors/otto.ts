@@ -118,22 +118,6 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
   const resources = data.resources ?? [];
 
   return resources.map((o) => {
-    // Each positionItem = 1 unit — group by SKU and sum quantities
-    const itemMap = new Map<string, {
-      title: string; quantity: number; price: number; positionItemId: string;
-    }>();
-    for (const p of o.positionItems) {
-      const sku = p.product?.sku ?? p.product?.articleNumber ?? "UNKNOWN";
-      const title = p.product?.productTitle ?? sku;
-      const price = p.itemValueGrossPrice?.amount ?? p.salePrice?.amount ?? 0;
-      const existing = itemMap.get(sku);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        itemMap.set(sku, { title, quantity: 1, price, positionItemId: p.positionItemId });
-      }
-    }
-
     return {
       externalId: o.salesOrderId,
       orderNumber: o.orderNumber,
@@ -154,12 +138,13 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
       billingCity:    o.invoiceAddress?.city,
       billingCountry: o.invoiceAddress?.countryCode,
       phoneNumber:    o.deliveryAddress.phoneNumber,
-      items: Array.from(itemMap.entries()).map(([sku, item]) => ({
-        marketplaceSku: sku,
-        positionItemId: item.positionItemId,
-        title: item.title,
-        quantity: item.quantity,
-        price: item.price,
+      // Each positionItem = 1 separate unit with its own positionItemId — never merge same-SKU items
+      items: o.positionItems.map((p) => ({
+        marketplaceSku: p.product?.sku ?? p.product?.articleNumber ?? "UNKNOWN",
+        positionItemId: p.positionItemId,
+        title: p.product?.productTitle ?? (p.product?.sku ?? "Unbekannt"),
+        quantity: 1,
+        price: p.itemValueGrossPrice?.amount ?? p.salePrice?.amount ?? 0,
       })),
     };
   });
