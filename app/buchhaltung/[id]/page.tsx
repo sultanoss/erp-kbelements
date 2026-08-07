@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 import { StornoButton } from "@/components/storno-button";
 import { MarkAsBezahltButton } from "@/components/mark-as-bezahlt-button";
+import { ConvertProformaButton } from "@/components/convert-proforma-button";
+import { DeleteProformaButton } from "@/components/delete-proforma-button";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +29,14 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
   return (
     <AppShell>
-      <PageHeader title={inv.number} eyebrow="Rechnung" />
+      <PageHeader title={inv.number} eyebrow={inv.docType === "proforma" ? "Proforma-Rechnung" : "Rechnung"} />
+
+      {inv.docType === "proforma" && inv.status === "aktiv" && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+          <span className="rounded bg-blue-600 px-2 py-0.5 font-mono text-xs font-bold text-white">PROFORMA</span>
+          <span className="font-mono text-sm text-blue-700">Kein Lagerbestand abgebucht — noch keine echte Rechnung</span>
+        </div>
+      )}
 
       {inv.status === "storniert" && (
         <div className="mb-4 flex items-center gap-3 rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3">
@@ -65,7 +74,17 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
           Lieferschein
         </Link>
-{inv.status === "aktiv" && (
+{inv.status === "aktiv" && inv.docType === "proforma" && (
+          <>
+            <ConvertProformaButton invoiceId={id} />
+            <Link href={`/buchhaltung/${id}/bearbeiten`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+              Bearbeiten
+            </Link>
+            <DeleteProformaButton invoiceId={id} />
+          </>
+        )}
+        {inv.status === "aktiv" && inv.docType !== "proforma" && (
           <>
             <Link href={`/buchhaltung/${id}/bearbeiten`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">

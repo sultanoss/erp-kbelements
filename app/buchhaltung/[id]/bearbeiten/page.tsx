@@ -53,9 +53,15 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
 
   return (
     <AppShell>
-      <PageHeader title={`${inv.number} — Korrektur`} eyebrow="Rechnung bearbeiten" />
+      <PageHeader title={`${inv.number} — Korrektur`} eyebrow={inv.docType === "proforma" ? "Proforma bearbeiten" : "Rechnung bearbeiten"} />
       <div className="mb-5 max-w-4xl">
-        <InvoiceForm skus={allItems} initialData={initialData} b2bCustomers={b2bCustomers} b2cCustomers={b2cCustomers} />
+        <InvoiceForm
+          skus={allItems}
+          initialData={initialData}
+          docType={(inv.docType as "rechnung" | "angebot" | "gutschrift" | "proforma") || "rechnung"}
+          b2bCustomers={b2bCustomers}
+          b2cCustomers={b2cCustomers}
+        />
       </div>
     </AppShell>
   );

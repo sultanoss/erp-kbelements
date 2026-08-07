@@ -320,7 +320,7 @@ export async function createInvoice(data: {
   shippingMwst: number;
   paymentMethod: string;
   bezahlt?: boolean;
-  docType: "rechnung" | "angebot" | "gutschrift";
+  docType: "rechnung" | "angebot" | "gutschrift" | "proforma";
   originalInvoiceId?: string;
   originalInvoiceNum?: string;
   saveAsB2cCustomer?: boolean;
@@ -329,15 +329,29 @@ export async function createInvoice(data: {
 }) {
   const user = await requireUser();
 
-  const prefix = data.docType === "angebot" ? "KBA-" : data.docType === "gutschrift" ? "KBG-" : "KBR-";
-  const noStock = data.docType === "angebot" || data.docType === "gutschrift";
+  const noStock = data.docType === "angebot" || data.docType === "gutschrift" || data.docType === "proforma";
 
-  const last = await prisma.invoice.findFirst({
-    where: { number: { startsWith: prefix }, docType: data.docType },
-    orderBy: { number: "desc" },
-  });
-  const seq = last ? parseInt(last.number.replace(prefix, ""), 10) + 1 : 2601;
-  const number = `${prefix}${String(seq).padStart(4, "0")}`;
+  let number: string;
+  if (data.docType === "proforma") {
+    const year = new Date().getFullYear().toString().slice(-2);
+    const proformaPrefix = `KBP-${year}-`;
+    const lastProforma = await prisma.invoice.findFirst({
+      where: { number: { startsWith: proformaPrefix }, docType: "proforma" },
+      orderBy: { number: "desc" },
+    });
+    const proformaSeq = lastProforma
+      ? parseInt(lastProforma.number.replace(proformaPrefix, ""), 10) + 1
+      : 100;
+    number = `${proformaPrefix}${proformaSeq}`;
+  } else {
+    const prefix = data.docType === "angebot" ? "KBA-" : data.docType === "gutschrift" ? "KBG-" : "KBR-";
+    const last = await prisma.invoice.findFirst({
+      where: { number: { startsWith: prefix }, docType: data.docType },
+      orderBy: { number: "desc" },
+    });
+    const seq = last ? parseInt(last.number.replace(prefix, ""), 10) + 1 : 2601;
+    number = `${prefix}${String(seq).padStart(4, "0")}`;
+  }
 
   const invoice = await prisma.$transaction(async (tx) => {
     const inv = await tx.invoice.create({
@@ -543,8 +557,8 @@ export async function updateInvoice(
       include: { items: { include: { skus: true } } },
     });
 
-    // Alten Lagerbestand rückbuchen (nur für Rechnungen)
-    if (old && old.docType !== "angebot" && old.docType !== "gutschrift") {
+    // Alten Lagerbestand rückbuchen (nur für Rechnungen, nicht für Angebote/Gutschriften/Proforma)
+    if (old && old.docType !== "angebot" && old.docType !== "gutschrift" && old.docType !== "proforma") {
       for (const it of old.items) {
         const qty = Math.round(it.quantity);
         for (const s of it.skus) {
@@ -589,8 +603,8 @@ export async function updateInvoice(
       },
     });
 
-    // Neuen Lagerbestand abbuchen (nur für Rechnungen)
-    if (!old || (old.docType !== "angebot" && old.docType !== "gutschrift")) {
+    // Neuen Lagerbestand abbuchen (nur für Rechnungen, nicht für Angebote/Gutschriften/Proforma)
+    if (!old || (old.docType !== "angebot" && old.docType !== "gutschrift" && old.docType !== "proforma")) {
       for (const it of data.items) {
         const qty = Math.round(it.quantity);
         for (const s of it.skus) {
@@ -640,6 +654,94 @@ export async function updateInvoice(
   revalidatePath("/inventory");
   revalidatePath("/");
   redirect(isAngebot ? `/angebot/${invoiceId}` : `/buchhaltung/${invoiceId}`);
+}
+
+export async function convertProformaToRechnung(proformaId: string) {
+  const user = await requireUser();
+
+  const proforma = await prisma.invoice.findUnique({
+    where: { id: proformaId },
+    include: { items: { include: { skus: true } } },
+  });
+  if (!proforma || proforma.docType !== "proforma" || proforma.status !== "aktiv") {
+    throw new Error("Keine aktive Proforma gefunden");
+  }
+
+  const last = await prisma.invoice.findFirst({
+    where: { number: { startsWith: "KBR-" }, docType: "rechnung" },
+    orderBy: { number: "desc" },
+  });
+  const seq = last ? parseInt(last.number.replace("KBR-", ""), 10) + 1 : 2601;
+  const number = `KBR-${String(seq).padStart(4, "0")}`;
+
+  const newInv = await prisma.$transaction(async (tx) => {
+    const inv = await tx.invoice.create({
+      data: {
+        number,
+        date: proforma.date,
+        customerName: proforma.customerName,
+        customerAddress: proforma.customerAddress,
+        customerNum: proforma.customerNum,
+        customerPhone: (proforma as { customerPhone?: string | null }).customerPhone ?? null,
+        mwstRate: proforma.mwstRate,
+        shippingCost: proforma.shippingCost,
+        shippingMwst: proforma.shippingMwst,
+        paymentMethod: proforma.paymentMethod,
+        notes: proforma.notes,
+        paymentInfo: proforma.paymentInfo,
+        bezahlt: false,
+        docType: "rechnung",
+        originalInvoiceId: proforma.id,
+        originalInvoiceNum: proforma.number,
+        userId: user.id,
+        items: {
+          create: proforma.items.map((it) => ({
+            pos: it.pos,
+            quantity: it.quantity,
+            description: it.description,
+            unitPrice: it.unitPrice,
+            skus: { create: it.skus.map((s) => ({ sku: s.sku, lager: s.lager })) },
+          })),
+        },
+      },
+    });
+
+    for (const it of proforma.items) {
+      const qty = Math.round(it.quantity);
+      for (const s of it.skus) {
+        if (!s.sku) continue;
+        const item = await tx.item.findUnique({ where: { sku: s.sku } });
+        if (!item) continue;
+        if (s.lager === "ns") {
+          await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+        } else {
+          await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+        }
+      }
+    }
+
+    await tx.invoice.update({ where: { id: proformaId }, data: { status: "umgewandelt" } });
+    return inv;
+  });
+
+  revalidatePath("/buchhaltung");
+  revalidatePath("/inventory");
+  revalidatePath("/");
+  redirect(`/buchhaltung/${newInv.id}`);
+}
+
+export async function deleteProforma(proformaId: string) {
+  await requireUser();
+
+  const proforma = await prisma.invoice.findUnique({ where: { id: proformaId }, select: { docType: true, status: true } });
+  if (!proforma || proforma.docType !== "proforma" || proforma.status !== "aktiv") {
+    throw new Error("Keine löschbare Proforma gefunden");
+  }
+
+  await prisma.invoice.delete({ where: { id: proformaId } });
+
+  revalidatePath("/buchhaltung");
+  redirect("/buchhaltung");
 }
 
 export async function upsertUser(formData: FormData) {

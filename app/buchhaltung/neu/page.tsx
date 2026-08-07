@@ -6,7 +6,14 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function NeueRechnungPage() {
+export default async function NeueRechnungPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ proforma?: string }>;
+}) {
+  const { proforma } = await searchParams;
+  const isProforma = proforma === "1";
+
   const [items, b2bCustomers, b2cCustomers] = await Promise.all([
     prisma.item.findMany({
       orderBy: { createdAt: "asc" },
@@ -24,9 +31,9 @@ export default async function NeueRechnungPage() {
 
   return (
     <AppShell>
-      <PageHeader title="Neue Rechnung" eyebrow="Buchhaltung" />
+      <PageHeader title={isProforma ? "Neue Proforma-Rechnung" : "Neue Rechnung"} eyebrow="Buchhaltung" />
       <Panel className="p-6">
-        <InvoiceForm skus={items} b2bCustomers={b2bCustomers} b2cCustomers={b2cCustomers} />
+        <InvoiceForm skus={items} b2bCustomers={b2bCustomers} b2cCustomers={b2cCustomers} docType={isProforma ? "proforma" : "rechnung"} />
       </Panel>
     </AppShell>
   );

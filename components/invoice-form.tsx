@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef, useEffect } from "react";
 import { createInvoice, updateInvoice, getLastPriceForCustomerSku } from "@/app/actions";
 
-type DocType = "rechnung" | "angebot" | "gutschrift";
+type DocType = "rechnung" | "angebot" | "gutschrift" | "proforma";
 
 type SkuEntry = { id: number; sku: string; lager: string };
 type LineItem = { id: number; pos: number; quantity: number; description: string; unitPrice: number; skus: SkuEntry[] };
@@ -76,7 +76,7 @@ export function InvoiceForm({
   const [shippingCost, setShippingCost] = useState<string>(initialData?.shippingCost ?? "");
   const [shippingMwst, setShippingMwst] = useState<number>(initialData?.shippingMwst ?? 19);
   const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">(initialData?.paymentMethod ?? "konto");
-  const [zahlungAusstehend, setZahlungAusstehend] = useState(initialData?.bezahlt === false);
+  const [zahlungAusstehend, setZahlungAusstehend] = useState(initialData?.bezahlt === false || (!initialData && docType === "proforma"));
   const [kundeSpeichernB2c, setKundeSpeichernB2c] = useState(false);
   const [kundeSpeichernB2b, setKundeSpeichernB2b] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -552,7 +552,7 @@ export function InvoiceForm({
             </div>
           )}
           <div className="flex justify-between border-t border-grey-border pt-2 font-mono text-sm font-bold text-grey-dark">
-            <span>{docType === "angebot" ? "Angebotsbetrag" : docType === "gutschrift" ? "Gutschriftsbetrag" : "Rechnungsbetrag"}</span>
+            <span>{docType === "angebot" ? "Angebotsbetrag" : docType === "gutschrift" ? "Gutschriftsbetrag" : docType === "proforma" ? "Proformabetrag" : "Rechnungsbetrag"}</span>
             <span className="tabular-nums">{bruttoGesamt.toFixed(2)} €</span>
           </div>
           {mwstRate > 0 && (
@@ -565,7 +565,7 @@ export function InvoiceForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
-            Notiz (erscheint auf {docType === "angebot" ? "Angebot" : docType === "gutschrift" ? "Gutschrift" : "Rechnung"})
+            Notiz (erscheint auf {docType === "angebot" ? "Angebot" : docType === "gutschrift" ? "Gutschrift" : docType === "proforma" ? "Proforma-Rechnung" : "Rechnung"})
           </label>
           <textarea name="notes" rows={2} defaultValue={initialData?.notes ?? ""} placeholder="z.B. Gültig bis 31.07.2026, Lieferbedingungen ..."
             className="rounded-lg border border-grey-border bg-white px-3 py-2 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 resize-none" />
@@ -643,7 +643,7 @@ export function InvoiceForm({
           className="rounded-lg bg-brand-red px-6 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50 transition-colors">
           {isPending ? "Wird gespeichert…" : initialData?.invoiceId
             ? (docType === "angebot" ? "Angebot speichern" : "Korrektur speichern")
-            : (docType === "angebot" ? "Angebot erstellen" : docType === "gutschrift" ? "Gutschrift erstellen" : "Rechnung erstellen")}
+            : (docType === "angebot" ? "Angebot erstellen" : docType === "gutschrift" ? "Gutschrift erstellen" : docType === "proforma" ? "Proforma erstellen" : "Rechnung erstellen")}
         </button>
       </div>
     </form>

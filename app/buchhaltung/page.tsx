@@ -11,9 +11,9 @@ export const dynamic = "force-dynamic";
 export default async function BuchhaltungPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string; pm?: string; zahlung?: string; b2b?: string }>;
+  searchParams: Promise<{ q?: string; num?: string; from?: string; to?: string; pm?: string; zahlung?: string; b2b?: string; typ?: string; knum?: string }>;
 }) {
-  const { q, num, from, to, pm, zahlung, b2b } = await searchParams;
+  const { q, num, from, to, pm, zahlung, b2b, typ, knum } = await searchParams;
 
   let b2bCustomerNames: string[] = [];
   if (b2b === "1") {
@@ -21,10 +21,15 @@ export default async function BuchhaltungPage({
     b2bCustomerNames = customers.map((c) => c.name);
   }
 
+  const docTypeIn: string[] =
+    typ === "rechnung" ? ["rechnung"] :
+    typ === "proforma" ? ["proforma"] :
+    ["rechnung", "proforma"];
+
   const invoices = await prisma.invoice.findMany({
     where: {
       status: "aktiv",
-      docType: "rechnung",
+      docType: { in: docTypeIn },
       ...(q && {
         OR: [
           { customerName: { contains: q, mode: "insensitive" } },
@@ -32,6 +37,7 @@ export default async function BuchhaltungPage({
         ],
       }),
       ...(num && { number: { contains: num, mode: "insensitive" } }),
+      ...(knum && { customerNum: { contains: knum, mode: "insensitive" } }),
       ...((from || to) && {
         date: {
           ...(from && { gte: new Date(from + "T00:00:00") }),
@@ -46,7 +52,7 @@ export default async function BuchhaltungPage({
     include: { items: true },
   });
 
-  const hasFilter = !!(q || num || from || to || pm || zahlung || b2b);
+  const hasFilter = !!(q || num || from || to || pm || zahlung || b2b || typ || knum);
 
   return (
     <AppShell>
@@ -71,8 +77,18 @@ export default async function BuchhaltungPage({
               type="text"
               name="num"
               defaultValue={num ?? ""}
-              placeholder="KBR-…"
+              placeholder="KBR-… / KBP-…"
               className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-40"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kunden-Nr.</label>
+            <input
+              type="text"
+              name="knum"
+              defaultValue={knum ?? ""}
+              placeholder="KN-26-…"
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10 w-36"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -117,7 +133,19 @@ export default async function BuchhaltungPage({
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Typ</label>
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Dokumenttyp</label>
+            <select
+              name="typ"
+              defaultValue={typ ?? ""}
+              className="h-9 rounded-lg border border-grey-border bg-white px-3 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
+            >
+              <option value="">Alle (Rechnung + Proforma)</option>
+              <option value="rechnung">Nur Rechnungen</option>
+              <option value="proforma">Nur Proforma</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Kundentyp</label>
             <select
               name="b2b"
               defaultValue={b2b ?? ""}
@@ -144,12 +172,20 @@ export default async function BuchhaltungPage({
 
         </form>
 
-        <Link
-          href="/buchhaltung/neu"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors whitespace-nowrap"
-        >
-          + Neue Rechnung
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/buchhaltung/neu"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors whitespace-nowrap"
+          >
+            + Neue Rechnung
+          </Link>
+          <Link
+            href="/buchhaltung/neu?proforma=1"
+            className="inline-flex items-center gap-2 rounded-lg border border-grey-border bg-white px-4 py-2.5 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors whitespace-nowrap"
+          >
+            + Neue Proforma
+          </Link>
+        </div>
       </div>
 
       <Panel className="overflow-x-auto">
@@ -172,7 +208,14 @@ export default async function BuchhaltungPage({
                 (inv.shippingCost ?? 0);
               return (
                 <BuchhaltungRow key={inv.id} id={inv.id}>
-                  <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{inv.number}</td>
+                  <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">
+                    <div className="flex items-center gap-2">
+                      {inv.number}
+                      {inv.docType === "proforma" && (
+                        <span className="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-blue-700">Proforma</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs text-grey-mid">{formatDate(inv.date)}</td>
                   <td className="px-4 py-3 text-sm text-grey-dark">{inv.customerName}</td>
                   <td className="px-4 py-3 font-mono text-xs text-grey-mid">{inv.mwstRate} %</td>
