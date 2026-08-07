@@ -62,6 +62,7 @@ export function InvoiceForm({
   originalInvoiceNum,
   b2bCustomers = [],
   b2cCustomers = [],
+  defaultCustomerNum,
 }: {
   skus: SkuData[];
   initialData?: InvoiceInitialData;
@@ -70,6 +71,7 @@ export function InvoiceForm({
   originalInvoiceNum?: string;
   b2bCustomers?: B2bCustomer[];
   b2cCustomers?: B2cCustomer[];
+  defaultCustomerNum?: string;
 }) {
   const [items, setItems] = useState<LineItem[]>(initialData?.items ?? [newLine(1)]);
   const [mwstRate, setMwstRate] = useState(initialData?.mwstRate ?? 19);
@@ -86,7 +88,7 @@ export function InvoiceForm({
   // Controlled customer fields for B2B auto-fill
   const [customerName, setCustomerName] = useState(initialData?.customerName ?? "");
   const [customerAddress, setCustomerAddress] = useState(initialData?.customerAddress ?? "");
-  const [customerNum, setCustomerNum] = useState(initialData?.customerNum ?? "");
+  const [customerNum, setCustomerNum] = useState(initialData?.customerNum ?? defaultCustomerNum ?? "");
   const [customerPhone, setCustomerPhone] = useState(initialData?.customerPhone ?? "");
   const [paymentInfo, setPaymentInfo] = useState(initialData?.paymentInfo ?? "");
   const [selectedB2bId, setSelectedB2bId] = useState("");

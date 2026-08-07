@@ -411,19 +411,23 @@ export async function createInvoice(data: {
   revalidatePath("/inventory");
   revalidatePath("/");
   if (data.saveAsB2cCustomer && data.customerName && data.customerAddress) {
-    const customerNum = await generateCustomerNum();
+    const customerNum = data.customerNum || await generateCustomerNum();
     await prisma.b2cCustomer.create({
       data: { name: data.customerName.trim(), address: data.customerAddress.trim(), customerNum, phone: data.customerPhone || null },
     });
-    await prisma.invoice.update({ where: { id: invoice.id }, data: { customerNum } });
+    if (!data.customerNum) {
+      await prisma.invoice.update({ where: { id: invoice.id }, data: { customerNum } });
+    }
     revalidatePath("/b2c/kunden");
   }
   if (data.saveAsB2bCustomer && data.customerName && data.customerAddress) {
-    const customerNum = await generateCustomerNum();
+    const customerNum = data.customerNum || await generateCustomerNum();
     await prisma.b2bCustomer.create({
       data: { name: data.customerName.trim(), address: data.customerAddress.trim(), customerNum, phone: data.customerPhone || null, mwstRate: data.mwstRate, paymentMethod: "konto" },
     });
-    await prisma.invoice.update({ where: { id: invoice.id }, data: { customerNum } });
+    if (!data.customerNum) {
+      await prisma.invoice.update({ where: { id: invoice.id }, data: { customerNum } });
+    }
     revalidatePath("/b2b/kunden");
   }
   if (data.docType === "angebot") redirect(`/angebot/${invoice.id}`);
