@@ -363,11 +363,12 @@ model SkuMappingItem {
 }
 
 model B2cCustomer {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  customerNum String?
+  address     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([name])
 }

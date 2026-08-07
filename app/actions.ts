@@ -8,6 +8,7 @@ import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/auth";
 import { requireAdmin, requireUser } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
+import { generateCustomerNum } from "@/lib/customer-helper";
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -393,9 +394,11 @@ export async function createInvoice(data: {
   revalidatePath("/inventory");
   revalidatePath("/");
   if (data.saveAsB2cCustomer && data.customerName && data.customerAddress) {
+    const customerNum = await generateCustomerNum();
     await prisma.b2cCustomer.create({
-      data: { name: data.customerName.trim(), address: data.customerAddress.trim() },
+      data: { name: data.customerName.trim(), address: data.customerAddress.trim(), customerNum },
     });
+    await prisma.invoice.update({ where: { id: invoice.id }, data: { customerNum } });
     revalidatePath("/b2c/kunden");
   }
   if (data.docType === "angebot") redirect(`/angebot/${invoice.id}`);

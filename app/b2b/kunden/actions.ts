@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guards";
+import { generateCustomerNum } from "@/lib/customer-helper";
 
 export type CustomerInput = {
   name: string;
@@ -16,10 +17,11 @@ export type CustomerInput = {
 
 export async function createCustomer(data: CustomerInput) {
   await requireAdmin();
+  const customerNum = data.customerNum?.trim() || await generateCustomerNum();
   await prisma.b2bCustomer.create({
     data: {
       name: data.name,
-      customerNum: data.customerNum || null,
+      customerNum,
       address: data.address,
       mwstRate: data.mwstRate,
       paymentMethod: data.paymentMethod,
