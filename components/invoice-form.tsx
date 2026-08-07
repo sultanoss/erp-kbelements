@@ -23,6 +23,7 @@ export type B2bCustomer = {
 export type B2cCustomer = {
   id: string;
   name: string;
+  customerNum: string | null;
   address: string;
 };
 
@@ -117,11 +118,12 @@ export function InvoiceForm({
 
   function selectB2cCustomer(id: string) {
     setSelectedB2cId(id);
-    if (!id) return;
+    if (!id) { setCustomerNum(""); return; }
     const c = b2cCustomers.find((x) => x.id === id);
     if (!c) return;
     setCustomerName(c.name);
     setCustomerAddress(c.address);
+    setCustomerNum(c.customerNum ?? "");
   }
 
   function handleReset() {
@@ -269,7 +271,7 @@ export function InvoiceForm({
           >
             <option value="">— Kunden wählen (optional) —</option>
             {b2cCustomers.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>{c.name}{c.customerNum ? ` (${c.customerNum})` : ""}</option>
             ))}
           </select>
           {selectedB2cId && (

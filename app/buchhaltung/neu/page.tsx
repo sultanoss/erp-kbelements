@@ -18,7 +18,7 @@ export default async function NeueRechnungPage() {
     }),
     prisma.b2cCustomer.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true, address: true },
+      select: { id: true, name: true, customerNum: true, address: true },
     }),
   ]);
 
