@@ -141,7 +141,8 @@ export function InvoiceForm({
     setShippingMwst(19);
     setPaymentMethod("konto");
     setZahlungAusstehend(false);
-    setKundeSpeichern(false);
+    setKundeSpeichernB2c(false);
+    setKundeSpeichernB2b(false);
     setError("");
     setCustomerName("");
     setCustomerAddress("");
