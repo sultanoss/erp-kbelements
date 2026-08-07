@@ -137,7 +137,6 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
   const metaRows: [string, string][] = [
     ["Rechnungs-Nr:", inv.number],
     ["Datum:", deDate(inv.date)],
-    ["Lieferdatum:", deDate(inv.date)],
   ];
   if (inv.customerNum) metaRows.push(["Kunden-Nr:", inv.customerNum]);
 

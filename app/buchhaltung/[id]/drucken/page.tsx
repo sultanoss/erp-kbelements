@@ -134,7 +134,6 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
               <tbody>
                 <tr><td>Rechnungs-Nr:</td><td>{inv.number}</td></tr>
                 <tr><td>Datum:</td><td>{fmtDate(inv.date)}</td></tr>
-                <tr><td>Lieferdatum:</td><td>{fmtDate(inv.date)}</td></tr>
                 {inv.customerNum && <tr><td>Kunden-Nr:</td><td>{inv.customerNum}</td></tr>}
               </tbody>
             </table>
