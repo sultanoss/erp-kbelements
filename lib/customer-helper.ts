@@ -4,7 +4,7 @@ export async function generateCustomerNum(): Promise<string> {
   const year = new Date().getFullYear().toString().slice(-2); // "26"
   const prefix = `KN-${year}-`;
 
-  const [b2bList, b2cList] = await Promise.all([
+  const [b2bList, b2cList, invoiceList] = await Promise.all([
     prisma.b2bCustomer.findMany({
       where: { customerNum: { startsWith: prefix } },
       select: { customerNum: true },
@@ -13,9 +13,13 @@ export async function generateCustomerNum(): Promise<string> {
       where: { customerNum: { startsWith: prefix } },
       select: { customerNum: true },
     }),
+    prisma.invoice.findMany({
+      where: { customerNum: { startsWith: prefix } },
+      select: { customerNum: true },
+    }),
   ]);
 
-  const allNums = [...b2bList, ...b2cList]
+  const allNums = [...b2bList, ...b2cList, ...invoiceList]
     .map((c) => parseInt(c.customerNum!.replace(prefix, ""), 10))
     .filter((n) => !isNaN(n));
 
