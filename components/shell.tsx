@@ -15,6 +15,7 @@ const baseLinks: NavItem[] = [
   { label: "Lager", icon: "Boxes", children: [
     { href: "/inventory",                    label: "Übersicht"            },
     { href: "/lager/portale-bestand-sync",   label: "Portale Bestand Sync" },
+    { href: "/lagerprotokoll",               label: "Lagerprotokoll"       },
   ]},
   { href: "/sales", label: "Verkäufe", icon: "ClipboardList" },
   { href: "/auswertung", label: "Auswertung", icon: "BarChart2" },
