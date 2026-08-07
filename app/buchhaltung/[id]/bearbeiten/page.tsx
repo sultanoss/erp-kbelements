@@ -19,10 +19,11 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
   if (!inv) notFound();
   if (inv.status !== "aktiv") redirect(`/buchhaltung/${id}`);
 
-  const allItems = await prisma.item.findMany({
-    orderBy: { sku: "asc" },
-    select: { sku: true, name: true, stock: true, stockNS: true },
-  });
+  const [allItems, b2bCustomers, b2cCustomers] = await Promise.all([
+    prisma.item.findMany({ orderBy: { sku: "asc" }, select: { sku: true, name: true, stock: true, stockNS: true } }),
+    prisma.b2bCustomer.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, customerNum: true, phone: true, address: true, mwstRate: true, paymentMethod: true, paymentInfo: true, notes: true } }),
+    prisma.b2cCustomer.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, customerNum: true, phone: true, address: true } }),
+  ]);
 
   const initialData: InvoiceInitialData = {
     invoiceId: inv.id,
@@ -30,6 +31,8 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
     customerName: inv.customerName,
     customerAddress: inv.customerAddress ?? "",
     customerNum: inv.customerNum ?? "",
+    customerPhone: (inv as { customerPhone?: string | null }).customerPhone ?? "",
+    bezahlt: inv.bezahlt,
     mwstRate: inv.mwstRate,
     shippingCost: inv.shippingCost != null ? String(inv.shippingCost) : "",
     shippingMwst: inv.shippingMwst ?? 19,
@@ -52,7 +55,7 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
     <AppShell>
       <PageHeader title={`${inv.number} — Korrektur`} eyebrow="Rechnung bearbeiten" />
       <div className="mb-5 max-w-4xl">
-        <InvoiceForm skus={allItems} initialData={initialData} />
+        <InvoiceForm skus={allItems} initialData={initialData} b2bCustomers={b2bCustomers} b2cCustomers={b2cCustomers} />
       </div>
     </AppShell>
   );

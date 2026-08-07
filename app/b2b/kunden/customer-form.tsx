@@ -7,6 +7,7 @@ type Customer = {
   id: string;
   name: string;
   customerNum: string | null;
+  phone: string | null;
   address: string;
   mwstRate: number;
   paymentMethod: string;
@@ -40,6 +41,7 @@ function NewCustomerForm({ onDone }: { onDone: () => void }) {
       await createCustomer({
         name,
         customerNum: (fd.get("customerNum") as string).trim() || undefined,
+        phone: (fd.get("phone") as string).trim() || undefined,
         address,
         mwstRate,
         paymentMethod,
@@ -109,6 +111,11 @@ function NewCustomerForm({ onDone }: { onDone: () => void }) {
       )}
 
       <div>
+        <label className={labelClass}>Telefon (optional)</label>
+        <input name="phone" type="tel" placeholder="+49 123 456789" className={inputClass} />
+      </div>
+
+      <div>
         <label className={labelClass}>Notiz (optional)</label>
         <input name="notes" type="text" placeholder="Interne Notiz…" className={inputClass} />
       </div>
@@ -152,6 +159,7 @@ function CustomerCard({ customer }: { customer: Customer }) {
         <div className="font-mono text-xs text-grey-mid whitespace-pre-line">{customer.address}</div>
         <div className="flex flex-wrap gap-3 pt-1 font-mono text-[10px] text-grey-mid">
           <span>{customer.paymentMethod === "konto" ? "Überweisung" : "Bar"}{customer.paymentInfo ? ` · ${customer.paymentInfo}` : ""}</span>
+          {customer.phone && <span>{customer.phone}</span>}
           {customer.notes && <span>📝 {customer.notes}</span>}
         </div>
       </div>

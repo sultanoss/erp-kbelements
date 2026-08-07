@@ -153,6 +153,7 @@ model Invoice {
   customerName    String
   customerAddress String
   customerNum     String?
+  customerPhone   String?
   mwstRate        Int           @default(19)
   shippingCost    Float?
   shippingMwst    Int           @default(19)
@@ -366,6 +367,7 @@ model B2cCustomer {
   id          String   @id @default(cuid())
   name        String
   customerNum String?
+  phone       String?
   address     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -377,6 +379,7 @@ model B2bCustomer {
   id            String   @id @default(cuid())
   name          String
   customerNum   String?
+  phone         String?
   address       String
   mwstRate      Int      @default(19)
   paymentMethod String   @default("konto")

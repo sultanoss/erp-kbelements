@@ -8,6 +8,7 @@ import { generateCustomerNum } from "@/lib/customer-helper";
 export type CustomerInput = {
   name: string;
   customerNum?: string;
+  phone?: string;
   address: string;
   mwstRate: number;
   paymentMethod: "konto" | "bar";
@@ -22,6 +23,7 @@ export async function createCustomer(data: CustomerInput) {
     data: {
       name: data.name,
       customerNum,
+      phone: data.phone || null,
       address: data.address,
       mwstRate: data.mwstRate,
       paymentMethod: data.paymentMethod,

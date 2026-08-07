@@ -13,6 +13,7 @@ export type B2bCustomer = {
   id: string;
   name: string;
   customerNum: string | null;
+  phone: string | null;
   address: string;
   mwstRate: number;
   paymentMethod: string;
@@ -24,6 +25,7 @@ export type B2cCustomer = {
   id: string;
   name: string;
   customerNum: string | null;
+  phone: string | null;
   address: string;
 };
 
@@ -33,6 +35,8 @@ export type InvoiceInitialData = {
   customerName: string;
   customerAddress: string;
   customerNum: string;
+  customerPhone: string;
+  bezahlt?: boolean;
   mwstRate: number;
   shippingCost: string;
   shippingMwst: number;
@@ -72,8 +76,9 @@ export function InvoiceForm({
   const [shippingCost, setShippingCost] = useState<string>(initialData?.shippingCost ?? "");
   const [shippingMwst, setShippingMwst] = useState<number>(initialData?.shippingMwst ?? 19);
   const [paymentMethod, setPaymentMethod] = useState<"konto" | "bar">(initialData?.paymentMethod ?? "konto");
-  const [zahlungAusstehend, setZahlungAusstehend] = useState(false);
-  const [kundeSpeichern, setKundeSpeichern] = useState(false);
+  const [zahlungAusstehend, setZahlungAusstehend] = useState(initialData?.bezahlt === false);
+  const [kundeSpeichernB2c, setKundeSpeichernB2c] = useState(false);
+  const [kundeSpeichernB2b, setKundeSpeichernB2b] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -82,6 +87,7 @@ export function InvoiceForm({
   const [customerName, setCustomerName] = useState(initialData?.customerName ?? "");
   const [customerAddress, setCustomerAddress] = useState(initialData?.customerAddress ?? "");
   const [customerNum, setCustomerNum] = useState(initialData?.customerNum ?? "");
+  const [customerPhone, setCustomerPhone] = useState(initialData?.customerPhone ?? "");
   const [paymentInfo, setPaymentInfo] = useState(initialData?.paymentInfo ?? "");
   const [selectedB2bId, setSelectedB2bId] = useState("");
   const [selectedB2cId, setSelectedB2cId] = useState("");
@@ -111,6 +117,7 @@ export function InvoiceForm({
     setCustomerName(c.name);
     setCustomerAddress(c.address);
     setCustomerNum(c.customerNum ?? "");
+    setCustomerPhone(c.phone ?? "");
     setMwstRate(c.mwstRate);
     setPaymentMethod(c.paymentMethod as "konto" | "bar");
     setPaymentInfo(c.paymentInfo ?? "");
@@ -118,12 +125,13 @@ export function InvoiceForm({
 
   function selectB2cCustomer(id: string) {
     setSelectedB2cId(id);
-    if (!id) { setCustomerNum(""); return; }
+    if (!id) { setCustomerNum(""); setCustomerPhone(""); return; }
     const c = b2cCustomers.find((x) => x.id === id);
     if (!c) return;
     setCustomerName(c.name);
     setCustomerAddress(c.address);
     setCustomerNum(c.customerNum ?? "");
+    setCustomerPhone(c.phone ?? "");
   }
 
   function handleReset() {
@@ -229,6 +237,7 @@ export function InvoiceForm({
       customerName: customerName.trim(),
       customerAddress: customerAddress.trim(),
       customerNum: customerNum.trim(),
+      customerPhone: customerPhone.trim() || null,
       mwstRate,
       shippingCost: shippingCost !== "" ? shippingVal : null,
       shippingMwst,
@@ -248,9 +257,9 @@ export function InvoiceForm({
     };
     startTransition(() => {
       if (initialData?.invoiceId) {
-        updateInvoice(initialData.invoiceId, payload);
+        updateInvoice(initialData.invoiceId, { ...payload, bezahlt: !zahlungAusstehend, saveAsB2cCustomer: kundeSpeichernB2c, saveAsB2bCustomer: kundeSpeichernB2b });
       } else {
-        createInvoice({ ...payload, bezahlt: !zahlungAusstehend, saveAsB2cCustomer: kundeSpeichern });
+        createInvoice({ ...payload, bezahlt: !zahlungAusstehend, saveAsB2cCustomer: kundeSpeichernB2c, saveAsB2bCustomer: kundeSpeichernB2b });
       }
     });
   }
@@ -310,8 +319,8 @@ export function InvoiceForm({
         </div>
       )}
 
-      {/* Datum + Kundennummer + MwSt */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Datum + Kundennummer + Telefon + MwSt */}
+      <div className="grid gap-4 md:grid-cols-4">
         <div className="grid gap-1.5">
           <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Datum</label>
           <input name="date" type="date" defaultValue={initialData?.date ?? today} className={fieldClass} />
@@ -322,7 +331,17 @@ export function InvoiceForm({
             type="text"
             value={customerNum}
             onChange={(e) => setCustomerNum(e.target.value)}
-            placeholder="z.B. 18043"
+            placeholder="z.B. KN-26-01"
+            className={fieldClass}
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <label className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Telefon (optional)</label>
+          <input
+            type="tel"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+            placeholder="+49 123 456789"
             className={fieldClass}
           />
         </div>
@@ -577,28 +596,33 @@ export function InvoiceForm({
                 />
               </div>
             )}
-            {!initialData?.invoiceId && (
-              <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={zahlungAusstehend}
-                  onChange={(e) => setZahlungAusstehend(e.target.checked)}
-                  className="h-4 w-4 rounded accent-brand-red"
-                />
-                <span className="text-sm font-semibold text-grey-dark">Zahlung ausstehend (unbezahlt)</span>
-              </label>
-            )}
-            {!initialData?.invoiceId && (
-              <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={kundeSpeichern}
-                  onChange={(e) => setKundeSpeichern(e.target.checked)}
-                  className="h-4 w-4 rounded accent-brand-red"
-                />
-                <span className="text-sm font-semibold text-grey-dark">Kunde speichern (B2C)</span>
-              </label>
-            )}
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={zahlungAusstehend}
+                onChange={(e) => setZahlungAusstehend(e.target.checked)}
+                className="h-4 w-4 rounded accent-brand-red"
+              />
+              <span className="text-sm font-semibold text-grey-dark">Zahlung ausstehend (unbezahlt)</span>
+            </label>
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={kundeSpeichernB2c}
+                onChange={(e) => setKundeSpeichernB2c(e.target.checked)}
+                className="h-4 w-4 rounded accent-brand-red"
+              />
+              <span className="text-sm font-semibold text-grey-dark">Kunde speichern (B2C)</span>
+            </label>
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={kundeSpeichernB2b}
+                onChange={(e) => setKundeSpeichernB2b(e.target.checked)}
+                className="h-4 w-4 rounded accent-brand-red"
+              />
+              <span className="text-sm font-semibold text-grey-dark">Kunde speichern (B2B)</span>
+            </label>
           </div>
         )}
       </div>
