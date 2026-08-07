@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import type { Order, OrderItem } from "@prisma/client";
 import type { InvWithItems } from "./invoice-pdf";
+import { generateCustomerNum } from "./customer-helper";
 
 function mwstFuerLand(country?: string | null): number {
   return country === "AT" || country === "FR" ? 20 : 19;
@@ -24,6 +25,7 @@ export async function createInvoiceFromOrder(
   });
   const seq = last ? parseInt(last.number.replace(prefix, ""), 10) + 1 : 2601;
   const number = `${prefix}${String(seq).padStart(4, "0")}`;
+  const customerNum = await generateCustomerNum();
 
   const customerAddress = [
     order.billingStreet ?? order.street,
@@ -37,7 +39,7 @@ export async function createInvoiceFromOrder(
       date: new Date(),
       customerName: order.billingName ?? order.customerName,
       customerAddress,
-      customerNum: null,
+      customerNum,
       mwstRate: mwstFuerLand(order.billingCountry ?? order.country),
       shippingCost: null,
       shippingMwst: mwstFuerLand(order.billingCountry ?? order.country),
