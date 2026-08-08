@@ -17,7 +17,7 @@ export default async function PortalGewinnPage({
   const bisDate = bis ? new Date(bis) : now;
   bisDate.setHours(23, 59, 59, 999);
 
-  const [items, setting, invoices] = await Promise.all([
+  const [items, setting, invoices, skuMappings] = await Promise.all([
     prisma.item.findMany({
       orderBy: { sku: "asc" },
       select: { sku: true, purchasePrice: true },
@@ -27,24 +27,36 @@ export default async function PortalGewinnPage({
       where: { marketplace: "MEDIAMARKT", status: "aktiv", date: { gte: vonDate, lte: bisDate } },
       select: { orderId: true },
     }),
+    prisma.skuMapping.findMany({
+      where: { marketplace: "MEDIAMARKT", active: true },
+      select: { marketplaceSku: true, items: { select: { internalSku: true } } },
+    }),
   ]);
 
-  // OrderItem-Preise für die gefundenen Bestellungen laden
+  // marketplaceSku → internalSkus Mapping aufbauen
+  const portalToInternal = new Map<string, string[]>();
+  for (const m of skuMappings) {
+    portalToInternal.set(m.marketplaceSku, m.items.map((i) => i.internalSku));
+  }
+
+  // OrderItems für die gefundenen Bestellungen laden
   const orderIds = invoices.flatMap((i) => (i.orderId ? [i.orderId] : []));
   const orderItems = orderIds.length > 0
     ? await prisma.orderItem.findMany({
-        where: { orderId: { in: orderIds }, internalSku: { not: null } },
-        select: { internalSku: true, price: true, quantity: true },
+        where: { orderId: { in: orderIds } },
+        select: { marketplaceSku: true, price: true, quantity: true },
       })
     : [];
 
-  // Gewichteter Durchschnitt pro internem SKU
+  // Gewichteter Durchschnitt pro internem SKU (via SkuMapping)
   const totals: Record<string, { revenue: number; qty: number }> = {};
   for (const item of orderItems) {
-    if (!item.internalSku) continue;
-    const s = (totals[item.internalSku] ??= { revenue: 0, qty: 0 });
-    s.revenue += item.quantity * item.price;
-    s.qty += item.quantity;
+    const internalSkus = portalToInternal.get(item.marketplaceSku) ?? [];
+    for (const sku of internalSkus) {
+      const s = (totals[sku] ??= { revenue: 0, qty: 0 });
+      s.revenue += item.quantity * item.price;
+      s.qty += item.quantity;
+    }
   }
   const avgSellPrice: Record<string, number> = {};
   for (const [sku, { revenue, qty }] of Object.entries(totals)) {
