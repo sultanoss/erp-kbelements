@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveExtraCosts } from "./actions";
 
-type Item = { sku: string; name: string | null; purchasePrice: number | null };
+type Item = { sku: string; purchasePrice: number | null };
 
 export function PortalGewinnClient({
   items,
@@ -57,7 +57,6 @@ export function PortalGewinnClient({
           <thead>
             <tr className="border-b border-grey-border bg-grey-light">
               <th className="px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
-              <th className="px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezeichnung</th>
               <th className="px-4 py-3 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Ø-EK</th>
               <th className="px-4 py-3 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zusatzkosten</th>
             </tr>
@@ -66,7 +65,6 @@ export function PortalGewinnClient({
             {items.map((it) => (
               <tr key={it.sku} className="hover:bg-grey-light/40">
                 <td className="px-4 py-2.5 font-mono text-xs font-semibold text-brand-red">{it.sku}</td>
-                <td className="px-4 py-2.5 text-xs text-grey-dark">{it.name ?? "—"}</td>
                 <td className="px-4 py-2.5 text-right font-mono text-xs tabular-nums text-grey-dark">
                   {it.purchasePrice != null ? `${it.purchasePrice.toFixed(2)} €` : "—"}
                 </td>

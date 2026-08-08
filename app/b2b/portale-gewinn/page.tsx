@@ -9,7 +9,7 @@ export default async function PortalGewinnPage() {
   const [items, setting] = await Promise.all([
     prisma.item.findMany({
       orderBy: { sku: "asc" },
-      select: { sku: true, name: true, purchasePrice: true },
+      select: { sku: true, purchasePrice: true },
     }),
     prisma.setting.findUnique({ where: { key: "PORTAL_EXTRA_COSTS" } }),
   ]);
