@@ -472,7 +472,7 @@ export function InvoiceForm({
                   const firstSku = it.skus[0]?.sku;
                   const foundSku = firstSku ? skus.find((s) => s.sku === firstSku) : null;
                   return foundSku?.purchasePrice != null ? (
-                    <span className="pr-1 font-mono text-[10px] text-grey-mid text-right">Ø-EK: {foundSku.purchasePrice.toFixed(2)} €</span>
+                    <span className="pr-1 font-mono text-[10px] font-bold text-grey-dark text-right">Ø-EK: {foundSku.purchasePrice.toFixed(2)} €</span>
                   ) : null;
                 })()}
               </div>
