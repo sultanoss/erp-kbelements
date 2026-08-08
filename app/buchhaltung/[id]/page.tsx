@@ -242,7 +242,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.id} className="border-b border-orange-100">
-                    <td className="py-1.5 text-grey-dark">{r.description}</td>
+                    <td className="py-1.5 font-mono text-xs font-semibold text-brand-red">{r.skus.length > 0 ? r.skus.map((s) => s.sku).join(" + ") : r.description}</td>
                     <td className="py-1.5 font-mono tabular-nums text-right text-grey-dark">{r.erlos.toFixed(2)} €</td>
                     <td className="py-1.5 font-mono tabular-nums text-right text-grey-mid">{r.ekKosten.toFixed(2)} €</td>
                     <td className={`py-1.5 font-mono tabular-nums text-right font-semibold ${r.gewinn >= 0 ? "text-green-700" : "text-brand-red"}`}>
