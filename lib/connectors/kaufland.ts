@@ -217,35 +217,6 @@ export async function sendKauflandShipmentNotification(params: {
 
 export type KauflandInventorySku = { marketplaceSku: string; title: string | null };
 export type KauflandStockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
-export type KauflandPriceEntry = { marketplaceSku: string; title: string | null; price: number };
-
-export async function fetchKauflandPrices(): Promise<KauflandPriceEntry[]> {
-  const sf = (process.env.KAUFLAND_STOREFRONT ?? "de").split(",")[0].trim();
-  const entries: KauflandPriceEntry[] = [];
-  let offset = 0;
-  const limit = 100;
-
-  while (true) {
-    const url = `${BASE}/units?storefront=${sf}&limit=${limit}&offset=${offset}`;
-    const res = await fetch(url, { headers: signedHeaders("GET", url, "") });
-    if (!res.ok) break;
-    const data = await res.json() as {
-      data?: Array<{ id_offer?: string; listing_price?: number; minimum_price?: number }>;
-      pagination?: { total?: number };
-    };
-    const page = data.data ?? [];
-    for (const u of page) {
-      if (u.id_offer && u.listing_price != null) {
-        entries.push({ marketplaceSku: u.id_offer.trim(), title: null, price: u.listing_price / 100 });
-      }
-    }
-    const total = data.pagination?.total ?? 0;
-    offset += page.length;
-    if (offset >= total || page.length === 0) break;
-  }
-
-  return entries;
-}
 
 export async function fetchKauflandSkus(): Promise<KauflandInventorySku[]> {
   const sf = (process.env.KAUFLAND_STOREFRONT ?? "de").split(",")[0].trim();

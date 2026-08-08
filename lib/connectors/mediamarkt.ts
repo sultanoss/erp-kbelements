@@ -185,35 +185,6 @@ export async function sendMediaMarktShipmentNotification(params: {
 
 export type MediaMarktInventorySku = { marketplaceSku: string; title: string | null };
 export type MediaMarktStockPushResult = { marketplaceSku: string; ok: boolean; error?: string };
-export type MediaMarktPriceEntry = { marketplaceSku: string; title: string | null; price: number };
-
-export async function fetchMediaMarktPrices(): Promise<MediaMarktPriceEntry[]> {
-  const entries: MediaMarktPriceEntry[] = [];
-  let offset = 0;
-  const max = 100;
-
-  while (true) {
-    const url = `${BASE}/offers?max=${max}&offset=${offset}`;
-    const res = await fetch(url, { headers: authHeaders() });
-    if (!res.ok) break;
-    const data = await res.json() as {
-      offers?: Array<{ shop_sku?: string; offer_sku?: string; product_title?: string; price?: number }>;
-      total_count?: number;
-    };
-    const page = data.offers ?? [];
-    for (const o of page) {
-      const sku = o.shop_sku ?? o.offer_sku;
-      if (sku && o.price != null) {
-        entries.push({ marketplaceSku: sku, title: o.product_title ?? null, price: o.price });
-      }
-    }
-    const total = data.total_count ?? 0;
-    offset += page.length;
-    if (offset >= total || page.length === 0) break;
-  }
-
-  return entries;
-}
 
 export async function fetchMediaMarktSkus(): Promise<MediaMarktInventorySku[]> {
   const skus: MediaMarktInventorySku[] = [];
