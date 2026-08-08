@@ -330,106 +330,124 @@ export async function createInvoice(data: {
   const user = await requireUser();
 
   const noStock = data.docType === "angebot" || data.docType === "gutschrift" || data.docType === "proforma";
+  // KN wird nur innerhalb des Locks generiert wenn saveAs* aktiv und keine KN übergeben
+  const needsKN = !data.customerNum?.trim() && (data.saveAsB2cCustomer || data.saveAsB2bCustomer);
+  let finalCustomerNum: string | null = data.customerNum?.trim() || null;
 
-  let number: string;
-  if (data.docType === "proforma") {
-    const year = new Date().getFullYear().toString().slice(-2);
-    const proformaPrefix = `KBP-${year}-`;
-    const lastProforma = await prisma.invoice.findFirst({
-      where: { number: { startsWith: proformaPrefix }, docType: "proforma" },
-      orderBy: { number: "desc" },
-    });
-    const proformaSeq = lastProforma
-      ? parseInt(lastProforma.number.replace(proformaPrefix, ""), 10) + 1
-      : 100;
-    number = `${proformaPrefix}${proformaSeq}`;
-  } else {
-    const prefix = data.docType === "angebot" ? "KBA-" : data.docType === "gutschrift" ? "KBG-" : "KBR-";
-    const last = await prisma.invoice.findFirst({
-      where: { number: { startsWith: prefix }, docType: data.docType },
-      orderBy: { number: "desc" },
-    });
-    const seq = last ? parseInt(last.number.replace(prefix, ""), 10) + 1 : 2601;
-    number = `${prefix}${String(seq).padStart(4, "0")}`;
-  }
+  // eslint-disable-next-line prefer-const
+  let invoice!: { id: string };
+  try {
+    invoice = await prisma.$transaction(async (tx) => {
+      // Non-blocking: gibt false zurück wenn createInvoiceFromOrder (Automatik) gerade läuft
+      const rows = await tx.$queryRaw<Array<{ acquired: boolean }>>`
+        SELECT pg_try_advisory_xact_lock(555444333) AS acquired
+      `;
+      if (!rows[0].acquired) throw new Error("BUSY");
 
-  const invoice = await prisma.$transaction(async (tx) => {
-    const inv = await tx.invoice.create({
-      data: {
-        number,
-        date: new Date(`${data.date}T00:00:00`),
-        customerName: data.customerName,
-        customerAddress: data.customerAddress,
-        customerNum: data.customerNum || null,
-        customerPhone: data.customerPhone || null,
-        mwstRate: data.mwstRate,
-        shippingCost: data.shippingCost,
-        shippingMwst: data.shippingMwst,
-        paymentMethod: data.paymentMethod,
-        notes: data.notes || null,
-        paymentInfo: data.paymentInfo || null,
-        bezahlt: data.bezahlt ?? true,
-        docType: data.docType,
-        originalInvoiceId: data.originalInvoiceId ?? null,
-        originalInvoiceNum: data.originalInvoiceNum ?? null,
-        userId: user.id,
-        items: {
-          create: data.items.map((it) => ({
-            pos: it.pos,
-            quantity: it.quantity,
-            description: it.description,
-            unitPrice: it.unitPrice,
-            skus: { create: it.skus.map((s) => ({ sku: s.sku, lager: s.lager })) },
-          })),
+      // Rechnungsnummer innerhalb des Locks generieren
+      let number: string;
+      if (data.docType === "proforma") {
+        const year = new Date().getFullYear().toString().slice(-2);
+        const pp = `KBP-${year}-`;
+        const last = await tx.invoice.findFirst({ where: { number: { startsWith: pp }, docType: "proforma" }, orderBy: { number: "desc" } });
+        number = `${pp}${last ? parseInt(last.number.replace(pp, ""), 10) + 1 : 100}`;
+      } else {
+        const prefix = data.docType === "angebot" ? "KBA-" : data.docType === "gutschrift" ? "KBG-" : "KBR-";
+        const last = await tx.invoice.findFirst({ where: { number: { startsWith: prefix }, docType: data.docType }, orderBy: { number: "desc" } });
+        number = `${prefix}${String(last ? parseInt(last.number.replace(prefix, ""), 10) + 1 : 2601).padStart(4, "0")}`;
+      }
+
+      // Kundennummer innerhalb des Locks generieren (kein Duplikat möglich)
+      if (needsKN) {
+        const year = new Date().getFullYear().toString().slice(-2);
+        const cnPrefix = `KN-${year}-`;
+        const [b2bList, b2cList, invList] = await Promise.all([
+          tx.b2bCustomer.findMany({ where: { customerNum: { startsWith: cnPrefix } }, select: { customerNum: true } }),
+          tx.b2cCustomer.findMany({ where: { customerNum: { startsWith: cnPrefix } }, select: { customerNum: true } }),
+          tx.invoice.findMany({ where: { customerNum: { startsWith: cnPrefix } }, select: { customerNum: true } }),
+        ]);
+        const allNums = [...b2bList, ...b2cList, ...invList]
+          .map((c) => parseInt(c.customerNum!.replace(cnPrefix, ""), 10)).filter((n) => !isNaN(n));
+        const next = allNums.length > 0 ? Math.max(...allNums) + 1 : 3;
+        finalCustomerNum = `${cnPrefix}${String(next).padStart(2, "0")}`;
+      }
+
+      const inv = await tx.invoice.create({
+        data: {
+          number,
+          date: new Date(`${data.date}T00:00:00`),
+          customerName: data.customerName,
+          customerAddress: data.customerAddress,
+          customerNum: finalCustomerNum,
+          customerPhone: data.customerPhone || null,
+          mwstRate: data.mwstRate,
+          shippingCost: data.shippingCost,
+          shippingMwst: data.shippingMwst,
+          paymentMethod: data.paymentMethod,
+          notes: data.notes || null,
+          paymentInfo: data.paymentInfo || null,
+          bezahlt: data.bezahlt ?? true,
+          docType: data.docType,
+          originalInvoiceId: data.originalInvoiceId ?? null,
+          originalInvoiceNum: data.originalInvoiceNum ?? null,
+          userId: user.id,
+          items: {
+            create: data.items.map((it) => ({
+              pos: it.pos,
+              quantity: it.quantity,
+              description: it.description,
+              unitPrice: it.unitPrice,
+              skus: { create: it.skus.map((s) => ({ sku: s.sku, lager: s.lager })) },
+            })),
+          },
         },
-      },
-    });
+      });
 
-    // Reduce stock only for Rechnungen (not Angebote / Gutschriften)
-    if (!noStock) {
-      for (const it of data.items) {
-        const qty = Math.round(it.quantity);
-        for (const s of it.skus) {
-          if (!s.sku) continue;
-          const item = await tx.item.findUnique({ where: { sku: s.sku } });
-          if (!item) continue;
-          if (s.lager === "ns") {
-            await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
-          } else {
-            await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+      if (!noStock) {
+        for (const it of data.items) {
+          const qty = Math.round(it.quantity);
+          for (const s of it.skus) {
+            if (!s.sku) continue;
+            const item = await tx.item.findUnique({ where: { sku: s.sku } });
+            if (!item) continue;
+            if (s.lager === "ns") {
+              await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+            } else {
+              await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+            }
           }
         }
       }
-    }
 
-    return inv;
-  });
+      return { id: inv.id };
+    });
+  } catch (e) {
+    if (e instanceof Error && e.message === "BUSY") {
+      redirect("/buchhaltung/neu?busy=1");
+    }
+    throw e;
+  }
 
   revalidatePath("/buchhaltung");
   revalidatePath("/angebot");
   revalidatePath("/gutschrift");
   revalidatePath("/inventory");
   revalidatePath("/");
-  if (data.saveAsB2cCustomer && data.customerName && data.customerAddress) {
-    const customerNum = data.customerNum || await generateCustomerNum();
+
+  // KN wurde bereits innerhalb des Locks gesetzt — nur noch Kundendatensatz anlegen
+  if (data.saveAsB2cCustomer && data.customerName && data.customerAddress && finalCustomerNum) {
     await prisma.b2cCustomer.create({
-      data: { name: data.customerName.trim(), address: data.customerAddress.trim(), customerNum, phone: data.customerPhone || null },
+      data: { name: data.customerName.trim(), address: data.customerAddress.trim(), customerNum: finalCustomerNum, phone: data.customerPhone || null },
     });
-    if (!data.customerNum) {
-      await prisma.invoice.update({ where: { id: invoice.id }, data: { customerNum } });
-    }
     revalidatePath("/b2c/kunden");
   }
-  if (data.saveAsB2bCustomer && data.customerName && data.customerAddress) {
-    const customerNum = data.customerNum || await generateCustomerNum();
+  if (data.saveAsB2bCustomer && data.customerName && data.customerAddress && finalCustomerNum) {
     await prisma.b2bCustomer.create({
-      data: { name: data.customerName.trim(), address: data.customerAddress.trim(), customerNum, phone: data.customerPhone || null, mwstRate: data.mwstRate, paymentMethod: "konto" },
+      data: { name: data.customerName.trim(), address: data.customerAddress.trim(), customerNum: finalCustomerNum, phone: data.customerPhone || null, mwstRate: data.mwstRate, paymentMethod: "konto" },
     });
-    if (!data.customerNum) {
-      await prisma.invoice.update({ where: { id: invoice.id }, data: { customerNum } });
-    }
     revalidatePath("/b2b/kunden");
   }
+
   if (data.docType === "angebot") redirect(`/angebot/${invoice.id}`);
   if (data.docType === "gutschrift") redirect(`/gutschrift/${invoice.id}`);
   redirect(`/buchhaltung/${invoice.id}`);

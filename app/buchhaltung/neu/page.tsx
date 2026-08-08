@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 export default async function NeueRechnungPage({
   searchParams,
 }: {
-  searchParams: Promise<{ proforma?: string }>;
+  searchParams: Promise<{ proforma?: string; busy?: string }>;
 }) {
-  const { proforma } = await searchParams;
+  const { proforma, busy } = await searchParams;
   const isProforma = proforma === "1";
 
   const [items, b2bCustomers, b2cCustomers, defaultCustomerNum] = await Promise.all([
@@ -34,6 +34,11 @@ export default async function NeueRechnungPage({
   return (
     <AppShell>
       <PageHeader title={isProforma ? "Neue Proforma-Rechnung" : "Neue Rechnung"} eyebrow="Buchhaltung" />
+      {busy === "1" && (
+        <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+          Momentan wird automatisch eine Rechnung erstellt. Bitte versuche es in wenigen Sekunden erneut.
+        </div>
+      )}
       <Panel className="p-6">
         <InvoiceForm skus={items} b2bCustomers={b2bCustomers} b2cCustomers={b2cCustomers} docType={isProforma ? "proforma" : "rechnung"} defaultCustomerNum={defaultCustomerNum} />
       </Panel>

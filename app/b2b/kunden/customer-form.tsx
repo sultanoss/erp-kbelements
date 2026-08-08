@@ -38,7 +38,7 @@ function NewCustomerForm({ onDone }: { onDone: () => void }) {
     if (!address) return setError("Adresse ist erforderlich.");
 
     startTransition(async () => {
-      await createCustomer({
+      const result = await createCustomer({
         name,
         customerNum: (fd.get("customerNum") as string).trim() || undefined,
         phone: (fd.get("phone") as string).trim() || undefined,
@@ -48,6 +48,10 @@ function NewCustomerForm({ onDone }: { onDone: () => void }) {
         paymentInfo: paymentMethod === "konto" ? (fd.get("paymentInfo") as string).trim() || undefined : undefined,
         notes: (fd.get("notes") as string).trim() || undefined,
       });
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
       onDone();
     });
   }
