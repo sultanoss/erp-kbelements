@@ -43,7 +43,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     { href: "/b2b/einkauf",         label: "Wareneinkauf"   },
     { href: "/b2b/preisliste",      label: "Preisliste"     },
     { href: "/b2b/kunden",          label: "B2B Kunden"     },
-    { href: "/b2b/portale-preise",  label: "Portale Preise" },
+    { href: "/b2b/portale-gewinn",  label: "Portale Gewinn" },
   ]};
 
   const links: NavItem[] =
