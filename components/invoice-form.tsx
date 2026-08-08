@@ -432,12 +432,16 @@ export function InvoiceForm({
                           </button>
                         )}
                       </div>
-                      {found && (
-                        <div className="ml-1 mt-1 flex gap-4 font-mono text-xs">
-                          <span className="text-grey-dark">Neuware-Lager: <strong className="text-brand-red">{found.stock}</strong></span>
-                          <span className="text-grey-dark">NS-Lager: <strong className="text-brand-red">{found.stockNS}</strong></span>
-                        </div>
-                      )}
+                      {found && (() => {
+                        const remNeuware = found.stock - (s.lager === "neuware" ? it.quantity : 0);
+                        const remNS = found.stockNS - (s.lager === "ns" ? it.quantity : 0);
+                        return (
+                          <div className="ml-1 mt-1 flex gap-4 font-mono text-xs">
+                            <span className="text-grey-dark">Neuware-Lager: <strong className={remNeuware < 0 ? "text-orange-500" : "text-brand-red"}>{remNeuware}</strong></span>
+                            <span className="text-grey-dark">NS-Lager: <strong className={remNS < 0 ? "text-orange-500" : "text-brand-red"}>{remNS}</strong></span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
