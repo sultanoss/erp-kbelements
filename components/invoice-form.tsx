@@ -7,7 +7,7 @@ type DocType = "rechnung" | "angebot" | "gutschrift" | "proforma";
 
 type SkuEntry = { id: number; sku: string; lager: string };
 type LineItem = { id: number; pos: number; quantity: number; description: string; unitPrice: number; skus: SkuEntry[] };
-type SkuData = { sku: string; name: string; stock: number; stockNS: number };
+type SkuData = { sku: string; name: string; stock: number; stockNS: number; purchasePrice: number | null };
 
 export type B2bCustomer = {
   id: string;
@@ -63,6 +63,7 @@ export function InvoiceForm({
   b2bCustomers = [],
   b2cCustomers = [],
   defaultCustomerNum,
+  isAdmin = false,
 }: {
   skus: SkuData[];
   initialData?: InvoiceInitialData;
@@ -72,6 +73,7 @@ export function InvoiceForm({
   b2bCustomers?: B2bCustomer[];
   b2cCustomers?: B2cCustomer[];
   defaultCustomerNum?: string;
+  isAdmin?: boolean;
 }) {
   const [items, setItems] = useState<LineItem[]>(initialData?.items ?? [newLine(1)]);
   const [mwstRate, setMwstRate] = useState(initialData?.mwstRate ?? 19);
@@ -458,13 +460,22 @@ export function InvoiceForm({
                 required
                 className="h-8 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none"
               />
-              <input
-                type="text"
-                inputMode="decimal"
-                value={it.quantity === 0 ? "" : String(it.quantity)}
-                onChange={(e) => updateItem(it.id, "quantity", parseFloat(e.target.value.replace(",", ".")) || 0)}
-                className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
-              />
+              <div className="flex flex-col gap-0.5">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={it.quantity === 0 ? "" : String(it.quantity)}
+                  onChange={(e) => updateItem(it.id, "quantity", parseFloat(e.target.value.replace(",", ".")) || 0)}
+                  className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
+                />
+                {isAdmin && (() => {
+                  const firstSku = it.skus[0]?.sku;
+                  const foundSku = firstSku ? skus.find((s) => s.sku === firstSku) : null;
+                  return foundSku?.purchasePrice != null ? (
+                    <span className="pr-1 font-mono text-[10px] text-grey-mid text-right">Ø-EK: {foundSku.purchasePrice.toFixed(2)} €</span>
+                  ) : null;
+                })()}
+              </div>
               <div className="flex flex-col gap-0.5">
                 <input
                   type="text"

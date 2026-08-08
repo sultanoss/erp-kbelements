@@ -3,6 +3,7 @@ import { AppShell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
 import { prisma } from "@/lib/prisma";
 import { InvoiceForm, type InvoiceInitialData } from "@/components/invoice-form";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,11 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
   if (!inv) notFound();
   if (inv.status !== "aktiv") redirect(`/buchhaltung/${id}`);
 
+  const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN";
+
   const [allItems, b2bCustomers, b2cCustomers] = await Promise.all([
-    prisma.item.findMany({ orderBy: { sku: "asc" }, select: { sku: true, name: true, stock: true, stockNS: true } }),
+    prisma.item.findMany({ orderBy: { sku: "asc" }, select: { sku: true, name: true, stock: true, stockNS: true, purchasePrice: true } }),
     prisma.b2bCustomer.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, customerNum: true, phone: true, address: true, mwstRate: true, paymentMethod: true, paymentInfo: true, notes: true } }),
     prisma.b2cCustomer.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, customerNum: true, phone: true, address: true } }),
   ]);
@@ -61,6 +65,7 @@ export default async function BearbeitenPage({ params }: { params: Promise<{ id:
           docType={(inv.docType as "rechnung" | "angebot" | "gutschrift" | "proforma") || "rechnung"}
           b2bCustomers={b2bCustomers}
           b2cCustomers={b2cCustomers}
+          isAdmin={isAdmin}
         />
       </div>
     </AppShell>

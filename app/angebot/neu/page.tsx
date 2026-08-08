@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function NeuesAngebotPage() {
   const allItems = await prisma.item.findMany({
     orderBy: { sku: "asc" },
-    select: { sku: true, name: true, stock: true, stockNS: true },
+    select: { sku: true, name: true, stock: true, stockNS: true, purchasePrice: true },
   });
 
   return (

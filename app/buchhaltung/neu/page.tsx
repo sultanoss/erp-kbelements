@@ -4,6 +4,7 @@ import { Panel } from "@/components/ui";
 import { InvoiceForm } from "@/components/invoice-form";
 import { prisma } from "@/lib/prisma";
 import { generateCustomerNum } from "@/lib/customer-helper";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,13 @@ export default async function NeueRechnungPage({
   const { proforma, busy } = await searchParams;
   const isProforma = proforma === "1";
 
+  const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN";
+
   const [items, b2bCustomers, b2cCustomers, defaultCustomerNum] = await Promise.all([
     prisma.item.findMany({
       orderBy: { createdAt: "asc" },
-      select: { sku: true, name: true, stock: true, stockNS: true },
+      select: { sku: true, name: true, stock: true, stockNS: true, purchasePrice: true },
     }),
     prisma.b2bCustomer.findMany({
       orderBy: { name: "asc" },
@@ -40,7 +44,7 @@ export default async function NeueRechnungPage({
         </div>
       )}
       <Panel className="p-6">
-        <InvoiceForm skus={items} b2bCustomers={b2bCustomers} b2cCustomers={b2cCustomers} docType={isProforma ? "proforma" : "rechnung"} defaultCustomerNum={defaultCustomerNum} />
+        <InvoiceForm skus={items} b2bCustomers={b2bCustomers} b2cCustomers={b2cCustomers} docType={isProforma ? "proforma" : "rechnung"} defaultCustomerNum={defaultCustomerNum} isAdmin={isAdmin} />
       </Panel>
     </AppShell>
   );

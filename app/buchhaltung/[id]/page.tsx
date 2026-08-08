@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import { auth } from "@/auth";
 import { StornoButton } from "@/components/storno-button";
 import { MarkAsBezahltButton } from "@/components/mark-as-bezahlt-button";
 import { ConvertProformaButton } from "@/components/convert-proforma-button";
@@ -14,11 +15,32 @@ export const dynamic = "force-dynamic";
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const inv = await prisma.invoice.findUnique({
-    where: { id },
-    include: { items: { orderBy: { pos: "asc" }, include: { skus: true } }, user: true },
-  });
+  const [inv, session] = await Promise.all([
+    prisma.invoice.findUnique({
+      where: { id },
+      include: { items: { orderBy: { pos: "asc" }, include: { skus: true } }, user: true },
+    }),
+    auth(),
+  ]);
   if (!inv) notFound();
+
+  const isAdmin = session?.user?.role === "ADMIN";
+
+  // Gewinnermittlung: nur für Admins bei B2B-Kunden
+  let isB2B = false;
+  let purchasePriceMap: Record<string, number | null> = {};
+  if (isAdmin) {
+    const b2bMatch = await prisma.b2bCustomer.findFirst({ where: { name: inv.customerName } });
+    isB2B = !!b2bMatch;
+    if (isB2B) {
+      const allSkus = inv.items.flatMap((it) => it.skus.map((s) => s.sku)).filter(Boolean);
+      const itemsWithPrice = await prisma.item.findMany({
+        where: { sku: { in: allSkus } },
+        select: { sku: true, purchasePrice: true },
+      });
+      purchasePriceMap = Object.fromEntries(itemsWithPrice.map((i) => [i.sku, i.purchasePrice ?? null]));
+    }
+  }
 
   const bruttoPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
   const shipping = inv.shippingCost ?? 0;
@@ -192,6 +214,51 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           )}
         </Panel>
       )}
+
+      {isAdmin && isB2B && (() => {
+        const rows = inv.items.map((it) => {
+          const erlos = it.quantity * it.unitPrice;
+          const ekKosten = it.skus.reduce((sum, s) => sum + it.quantity * (purchasePriceMap[s.sku] ?? 0), 0);
+          return { ...it, erlos, ekKosten, gewinn: erlos - ekKosten };
+        });
+        const totalErlos = rows.reduce((s, r) => s + r.erlos, 0);
+        const totalEK = rows.reduce((s, r) => s + r.ekKosten, 0);
+        const totalGewinn = totalErlos - totalEK;
+        const marge = totalErlos > 0 ? (totalGewinn / totalErlos) * 100 : 0;
+        return (
+          <div className="print:hidden mt-5 rounded-xl border border-orange-200 bg-orange-50 p-5">
+            <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-orange-700">
+              Gewinnermittlung — nur für Admins
+            </div>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-orange-200">
+                  <th className="pb-2 font-mono text-[10px] text-orange-600">Position</th>
+                  <th className="pb-2 font-mono text-[10px] text-orange-600 text-right">Erlös</th>
+                  <th className="pb-2 font-mono text-[10px] text-orange-600 text-right">EK-Kosten</th>
+                  <th className="pb-2 font-mono text-[10px] text-orange-600 text-right">Gewinn</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-b border-orange-100">
+                    <td className="py-1.5 text-grey-dark">{r.description}</td>
+                    <td className="py-1.5 font-mono tabular-nums text-right text-grey-dark">{r.erlos.toFixed(2)} €</td>
+                    <td className="py-1.5 font-mono tabular-nums text-right text-grey-mid">{r.ekKosten.toFixed(2)} €</td>
+                    <td className={`py-1.5 font-mono tabular-nums text-right font-semibold ${r.gewinn >= 0 ? "text-green-700" : "text-brand-red"}`}>
+                      {r.gewinn.toFixed(2)} €
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-3 flex justify-end gap-8 border-t border-orange-200 pt-3 font-mono text-sm font-semibold">
+              <span className="text-grey-mid">Marge: <span className="text-orange-700">{marge.toFixed(1)} %</span></span>
+              <span className="text-grey-mid">Gesamt-Gewinn: <span className={totalGewinn >= 0 ? "text-green-700" : "text-brand-red"}>{totalGewinn.toFixed(2)} €</span></span>
+            </div>
+          </div>
+        );
+      })()}
     </AppShell>
   );
 }
