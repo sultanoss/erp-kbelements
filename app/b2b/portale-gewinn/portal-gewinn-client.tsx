@@ -10,12 +10,14 @@ export function PortalGewinnClient({
   items,
   extraCosts: initialCosts,
   avgSellPrice,
+  soldQty,
   von: initialVon,
   bis: initialBis,
 }: {
   items: Item[];
   extraCosts: Record<string, number>;
   avgSellPrice: Record<string, number>;
+  soldQty: Record<string, number>;
   von: string;
   bis: string;
 }) {
@@ -100,6 +102,7 @@ export function PortalGewinnClient({
               <th className="px-4 py-3 text-left font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
               <th className="px-4 py-3 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Ø-EK</th>
               <th className="px-4 py-3 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Ø-VP MediaMarkt</th>
+              <th className="px-4 py-3 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Menge</th>
               <th className="px-4 py-3 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Zusatzkosten</th>
               <th className="px-4 py-3 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Gewinn</th>
             </tr>
@@ -120,6 +123,9 @@ export function PortalGewinnClient({
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-xs tabular-nums text-grey-dark">
                     {vp != null ? `${vp.toFixed(2)} €` : "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-mono text-xs tabular-nums text-grey-dark">
+                    {soldQty[it.sku] != null ? soldQty[it.sku] : "—"}
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1">

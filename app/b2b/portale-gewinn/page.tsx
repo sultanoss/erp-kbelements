@@ -59,8 +59,12 @@ export default async function PortalGewinnPage({
     }
   }
   const avgSellPrice: Record<string, number> = {};
+  const soldQty: Record<string, number> = {};
   for (const [sku, { revenue, qty }] of Object.entries(totals)) {
-    if (qty > 0) avgSellPrice[sku] = revenue / qty;
+    if (qty > 0) {
+      avgSellPrice[sku] = revenue / qty;
+      soldQty[sku] = qty;
+    }
   }
 
   const extraCosts: Record<string, number> = setting?.value
@@ -77,6 +81,7 @@ export default async function PortalGewinnPage({
         items={items}
         extraCosts={extraCosts}
         avgSellPrice={avgSellPrice}
+        soldQty={soldQty}
         von={vonStr}
         bis={bisStr}
       />
