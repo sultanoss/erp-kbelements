@@ -8,70 +8,46 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
-enum Marketplace {
-  OTTO
-  AMAZON
-  KAUFLAND
-  MEDIAMARKT
-  EBAY
-  EBAY_OUTLET
-  SHOPIFY
-  DIREKT
-}
-
-enum ActivityType {
-  SALE
-  RECEIPT
-  CORRECTION
-  USER_CHANGE
-}
-
 model User {
-  id           String         @id @default(cuid())
-  name         String
-  email        String         @unique
-  passwordHash String
-  role         Role           @default(USER)
-  active       Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  sales          Sale[]
-  receipts       Receipt[]
-  corrections    Correction[]
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  passwordHash   String
+  role           Role            @default(USER)
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   activities     ActivityLog[]
+  corrections    Correction[]
   herdsetSales   HerdsetSale[]
   invoices       Invoice[]
   purchaseOrders PurchaseOrder[]
+  receipts       Receipt[]
+  sales          Sale[]
 }
-
 
 model Item {
   sku                  String                 @id
-  name                 String                 @default("")
   stock                Int                    @default(0)
-  stockNS              Int                    @default(0)
   minStock             Int                    @default(0)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  stockNS              Int                    @default(0)
+  name                 String                 @default("")
   purchasePrice        Float?
   description          String?
   highlights           String?
-  scopeOfDelivery      String?
   imageUrl             String?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  sales                Sale[]
-  receipts             Receipt[]
-  corrections          Correction[]
+  scopeOfDelivery      String?
   activities           ActivityLog[]
-  shipmentItems        ShipmentItem[]
+  corrections          Correction[]
+  image                ItemImage?
+  priceColumnValues    PriceColumnValue[]
   purchaseOrderItems   PurchaseOrderItem[]
   purchasePriceHistory PurchasePriceHistory[]
-  priceColumnValues    PriceColumnValue[]
-  image                ItemImage?
+  receipts             Receipt[]
+  sales                Sale[]
+  shipmentItems        ShipmentItem[]
   skuMappingItems      SkuMappingItem[]
 }
 
@@ -88,10 +64,10 @@ model Sale {
   marketplace Marketplace
   sku         String
   quantity    Int
-  source      String      @default("TAGESVERKAUF")
   userId      String
   createdAt   DateTime    @default(now())
-  item        Item        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  source      String      @default("TAGESVERKAUF")
+  item        Item        @relation(fields: [sku], references: [sku])
   user        User        @relation(fields: [userId], references: [id])
 
   @@index([date])
@@ -105,7 +81,7 @@ model Receipt {
   quantity  Int
   userId    String
   createdAt DateTime @default(now())
-  item      Item     @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  item      Item     @relation(fields: [sku], references: [sku])
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([date])
@@ -113,19 +89,19 @@ model Receipt {
 }
 
 model Correction {
-  id        String   @id @default(cuid())
-  date      DateTime
-  sku       String
-  quantity  Int
-  reason    String
-  lager     String   @default("neuware")
-  austausch           Boolean  @default(false)
-  austauschAngekommen Boolean  @default(false)
-  userId    String
-  createdAt DateTime @default(now())
-  item      Item        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
-  user      User        @relation(fields: [userId], references: [id])
-  activityLogs ActivityLog[]
+  id                  String        @id @default(cuid())
+  date                DateTime
+  sku                 String
+  quantity            Int
+  reason              String
+  userId              String
+  createdAt           DateTime      @default(now())
+  lager               String        @default("neuware")
+  austausch           Boolean       @default(false)
+  austauschAngekommen Boolean       @default(false)
+  activityLogs        ActivityLog[]
+  item                Item          @relation(fields: [sku], references: [sku])
+  user                User          @relation(fields: [userId], references: [id])
 
   @@index([date])
   @@index([sku])
@@ -137,9 +113,9 @@ model HerdsetSale {
   marketplace Marketplace
   label       String
   quantity    Int
-  orderId     String?
   userId      String
   createdAt   DateTime    @default(now())
+  orderId     String?
   user        User        @relation(fields: [userId], references: [id])
 
   @@index([date])
@@ -147,32 +123,32 @@ model HerdsetSale {
 }
 
 model Invoice {
-  id              String        @id @default(cuid())
-  number          String        @unique
-  date            DateTime
-  customerName    String
-  customerAddress String
-  customerNum     String?
-  customerPhone   String?
-  mwstRate        Int           @default(19)
-  shippingCost    Float?
-  shippingMwst    Int           @default(19)
-  paymentMethod   String        @default("konto")
-  notes           String?
-  paymentInfo     String?
+  id                 String        @id @default(cuid())
+  number             String        @unique
+  date               DateTime
+  customerName       String
+  customerAddress    String
+  customerNum        String?
+  mwstRate           Int           @default(19)
+  notes              String?
+  paymentInfo        String?
+  createdAt          DateTime      @default(now())
+  userId             String
+  shippingCost       Float?
+  paymentMethod      String        @default("konto")
   status             String        @default("aktiv")
   storniertAt        DateTime?
-  bezahlt            Boolean       @default(true)
-  bezahltAt          DateTime?
+  shippingMwst       Int           @default(19)
   docType            String        @default("rechnung")
   originalInvoiceId  String?
   originalInvoiceNum String?
   marketplace        String?
   orderId            String?
-  createdAt          DateTime      @default(now())
-  userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  items           InvoiceItem[]
+  bezahlt            Boolean       @default(true)
+  bezahltAt          DateTime?
+  customerPhone      String?
+  user               User          @relation(fields: [userId], references: [id])
+  items              InvoiceItem[]
 
   @@index([date])
   @@index([number])
@@ -210,20 +186,20 @@ model Order {
   zip            String
   city           String
   country        String      @default("DE")
+  orderDate      DateTime
+  trackingNumber String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderNumber    String?
   billingName    String?
   billingStreet  String?
   billingZip     String?
   billingCity    String?
   billingCountry String?
   phoneNumber    String?
-  orderDate      DateTime
-  orderNumber    String?
-  trackingNumber String?
-  isHerdset      Boolean     @default(false)
   herdsetLabel   String?
+  isHerdset      Boolean     @default(false)
   note           String?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
   items          OrderItem[]
   shipments      Shipment[]
 
@@ -235,35 +211,35 @@ model Order {
 model OrderItem {
   id             String  @id @default(cuid())
   orderId        String
-  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   marketplaceSku String
   internalSku    String?
-  positionItemId String?
   title          String
   quantity       Int
   price          Float
+  positionItemId String?
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Shipment {
-  id              String         @id @default(cuid())
-  orderId         String
-  order           Order          @relation(fields: [orderId], references: [id])
-  carrier         String
-  status          String         @default("LABEL_CREATED")
+  id                   String         @id @default(cuid())
+  orderId              String
+  carrier              String
+  status               String         @default("LABEL_CREATED")
   trackingNumber       String?
   labelUrl             String?
+  dhlShipmentId        String?
+  weight               Float?
+  carrierResponse      Json?
+  notifiedOttoAt       DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
   returnTrackingNumber String?
   returnLabelUrl       String?
-  dhlShipmentId        String?
-  positionItemIds      String[]   @default([])
-  weight          Float?
-  carrierResponse Json?
-  notifiedOttoAt  DateTime?
-  salesCreated    Boolean        @default(false)
-  labelPrinted    Boolean        @default(false)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  items           ShipmentItem[]
+  salesCreated         Boolean        @default(false)
+  labelPrinted         Boolean        @default(false)
+  positionItemIds      String[]       @default([])
+  order                Order          @relation(fields: [orderId], references: [id])
+  items                ShipmentItem[]
 
   @@index([orderId])
   @@index([status])
@@ -272,12 +248,12 @@ model Shipment {
 model ShipmentItem {
   id          String   @id @default(cuid())
   shipmentId  String
-  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   internalSku String
-  item        Item     @relation(fields: [internalSku], references: [sku])
   quantity    Int
   warehouse   String   @default("neuware")
   createdAt   DateTime @default(now())
+  item        Item     @relation(fields: [internalSku], references: [sku])
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
 }
 
 model PurchaseOrder {
@@ -287,9 +263,9 @@ model PurchaseOrder {
   invoiceNumber String
   notes         String?
   userId        String
+  createdAt     DateTime            @default(now())
   user          User                @relation(fields: [userId], references: [id])
   items         PurchaseOrderItem[]
-  createdAt     DateTime            @default(now())
 
   @@index([date])
 }
@@ -297,19 +273,18 @@ model PurchaseOrder {
 model PurchaseOrderItem {
   id               String        @id @default(cuid())
   purchaseOrderId  String
-  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
   sku              String
-  item             Item          @relation(fields: [sku], references: [sku])
   quantity         Int
   purchasePrice    Float
   oldPurchasePrice Float?
   oldStock         Int
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  item             Item          @relation(fields: [sku], references: [sku])
 }
 
 model PurchasePriceHistory {
   id              String   @id @default(cuid())
   sku             String
-  item            Item     @relation(fields: [sku], references: [sku])
   date            DateTime
   supplier        String
   invoiceNumber   String
@@ -317,6 +292,7 @@ model PurchasePriceHistory {
   purchasePrice   Float
   purchaseOrderId String
   createdAt       DateTime @default(now())
+  item            Item     @relation(fields: [sku], references: [sku])
 
   @@index([sku])
   @@index([purchaseOrderId])
@@ -333,11 +309,11 @@ model PriceColumn {
 model PriceColumnValue {
   id            String      @id @default(cuid())
   priceColumnId String
-  priceColumn   PriceColumn @relation(fields: [priceColumnId], references: [id], onDelete: Cascade)
   sku           String
-  item          Item        @relation(fields: [sku], references: [sku])
   price         Float?
   updatedAt     DateTime    @updatedAt
+  priceColumn   PriceColumn @relation(fields: [priceColumnId], references: [id], onDelete: Cascade)
+  item          Item        @relation(fields: [sku], references: [sku])
 
   @@unique([priceColumnId, sku])
   @@index([sku])
@@ -349,8 +325,8 @@ model SkuMapping {
   marketplaceSku String
   label          String?
   active         Boolean          @default(true)
-  items          SkuMappingItem[]
   createdAt      DateTime         @default(now())
+  items          SkuMappingItem[]
 
   @@unique([marketplace, marketplaceSku])
 }
@@ -359,18 +335,18 @@ model SkuMappingItem {
   id          String     @id @default(cuid())
   mappingId   String
   internalSku String
-  mapping     SkuMapping @relation(fields: [mappingId], references: [id], onDelete: Cascade)
   item        Item       @relation(fields: [internalSku], references: [sku])
+  mapping     SkuMapping @relation(fields: [mappingId], references: [id], onDelete: Cascade)
 }
 
 model B2cCustomer {
   id          String   @id @default(cuid())
   name        String
-  customerNum String?
-  phone       String?
   address     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  customerNum String?
+  phone       String?
 
   @@index([name])
 }
@@ -379,14 +355,14 @@ model B2bCustomer {
   id            String   @id @default(cuid())
   name          String
   customerNum   String?
-  phone         String?
   address       String
-  mwstRate      Int      @default(19)
   paymentMethod String   @default("konto")
   paymentInfo   String?
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  mwstRate      Int      @default(19)
+  phone         String?
 
   @@index([name])
 }
@@ -413,13 +389,36 @@ model ActivityLog {
   newStock     Int?
   note         String?
   userId       String
-  correctionId String?
   createdAt    DateTime     @default(now())
-  item         Item?        @relation(fields: [sku], references: [sku], onUpdate: Cascade)
+  correctionId String?
+  correction   Correction?  @relation(fields: [correctionId], references: [id])
+  item         Item?        @relation(fields: [sku], references: [sku])
   user         User         @relation(fields: [userId], references: [id])
-  correction   Correction?  @relation(fields: [correctionId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([type])
   @@index([sku])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Marketplace {
+  OTTO
+  AMAZON
+  KAUFLAND
+  MEDIAMARKT
+  EBAY
+  SHOPIFY
+  DIREKT
+  EBAY_OUTLET
+}
+
+enum ActivityType {
+  SALE
+  RECEIPT
+  CORRECTION
+  USER_CHANGE
 }
