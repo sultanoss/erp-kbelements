@@ -40,9 +40,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
   if (!session?.user) redirect("/login");
 
   const b2bGroup: NavItem = { label: "B2B", icon: "Building2", separator: true, children: [
-    { href: "/b2b/einkauf",    label: "Wareneinkauf" },
-    { href: "/b2b/preisliste", label: "Preisliste"   },
-    { href: "/b2b/kunden",     label: "B2B Kunden"   },
+    { href: "/b2b/einkauf",         label: "Wareneinkauf"   },
+    { href: "/b2b/preisliste",      label: "Preisliste"     },
+    { href: "/b2b/kunden",          label: "B2B Kunden"     },
+    { href: "/b2b/portale-preise",  label: "Portale Preise" },
   ]};
 
   const links: NavItem[] =
