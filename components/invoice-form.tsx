@@ -51,7 +51,7 @@ let nextId = 1;
 let nextSkuId = 1;
 
 function newLine(pos: number): LineItem {
-  return { id: nextId++, pos, quantity: 1, description: "", unitPrice: 0, skus: [{ id: nextSkuId++, sku: "", lager: "neuware" }] };
+  return { id: nextId++, pos, quantity: 0, description: "", unitPrice: 0, skus: [{ id: nextSkuId++, sku: "", lager: "neuware" }] };
 }
 
 export function InvoiceForm({
@@ -233,6 +233,9 @@ export function InvoiceForm({
 
     if (!customerName.trim()) { setError("Kundenname fehlt"); return; }
     if (items.some((it) => !it.description)) { setError("Alle Positionen brauchen eine Bezeichnung"); return; }
+    if (items.some((it) => it.quantity === 0 || it.unitPrice === 0)) {
+      if (!window.confirm("Eine oder mehrere Positionen haben Menge oder Preis = 0. Trotzdem fortfahren?")) return;
+    }
 
     setError("");
     const payload = {
@@ -452,20 +455,18 @@ export function InvoiceForm({
                 className="h-8 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none"
               />
               <input
-                type="number"
-                value={it.quantity}
-                min={0.01}
-                step={0.01}
-                onChange={(e) => updateItem(it.id, "quantity", parseFloat(e.target.value) || 0)}
+                type="text"
+                inputMode="decimal"
+                value={it.quantity === 0 ? "" : String(it.quantity)}
+                onChange={(e) => updateItem(it.id, "quantity", parseFloat(e.target.value.replace(",", ".")) || 0)}
                 className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
               />
               <div className="flex flex-col gap-0.5">
                 <input
-                  type="number"
-                  value={it.unitPrice}
-                  min={0}
-                  step={0.01}
-                  onChange={(e) => updateItem(it.id, "unitPrice", parseFloat(e.target.value) || 0)}
+                  type="text"
+                  inputMode="decimal"
+                  value={it.unitPrice === 0 ? "" : String(it.unitPrice)}
+                  onChange={(e) => updateItem(it.id, "unitPrice", parseFloat(e.target.value.replace(",", ".")) || 0)}
                   className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
                 />
                 {selectedB2bId && lastPrices[it.id] !== undefined && (
