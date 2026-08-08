@@ -58,14 +58,18 @@ function NewCustomerForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label className={labelClass}>Firmenname / Name *</label>
           <input name="name" type="text" required placeholder="Firma GmbH" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>Kundennummer (optional)</label>
-          <input name="customerNum" type="text" placeholder="K-001" className={inputClass} />
+          <input name="customerNum" type="text" placeholder="leer = automatisch" className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Telefon (optional)</label>
+          <input name="phone" type="tel" placeholder="+49 123 456789" className={inputClass} />
         </div>
       </div>
 
@@ -113,11 +117,6 @@ function NewCustomerForm({ onDone }: { onDone: () => void }) {
           <input name="paymentInfo" type="text" placeholder="z.B. IBAN DE12 3456 7890 …" className={inputClass} />
         </div>
       )}
-
-      <div>
-        <label className={labelClass}>Telefon (optional)</label>
-        <input name="phone" type="tel" placeholder="+49 123 456789" className={inputClass} />
-      </div>
 
       <div>
         <label className={labelClass}>Notiz (optional)</label>
