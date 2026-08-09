@@ -104,16 +104,36 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
   right(coAddr, W - MR, headerTopY - 22, 9, R, DGREY);
   right("verkauf@kbelements.de", W - MR, headerTopY - 36, 8, R, GREY);
 
-  // LEFT: Kunde
-  page.drawText(inv.customerName, { x: ML, y: headerTopY, size: 10, font: B, color: BLACK });
+  // LEFT: Kunde — word-wrap lange Namen (max ~50% der Breite, damit kein Overlap mit Firma rechts)
+  const MAX_NAME_W = CW * 0.5;
+  const nameWords = inv.customerName.split(" ");
+  const nameLines: string[] = [];
+  let nameCur = "";
+  for (const w of nameWords) {
+    const test = nameCur ? `${nameCur} ${w}` : w;
+    if (B.widthOfTextAtSize(test, 10) <= MAX_NAME_W) {
+      nameCur = test;
+    } else {
+      if (nameCur) nameLines.push(nameCur);
+      nameCur = w;
+    }
+  }
+  if (nameCur) nameLines.push(nameCur);
+
+  let custY = headerTopY;
+  for (const line of nameLines) {
+    page.drawText(line, { x: ML, y: custY, size: 10, font: B, color: BLACK });
+    custY -= 13;
+  }
+  custY -= 2;
+
   const addrLines = (inv.customerAddress || "").split("\n").filter((l) => l.trim());
-  let custY = headerTopY - 15;
   for (const line of addrLines) {
     page.drawText(line, { x: ML, y: custY, size: 10, font: R, color: DGREY });
     custY -= 14;
   }
 
-  const headerH = Math.max(50, 15 + addrLines.length * 14);
+  const headerH = Math.max(50, nameLines.length * 13 + 2 + addrLines.length * 14);
   y = headerTopY - headerH - 40;
 
   // ── STORNO ──
