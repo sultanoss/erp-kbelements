@@ -87,8 +87,8 @@ function NewCustomerForm({ onDone }: { onDone: () => void }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={labelClass}>MwSt.</label>
-          <div className="flex gap-5 pt-1">
-            {([19, 20, 0] as const).map((rate) => (
+          <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
+            {([17, 19, 20, 21, 22, 23, 25, 0] as const).map((rate) => (
               <label key={rate} className={radioClass}>
                 <input type="radio" checked={mwstRate === rate} onChange={() => setMwstRate(rate)} className="accent-brand-red" />
                 <span className="font-mono text-sm font-semibold">{rate === 0 ? "0 % (steuerfrei)" : `${rate} %`}</span>

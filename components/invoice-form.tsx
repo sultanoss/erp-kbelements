@@ -353,9 +353,9 @@ export function InvoiceForm({
             className={fieldClass}
           />
         </div>
-        <div className="flex items-end gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">MwSt.</span>
-          {([19, 20, 0] as const).map((rate) => (
+          {([17, 19, 20, 21, 22, 23, 25, 0] as const).map((rate) => (
             <label key={rate} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="mwst" value={rate} checked={mwstRate === rate} onChange={() => setMwstRate(rate)} className="accent-brand-red" />
               <span className="text-sm font-semibold">{rate === 0 ? "0 %" : `${rate} %`}</span>
@@ -529,7 +529,7 @@ export function InvoiceForm({
           {shippingVal > 0 && (
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-grey-mid">MwSt.:</span>
-              {([19, 20, 0] as const).map((rate) => (
+              {([17, 19, 20, 21, 22, 23, 25, 0] as const).map((rate) => (
                 <label key={rate} className="flex items-center gap-1.5 cursor-pointer">
                   <input type="radio" checked={shippingMwst === rate} onChange={() => setShippingMwst(rate)} className="accent-brand-red" />
                   <span className="font-mono text-sm">{rate} %</span>
