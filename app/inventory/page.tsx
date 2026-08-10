@@ -183,7 +183,7 @@ export default async function InventoryPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezeichnung</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Neuware-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Ø&nbsp;/&nbsp;Tag</th>
+              <th className="px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-brand-red">Ø&nbsp;/&nbsp;Tag</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
               {canEdit && <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>}
             </tr>
