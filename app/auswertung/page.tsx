@@ -140,7 +140,7 @@ export default async function AuswertungPage({
       </form>
 
       {/* ── Ø Tagesverkauf pro SKU ── */}
-      <details open className="mb-8 group">
+      {false && <details open className="mb-8 group">
         <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
           <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Ø Tagesverkauf pro Produkt</div>
           <div className="h-px flex-1 bg-grey-border" />
@@ -171,10 +171,10 @@ export default async function AuswertungPage({
             })}
           </div>
         </Panel>
-      </details>
+      </details>}
 
       {/* ── Abschnitt 1: Einzelprodukte ── */}
-      <details open className="mb-8 group">
+      <details className="mb-8 group">
         <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
           <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Einzelprodukte</div>
           <div className="h-px flex-1 bg-grey-border" />
@@ -213,7 +213,7 @@ export default async function AuswertungPage({
       </details>
 
       {/* ── Abschnitt 2: Herdsets & Einbaubacköfen ── */}
-      <details open className="mb-6 group">
+      <details className="mb-6 group">
         <summary className="mb-3 flex cursor-pointer list-none items-center gap-3">
           <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Herdsets &amp; Einbaubacköfen</div>
           <div className="h-px flex-1 bg-grey-border" />
