@@ -49,6 +49,10 @@ export default async function InventoryPage({
     }),
   ]);
   const skuTotals = new Map(saleAgg.map((r) => [r.sku, r._sum.quantity ?? 0]));
+  const sortedItems =
+    sort === "stock_asc" || sort === "stock_desc"
+      ? items
+      : [...items].sort((a, b) => (skuTotals.get(b.sku) ?? 0) - (skuTotals.get(a.sku) ?? 0));
   const canEdit = user.role === "ADMIN";
 
   function link(s?: string) {
@@ -185,7 +189,7 @@ export default async function InventoryPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-grey-border">
-            {items.map((item) => (
+            {sortedItems.map((item) => (
               <tr key={item.sku} className="transition-colors hover:bg-grey-light/60">
                 <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{item.sku}</td>
                 <td className="px-4 py-3 text-sm text-grey-dark">{item.name || <span className="text-grey-mid italic">—</span>}</td>
@@ -194,7 +198,7 @@ export default async function InventoryPage({
                 <td className="px-4 py-3 font-mono tabular-nums text-sm">
                   {(() => {
                     const avg = ((skuTotals.get(item.sku) ?? 0) / days).toFixed(1);
-                    return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-grey-dark"}>{avg}</span>;
+                    return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>;
                   })()}
                 </td>
                 <td className="px-4 py-3">
