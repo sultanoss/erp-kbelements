@@ -81,5 +81,14 @@ export async function createInvoiceFromOrder(
     });
   });
 
+  // ActivityLog: Rechnung erstellt
+  await prisma.activityLog.create({
+    data: {
+      type: "INVOICE",
+      note: `${inv.number} · ${order.marketplace}${order.orderNumber ? ` #${order.orderNumber}` : ""}`,
+      userId,
+    },
+  });
+
   return inv;
 }

@@ -3,32 +3,53 @@ import { AppShell } from "@/components/shell";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
+import type { ActivityType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 const typeBadge: Record<string, string> = {
-  SALE: "text-brand-red border-brand-red/20 bg-brand-red/5",
-  RECEIPT: "text-green-700 border-green-200 bg-green-50",
+  SHIPMENT:   "text-blue-700 border-blue-200 bg-blue-50",
+  SALE:       "text-brand-red border-brand-red/20 bg-brand-red/5",
+  RECEIPT:    "text-green-700 border-green-200 bg-green-50",
+  CORRECTION: "text-purple-700 border-purple-200 bg-purple-50",
+  STORNO:     "text-orange-700 border-orange-200 bg-orange-50",
+  INVOICE:    "text-sky-700 border-sky-200 bg-sky-50",
 };
 
 const typeLabel: Record<string, string> = {
-  SALE: "Lagerabzug",
-  RECEIPT: "Wareneingang",
+  SHIPMENT:   "Versand Online",
+  SALE:       "Lager Verkauf",
+  RECEIPT:    "Wareneingang",
+  CORRECTION: "Korrektur",
+  STORNO:     "Storno",
+  INVOICE:    "Rechnung",
 };
+
+const ALL_TYPES: ActivityType[] = ["SHIPMENT", "SALE", "RECEIPT", "CORRECTION", "STORNO", "INVOICE"];
+
+const FILTER_BUTTONS = [
+  { label: "Alle",           typ: undefined },
+  { label: "Versand Online", typ: "SHIPMENT" },
+  { label: "Lager Verkauf",  typ: "SALE" },
+  { label: "Wareneingang",   typ: "RECEIPT" },
+  { label: "Korrekturen",    typ: "CORRECTION" },
+  { label: "Storno",         typ: "STORNO" },
+  { label: "Rechnung",       typ: "INVOICE" },
+];
 
 export default async function LagerprotokollPage({
   searchParams,
 }: {
-  searchParams: Promise<{ von?: string; bis?: string; sku?: string }>;
+  searchParams: Promise<{ von?: string; bis?: string; sku?: string; typ?: string }>;
 }) {
-  const { von, bis, sku } = await searchParams;
+  const { von, bis, sku, typ } = await searchParams;
 
   const logs = await prisma.activityLog.findMany({
     take: 500,
     orderBy: { createdAt: "desc" },
     include: { user: true },
     where: {
-      type: { in: ["SALE", "RECEIPT"] },
+      type: typ ? { equals: typ as ActivityType } : { in: ALL_TYPES },
       ...(von || bis
         ? {
             createdAt: {
@@ -45,13 +66,24 @@ export default async function LagerprotokollPage({
     "h-10 rounded-lg border border-grey-border bg-white px-3 text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10";
   const labelClass =
     "font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid";
-  const hasFilter = !!(von || bis || sku);
+  const hasFilter = !!(von || bis || sku || typ);
+
+  function filterLink(newTyp?: string) {
+    const p = new URLSearchParams();
+    if (von) p.set("von", von);
+    if (bis) p.set("bis", bis);
+    if (sku) p.set("sku", sku);
+    if (newTyp) p.set("typ", newTyp);
+    const qs = p.toString();
+    return `/lagerprotokoll${qs ? `?${qs}` : ""}`;
+  }
 
   return (
     <AppShell>
-      <PageHeader title="Lagerprotokoll" eyebrow="Abzüge und Wareneingänge" />
+      <PageHeader title="Lagerprotokoll" eyebrow="Alle Lagerbewegungen" />
 
-      <form method="GET" className="mb-6 flex flex-wrap items-end gap-3">
+      {/* Filter */}
+      <form method="GET" className="mb-4 flex flex-wrap items-end gap-3">
         <label className="grid gap-1.5">
           <span className={labelClass}>SKU</span>
           <input
@@ -70,6 +102,7 @@ export default async function LagerprotokollPage({
           <span className={labelClass}>Bis</span>
           <input name="bis" type="date" defaultValue={bis ?? ""} className={inputClass} />
         </label>
+        {typ && <input type="hidden" name="typ" value={typ} />}
         <button
           type="submit"
           className="h-10 rounded-lg bg-brand-red px-4 text-sm font-semibold text-white hover:bg-brand-red-dark"
@@ -88,6 +121,26 @@ export default async function LagerprotokollPage({
           {logs.length} Einträge
         </span>
       </form>
+
+      {/* Typ-Filter Buttons */}
+      <div className="mb-5 flex flex-wrap gap-1.5">
+        {FILTER_BUTTONS.map((btn) => {
+          const isActive = (btn.typ ?? "") === (typ ?? "");
+          return (
+            <a
+              key={btn.label}
+              href={filterLink(btn.typ)}
+              className={`rounded-lg border px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${
+                isActive
+                  ? "border-brand-red bg-brand-red text-white"
+                  : "border-grey-border bg-white text-grey-mid hover:text-grey-dark"
+              }`}
+            >
+              {btn.label}
+            </a>
+          );
+        })}
+      </div>
 
       <Panel className="overflow-x-auto">
         <table className="w-full min-w-[900px] text-left text-sm">
@@ -117,14 +170,14 @@ export default async function LagerprotokollPage({
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center rounded border px-2 py-0.5 font-mono text-[10px] font-semibold ${
-                        typeBadge[log.type] ?? ""
+                        typeBadge[log.type] ?? "text-grey-mid border-grey-border bg-grey-light"
                       }`}
                     >
                       {typeLabel[log.type] ?? log.type}
                     </span>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-red">
-                    {log.sku ?? "—"}
+                    {log.sku ?? <span className="text-grey-mid">—</span>}
                   </td>
                   <td className="px-4 py-3 font-mono tabular-nums text-grey-mid">
                     {log.oldStock ?? "—"}

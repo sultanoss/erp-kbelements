@@ -176,7 +176,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const nowCovered = new Set([...usedPosIds, ...notifyPosIds]);
   const allOttoCovered = allOttoPosIds.length === 0 || allOttoPosIds.every((pid) => nowCovered.has(pid));
 
-  // Validate stock
+  // Validate stock + Bestand vor Abzug merken
+  const stockBefore = new Map<string, { stock: number; stockNS: number }>();
   for (const item of items) {
     const dbItem = await prisma.item.findUnique({ where: { sku: item.internalSku } });
     if (!dbItem) return { ok: false, error: `Artikel ${item.internalSku} nicht gefunden` };
@@ -187,6 +188,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         error: `Nicht genug Bestand für ${item.internalSku}: ${available} verfügbar, ${item.quantity} angefordert`,
       };
     }
+    stockBefore.set(item.internalSku, { stock: dbItem.stock, stockNS: dbItem.stockNS });
   }
 
   // Call carrier service — if this fails, nothing is saved
@@ -285,6 +287,30 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     shipmentId = result.id;
   } catch (e) {
     return { ok: false, error: `Datenbankfehler: ${(e as Error).message}` };
+  }
+
+  // ActivityLog: Versand Online (SHIPMENT) pro SKU
+  {
+    const shipSession = await auth();
+    const shipUserId = (shipSession?.user as { id?: string } | null)?.id;
+    if (shipUserId) {
+      for (const item of items) {
+        const before = stockBefore.get(item.internalSku);
+        if (!before) continue;
+        const isNS = item.warehouse === "ns";
+        const oldStock = isNS ? before.stockNS : before.stock;
+        await prisma.activityLog.create({
+          data: {
+            type: "SHIPMENT",
+            sku: item.internalSku,
+            oldStock,
+            newStock: oldStock - item.quantity,
+            note: `${order.marketplace}${order.orderNumber ? ` #${order.orderNumber}` : ""} (${isNS ? "NS-Lager" : "Neuware"})`,
+            userId: shipUserId,
+          },
+        });
+      }
+    }
   }
 
   // Otto notification (outside transaction — failure doesn't roll back the shipment)
@@ -423,8 +449,9 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
 
 export async function storniereBestellung(formData: FormData) {
   const id = formData.get("id") as string;
-  const lager = (formData.get("lager") as string) || "neuware";
   if (!id) return;
+  const stornoSession = await auth();
+  const stornoUserId = (stornoSession?.user as { id?: string } | null)?.id;
 
   const order = await prisma.order.findUnique({
     where: { id },
@@ -446,15 +473,28 @@ export async function storniereBestellung(formData: FormData) {
     await markInvoiceStorniert(invoice.id);
   }
 
-  // Lagerbestand aus allen Sendungen zurückbuchen
+  // Lagerbestand aus allen Sendungen zurückbuchen + STORNO-Log
   for (const s of order.shipments) {
     for (const item of s.items) {
+      const isNS = item.warehouse === "ns";
+      const dbItem = await prisma.item.findUnique({ where: { sku: item.internalSku } });
+      const oldStock = dbItem ? (isNS ? dbItem.stockNS : dbItem.stock) : 0;
       await prisma.item.update({
         where: { sku: item.internalSku },
-        data: lager === "ns"
-          ? { stockNS: { increment: item.quantity } }
-          : { stock: { increment: item.quantity } },
+        data: isNS ? { stockNS: { increment: item.quantity } } : { stock: { increment: item.quantity } },
       });
+      if (stornoUserId) {
+        await prisma.activityLog.create({
+          data: {
+            type: "STORNO",
+            sku: item.internalSku,
+            oldStock,
+            newStock: oldStock + item.quantity,
+            note: `Storno ${order.marketplace}${order.orderNumber ? ` #${order.orderNumber}` : ""} (${isNS ? "NS-Lager" : "Neuware"})`,
+            userId: stornoUserId,
+          },
+        });
+      }
     }
   }
 

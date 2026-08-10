@@ -421,4 +421,7 @@ enum ActivityType {
   RECEIPT
   CORRECTION
   USER_CHANGE
+  SHIPMENT
+  STORNO
+  INVOICE
 }
