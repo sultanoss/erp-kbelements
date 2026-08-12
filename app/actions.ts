@@ -335,7 +335,7 @@ export async function createInvoice(data: {
   let finalCustomerNum: string | null = data.customerNum?.trim() || null;
 
   // eslint-disable-next-line prefer-const
-  let invoice!: { id: string };
+  let invoice!: { id: string; number: string; stockChanges: Array<{ sku: string; oldStock: number; newStock: number; lager: string }> };
   try {
     invoice = await prisma.$transaction(async (tx) => {
       // Non-blocking: gibt false zurück wenn createInvoiceFromOrder (Automatik) gerade läuft
@@ -403,6 +403,7 @@ export async function createInvoice(data: {
         },
       });
 
+      const stockChanges: Array<{ sku: string; oldStock: number; newStock: number; lager: string }> = [];
       if (!noStock) {
         for (const it of data.items) {
           const qty = Math.round(it.quantity);
@@ -411,15 +412,19 @@ export async function createInvoice(data: {
             const item = await tx.item.findUnique({ where: { sku: s.sku } });
             if (!item) continue;
             if (s.lager === "ns") {
-              await tx.item.update({ where: { sku: s.sku }, data: { stockNS: Math.max(0, item.stockNS - qty) } });
+              const newStockVal = Math.max(0, item.stockNS - qty);
+              await tx.item.update({ where: { sku: s.sku }, data: { stockNS: newStockVal } });
+              stockChanges.push({ sku: s.sku, oldStock: item.stockNS, newStock: newStockVal, lager: "ns" });
             } else {
-              await tx.item.update({ where: { sku: s.sku }, data: { stock: Math.max(0, item.stock - qty) } });
+              const newStockVal = Math.max(0, item.stock - qty);
+              await tx.item.update({ where: { sku: s.sku }, data: { stock: newStockVal } });
+              stockChanges.push({ sku: s.sku, oldStock: item.stock, newStock: newStockVal, lager: "neuware" });
             }
           }
         }
       }
 
-      return { id: inv.id };
+      return { id: inv.id, number: inv.number, stockChanges };
     });
   } catch (e) {
     if (e instanceof Error && e.message === "BUSY") {
@@ -428,10 +433,25 @@ export async function createInvoice(data: {
     throw e;
   }
 
+  // ActivityLog: Lagerabzug pro SKU bei manueller Rechnung
+  for (const change of invoice.stockChanges) {
+    await prisma.activityLog.create({
+      data: {
+        type: "INVOICE",
+        sku: change.sku,
+        oldStock: change.oldStock,
+        newStock: change.newStock,
+        note: `${invoice.number} (${change.lager === "ns" ? "NS-Lager" : "Neuware"})`,
+        userId: user.id,
+      },
+    });
+  }
+
   revalidatePath("/buchhaltung");
   revalidatePath("/angebot");
   revalidatePath("/gutschrift");
   revalidatePath("/inventory");
+  revalidatePath("/lagerprotokoll");
   revalidatePath("/");
 
   // KN wurde bereits innerhalb des Locks gesetzt — nur noch Kundendatensatz anlegen
