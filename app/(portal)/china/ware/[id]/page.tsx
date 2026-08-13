@@ -12,15 +12,12 @@ export default async function WareDetailPage({ params }: { params: Promise<{ id:
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: ware }, { data: artikel }, { data: mediaRows }] = await Promise.all([
+  const [{ data: ware }, { data: artikel }] = await Promise.all([
     supabase.from("ware_in_china").select("*").eq("id", id).single(),
     supabase.from("ware_in_china_artikel").select("*").eq("ware_id", id).order("created_at", { ascending: true }),
-    supabase.from("ware_media").select("*").eq("ware_id", id).order("created_at", { ascending: true }),
   ]);
 
   if (!ware) notFound();
-
-  const userName = user.user_metadata?.full_name ?? user.email ?? "";
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -60,7 +57,6 @@ export default async function WareDetailPage({ params }: { params: Promise<{ id:
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Links — Artikel + Notiz */}
         <div className="lg:col-span-2 space-y-5">
-          {/* Artikel */}
           <div className="card p-4">
             <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">
               Artikel ({(artikel ?? []).length})
@@ -79,7 +75,6 @@ export default async function WareDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
 
-          {/* Notiz */}
           {ware.notiz && (
             <div className="card p-4">
               <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">Notiz</div>
@@ -88,18 +83,9 @@ export default async function WareDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        {/* Rechts — Dateien */}
+        {/* Rechts — Dateien (direkt aus Storage, kein DB-Table) */}
         <div>
-          <WareMedia
-            wareId={id}
-            userName={userName}
-            initialMedia={(mediaRows ?? []).map((m) => ({
-              id: m.id,
-              storage_path: m.storage_path,
-              filename: m.filename,
-              media_type: m.media_type,
-            }))}
-          />
+          <WareMedia wareId={id} />
         </div>
       </div>
     </div>

@@ -5,16 +5,15 @@ import { createClient } from "@/lib/supabase/server";
 export async function deleteWare(id: string): Promise<{ error?: string }> {
   const supabase = await createClient();
 
-  // Mediendateien aus Storage löschen
-  const { data: mediaRows } = await supabase
-    .from("ware_media")
-    .select("storage_path")
-    .eq("ware_id", id);
-
-  if (mediaRows && mediaRows.length > 0) {
-    const paths = mediaRows.map((m) => m.storage_path);
-    await supabase.storage.from("china-media").remove(paths);
-    await supabase.from("ware_media").delete().eq("ware_id", id);
+  // Storage-Dateien löschen (kein DB-Table nötig)
+  const { data: storageFiles } = await supabase.storage.from("china-media").list(`ware/${id}`);
+  if (storageFiles && storageFiles.length > 0) {
+    const paths = storageFiles
+      .filter((f) => f.name !== ".emptyFolderPlaceholder")
+      .map((f) => `ware/${id}/${f.name}`);
+    if (paths.length > 0) {
+      await supabase.storage.from("china-media").remove(paths);
+    }
   }
 
   await supabase.from("ware_in_china_artikel").delete().eq("ware_id", id);
