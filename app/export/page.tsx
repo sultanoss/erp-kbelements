@@ -79,7 +79,9 @@ export default function ExportPage() {
                 <option value="">Alle Marktplätze</option>
                 <option value="OTTO">OTTO</option>
                 <option value="AMAZON">Amazon</option>
-                <option value="KAUFLAND">Kaufland</option>
+                <option value="KAUFLAND">Kaufland (alle)</option>
+                <option value="KAUFLAND_AT">Kaufland Österreich</option>
+                <option value="KAUFLAND_FR">Kaufland Frankreich</option>
                 <option value="MEDIAMARKT">MediaMarkt</option>
                 <option value="EBAY">eBay</option>
                 <option value="SHOPIFY">Shopify</option>

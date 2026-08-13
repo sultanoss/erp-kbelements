@@ -20,7 +20,12 @@ export async function GET(request: Request) {
   const marketplace = searchParams.get("marketplace") ?? "";
   const pm = searchParams.get("pm") ?? "";
 
-  const invoices = await prisma.invoice.findMany({
+  const countryFilter = marketplace === "KAUFLAND_AT" ? "AT"
+                      : marketplace === "KAUFLAND_FR" ? "FR"
+                      : null;
+  const dbMarketplace = countryFilter ? "KAUFLAND" : marketplace;
+
+  const allInvoices = await prisma.invoice.findMany({
     where: {
       ...(type === "rechnung" ? { docType: "rechnung", status: "aktiv" } : {}),
       ...(type === "storniert" ? { docType: "rechnung", status: "storniert" } : {}),
@@ -34,12 +39,16 @@ export async function GET(request: Request) {
             },
           }
         : {}),
-      ...(marketplace ? { marketplace } : {}),
+      ...(dbMarketplace ? { marketplace: dbMarketplace } : {}),
       ...(pm ? { paymentMethod: pm } : {}),
     },
     include: { items: true },
     orderBy: { date: "asc" },
   });
+
+  const invoices = countryFilter
+    ? allInvoices.filter((inv) => inv.customerAddress?.endsWith(countryFilter))
+    : allInvoices;
 
   const BOM = "﻿";
   const header = [
