@@ -96,6 +96,7 @@ export function InvoiceForm({
   const [selectedB2bId, setSelectedB2bId] = useState("");
   const [selectedB2cId, setSelectedB2cId] = useState("");
   const [lastPrices, setLastPrices] = useState<Record<number, { sku: string; price: number | null } | undefined>>({});
+  const [rawPrices, setRawPrices] = useState<Record<number, string>>({});
 
   useEffect(() => {
     setLastPrices({});
@@ -154,6 +155,7 @@ export function InvoiceForm({
     setPaymentInfo("");
     setSelectedB2bId("");
     setSelectedB2cId("");
+    setRawPrices({});
     formRef.current?.reset();
   }
 
@@ -166,6 +168,7 @@ export function InvoiceForm({
       if (prev.length === 1) return [newLine(1)];
       return prev.filter((it) => it.id !== id).map((it, i) => ({ ...it, pos: i + 1 }));
     });
+    setRawPrices((prev) => { const n = { ...prev }; delete n[id]; return n; });
   }
 
   function updateItem(id: number, field: "quantity" | "description" | "unitPrice", value: string | number) {
@@ -480,8 +483,12 @@ export function InvoiceForm({
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={it.unitPrice === 0 ? "" : String(it.unitPrice)}
-                  onChange={(e) => updateItem(it.id, "unitPrice", parseFloat(e.target.value.replace(",", ".")) || 0)}
+                  value={rawPrices[it.id] !== undefined ? rawPrices[it.id] : (it.unitPrice === 0 ? "" : String(it.unitPrice))}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setRawPrices((prev) => ({ ...prev, [it.id]: raw }));
+                    updateItem(it.id, "unitPrice", parseFloat(raw.replace(",", ".")) || 0);
+                  }}
                   className="h-8 rounded-lg border border-grey-border bg-white px-2 font-mono text-sm text-right tabular-nums text-grey-dark focus:border-brand-red focus:outline-none"
                 />
                 {selectedB2bId && lastPrices[it.id] !== undefined && (
