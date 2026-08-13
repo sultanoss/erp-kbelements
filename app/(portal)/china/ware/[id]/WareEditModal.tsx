@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-interface ArtikelRow { id: string; artikel: string; anzahl: number; isNew?: boolean; }
+interface ArtikelRow { id: string; artikel: string; anzahl: string; isNew?: boolean; }
 
 interface Props {
   ware: {
@@ -17,7 +17,7 @@ interface Props {
 }
 
 function newRow(): ArtikelRow {
-  return { id: "new_" + Math.random().toString(36).slice(2), artikel: "", anzahl: 1, isNew: true };
+  return { id: "new_" + Math.random().toString(36).slice(2), artikel: "", anzahl: "", isNew: true };
 }
 
 export default function WareEditModal({ ware, initialArtikel }: Props) {
@@ -26,7 +26,9 @@ export default function WareEditModal({ ware, initialArtikel }: Props) {
   const [orderPiNummer, setOrderPiNummer] = useState(ware.order_pi_nummer ?? "");
   const [notiz, setNotiz] = useState(ware.notiz ?? "");
   const [artikel, setArtikel] = useState<ArtikelRow[]>(
-    initialArtikel.length > 0 ? initialArtikel : [newRow()]
+    initialArtikel.length > 0
+      ? initialArtikel.map((a) => ({ ...a, anzahl: String(a.anzahl) }))
+      : [newRow()]
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -35,7 +37,7 @@ export default function WareEditModal({ ware, initialArtikel }: Props) {
 
   function addRow() { setArtikel((prev) => [...prev, newRow()]); }
   function removeRow(id: string) { setArtikel((prev) => prev.filter((r) => r.id !== id)); }
-  function updateRow(id: string, field: "artikel" | "anzahl", value: string | number) {
+  function updateRow(id: string, field: "artikel" | "anzahl", value: string) {
     setArtikel((prev) => prev.map((r) => r.id === id ? { ...r, [field]: value } : r));
   }
 
@@ -61,7 +63,7 @@ export default function WareEditModal({ ware, initialArtikel }: Props) {
     if (validArtikel.length > 0) {
       const { error: artError } = await supabase
         .from("ware_in_china_artikel")
-        .insert(validArtikel.map((a) => ({ ware_id: ware.id, artikel: a.artikel.trim(), anzahl: a.anzahl })));
+        .insert(validArtikel.map((a) => ({ ware_id: ware.id, artikel: a.artikel.trim(), anzahl: parseInt(a.anzahl) || 1 })));
       if (artError) { setError(artError.message); setSaving(false); return; }
     }
 
@@ -134,11 +136,11 @@ export default function WareEditModal({ ware, initialArtikel }: Props) {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <span className="text-xs text-stone-400">×</span>
                     <input
-                      type="number"
-                      min={1}
+                      type="text"
                       className="input w-16 text-center"
+                      placeholder="Menge"
                       value={row.anzahl}
-                      onChange={(e) => updateRow(row.id, "anzahl", Math.max(1, parseInt(e.target.value) || 1))}
+                      onChange={(e) => updateRow(row.id, "anzahl", e.target.value)}
                     />
                   </div>
                   {artikel.length > 1 && (
