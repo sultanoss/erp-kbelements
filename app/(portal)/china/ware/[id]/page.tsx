@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
 import WareEditModal from "./WareEditModal";
+import WareMedia from "./WareMedia";
+import DeleteWareButton from "./DeleteWareButton";
 
 export default async function WareDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,15 +12,18 @@ export default async function WareDetailPage({ params }: { params: Promise<{ id:
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: ware }, { data: artikel }] = await Promise.all([
+  const [{ data: ware }, { data: artikel }, { data: mediaRows }] = await Promise.all([
     supabase.from("ware_in_china").select("*").eq("id", id).single(),
     supabase.from("ware_in_china_artikel").select("*").eq("ware_id", id).order("created_at", { ascending: true }),
+    supabase.from("ware_media").select("*").eq("ware_id", id).order("created_at", { ascending: true }),
   ]);
 
   if (!ware) notFound();
 
+  const userName = user.user_metadata?.full_name ?? user.email ?? "";
+
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-stone-500 mb-5">
         <Link href="/china/ware" className="hover:text-stone-700 transition-colors">Ware in China</Link>
@@ -43,41 +48,59 @@ export default async function WareDetailPage({ params }: { params: Promise<{ id:
             Erstellt von <strong className="text-stone-600">{ware.created_by}</strong> · {formatDate(ware.created_at)}
           </p>
         </div>
-        <WareEditModal
-          ware={{ id: ware.id, fabrik: ware.fabrik, order_pi_nummer: ware.order_pi_nummer, notiz: ware.notiz }}
-          initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
-        />
+        <div className="flex items-center gap-2">
+          <WareEditModal
+            ware={{ id: ware.id, fabrik: ware.fabrik, order_pi_nummer: ware.order_pi_nummer, notiz: ware.notiz }}
+            initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
+          />
+          <DeleteWareButton id={ware.id} />
+        </div>
       </div>
 
-      <div className="space-y-5">
-        {/* Artikel */}
-        <div className="card p-4">
-          <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">
-            Artikel ({(artikel ?? []).length})
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Links — Artikel + Notiz */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Artikel */}
+          <div className="card p-4">
+            <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-3">
+              Artikel ({(artikel ?? []).length})
+            </div>
+            {!artikel?.length ? (
+              <p className="text-sm text-stone-400">Keine Artikel eingetragen.</p>
+            ) : (
+              <div className="space-y-2">
+                {artikel.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0">
+                    <span className="text-sm text-stone-800">{a.artikel}</span>
+                    <span className="text-sm font-medium text-stone-500">×{a.anzahl}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {!artikel?.length ? (
-            <p className="text-sm text-stone-400">Keine Artikel eingetragen.</p>
-          ) : (
-            <div className="space-y-2">
-              {artikel.map((a) => (
-                <div key={a.id} className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0">
-                  <span className="text-sm text-stone-800">{a.artikel}</span>
-                  <span className="text-sm font-medium text-stone-500">
-                    ×{a.anzahl}
-                  </span>
-                </div>
-              ))}
+
+          {/* Notiz */}
+          {ware.notiz && (
+            <div className="card p-4">
+              <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">Notiz</div>
+              <p className="text-sm text-stone-700 whitespace-pre-wrap">{ware.notiz}</p>
             </div>
           )}
         </div>
 
-        {/* Notiz */}
-        {ware.notiz && (
-          <div className="card p-4">
-            <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">Notiz</div>
-            <p className="text-sm text-stone-700 whitespace-pre-wrap">{ware.notiz}</p>
-          </div>
-        )}
+        {/* Rechts — Dateien */}
+        <div>
+          <WareMedia
+            wareId={id}
+            userName={userName}
+            initialMedia={(mediaRows ?? []).map((m) => ({
+              id: m.id,
+              storage_path: m.storage_path,
+              filename: m.filename,
+              media_type: m.media_type,
+            }))}
+          />
+        </div>
       </div>
     </div>
   );
