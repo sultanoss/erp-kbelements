@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { GeplantTyp } from "../page";
+import type { GeplantTyp } from "../utils";
 
 interface ArtikelRow { id: string; artikel: string; anzahl: string; isNew?: boolean; }
 

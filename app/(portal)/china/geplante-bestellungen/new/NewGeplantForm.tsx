@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { GeplantTyp } from "../page";
+import type { GeplantTyp } from "../utils";
 
 interface Props { userName: string; }
 interface ArtikelRow { id: string; artikel: string; anzahl: string; }

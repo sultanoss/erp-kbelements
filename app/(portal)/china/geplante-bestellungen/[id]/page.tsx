@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
-import { parseOrderPi } from "../page";
+import { parseOrderPi } from "../utils";
 import GeplantEditModal from "./GeplantEditModal";
 import GeplantMedia from "./GeplantMedia";
 import DeleteGeplantButton from "./DeleteGeplantButton";
@@ -51,7 +51,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-stone-500 mb-5">
         <Link href="/china/geplante-bestellungen" className="hover:text-stone-700 transition-colors">
-          Geplante Bestellungen / Loading
+          Bestellungen / Loading
         </Link>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

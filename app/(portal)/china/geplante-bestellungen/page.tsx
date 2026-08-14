@@ -1,19 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-
-export type GeplantTyp = "ORDER" | "LOADING";
-
-export function parseOrderPi(orderPi: string | null): { datum: string; typ: GeplantTyp } {
-  if (!orderPi?.startsWith("DATUM:")) return { datum: "", typ: "ORDER" };
-  const parts = orderPi.slice(6).split(":");
-  const datum = parts[0] ?? "";
-  const typ: GeplantTyp = parts[1] === "LOADING" ? "LOADING" : "ORDER";
-  return { datum, typ };
-}
-
-export function buildOrderPi(datum: string, typ: GeplantTyp) {
-  return `DATUM:${datum}:${typ}`;
-}
+import type { GeplantTyp } from "./utils";
+import { parseOrderPi } from "./utils";
 
 function fmtDate(d: string) {
   if (!d) return "—";
@@ -52,7 +40,7 @@ export default async function GeplanteBestellungenPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Geplante Bestellungen / Loading</h1>
+          <h1 className="text-2xl font-bold text-stone-900">Bestellungen / Loading</h1>
           <p className="text-stone-500 text-sm mt-0.5">{bestellungen?.length ?? 0} Einträge · sortiert nach Datum</p>
         </div>
         <Link href="/china/geplante-bestellungen/new" className="btn-primary">
