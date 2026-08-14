@@ -60,6 +60,7 @@ const chinaSubItems = [
   { href: "/china/bestellungen", label: "Bestellungen" },
   { href: "/china/ware", label: "Ware in China" },
   { href: "/china/geplante-bestellungen", label: "Pläne" },
+  { href: "/china/ersatzteile", label: "Ersatzteile" },
 ];
 
 const todoSubItems = [
