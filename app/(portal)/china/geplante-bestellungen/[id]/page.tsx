@@ -2,7 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
-import { parseOrderPi } from "../utils";
+import type { GeplantStatus } from "../utils";
+import { parseOrderPi, STATUS_LABELS, STATUS_COLORS } from "../utils";
 import GeplantEditModal from "./GeplantEditModal";
 import GeplantMedia from "./GeplantMedia";
 import DeleteGeplantButton from "./DeleteGeplantButton";
@@ -28,6 +29,14 @@ function TypBadge({ typ }: { typ: "ORDER" | "LOADING" }) {
   );
 }
 
+function StatusBadge({ status }: { status: GeplantStatus }) {
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_COLORS[status]}`}>
+      {STATUS_LABELS[status]}
+    </span>
+  );
+}
+
 export default async function GeplantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
@@ -41,7 +50,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
 
   if (!ware || !ware.order_pi_nummer?.startsWith("DATUM:")) notFound();
 
-  const { datum, typ } = parseOrderPi(ware.order_pi_nummer);
+  const { datum, typ, status } = parseOrderPi(ware.order_pi_nummer);
   const today = new Date().toISOString().slice(0, 10);
   const isOverdue = datum < today;
   const isSoon = !isOverdue && datum <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
@@ -69,6 +78,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
               {ware.fabrik || <span className="text-stone-400 font-normal">Keine Fabrik</span>}
             </h1>
             <TypBadge typ={typ} />
+            <StatusBadge status={status} />
             {isOverdue && (
               <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
                 Überfällig
@@ -89,7 +99,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
         </div>
         <div className="flex items-center gap-2">
           <GeplantEditModal
-            bestellung={{ id: ware.id, fabrik: ware.fabrik, datum, typ, notiz: ware.notiz }}
+            bestellung={{ id: ware.id, fabrik: ware.fabrik, datum, typ, status, notiz: ware.notiz }}
             initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
           />
           <DeleteGeplantButton id={ware.id} />

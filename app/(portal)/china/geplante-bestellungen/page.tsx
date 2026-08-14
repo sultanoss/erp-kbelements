@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { GeplantTyp } from "./utils";
-import { parseOrderPi } from "./utils";
+import type { GeplantTyp, GeplantStatus } from "./utils";
+import { parseOrderPi, STATUS_LABELS, STATUS_COLORS } from "./utils";
 
 function fmtDate(d: string) {
   if (!d) return "—";
@@ -20,6 +20,14 @@ function TypBadge({ typ }: { typ: GeplantTyp }) {
   return (
     <span className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-semibold text-stone-600 uppercase tracking-wide">
       Order
+    </span>
+  );
+}
+
+function StatusBadge({ status }: { status: GeplantStatus }) {
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_COLORS[status]}`}>
+      {STATUS_LABELS[status]}
     </span>
   );
 }
@@ -57,6 +65,7 @@ export default async function GeplanteBestellungenPage() {
             <thead>
               <tr className="border-b border-stone-200 bg-stone-50">
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Typ</th>
+                <th className="text-left px-4 py-3 font-medium text-stone-600">Status</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Geplant am</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Fabrik</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Artikel</th>
@@ -66,14 +75,14 @@ export default async function GeplanteBestellungenPage() {
             <tbody className="divide-y divide-stone-100">
               {!bestellungen?.length ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-stone-400">
+                  <td colSpan={6} className="px-4 py-12 text-center text-stone-400">
                     Noch keine Einträge.
                   </td>
                 </tr>
               ) : (
                 bestellungen.map((b) => {
                   const href = `/china/geplante-bestellungen/${b.id}`;
-                  const { datum, typ } = parseOrderPi(b.order_pi_nummer);
+                  const { datum, typ, status } = parseOrderPi(b.order_pi_nummer);
                   const artikel: Array<{ artikel: string; anzahl: number }> = b.ware_in_china_artikel ?? [];
                   const artikelText = artikel.length
                     ? artikel.map((a) => `${a.artikel}${a.anzahl > 1 ? ` ×${a.anzahl}` : ""}`).join(", ")
@@ -85,6 +94,11 @@ export default async function GeplanteBestellungenPage() {
                       <td className="p-0">
                         <Link href={href} className="block px-4 py-3">
                           <TypBadge typ={typ} />
+                        </Link>
+                      </td>
+                      <td className="p-0">
+                        <Link href={href} className="block px-4 py-3">
+                          <StatusBadge status={status} />
                         </Link>
                       </td>
                       <td className="p-0 whitespace-nowrap">
