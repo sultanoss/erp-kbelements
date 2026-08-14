@@ -6,6 +6,12 @@ import { createClient } from "@/lib/supabase/client";
 import type { GeplantTyp } from "../utils";
 import { buildOrderPi } from "../utils";
 
+const TYP_OPTIONS: { value: GeplantTyp; label: string }[] = [
+  { value: "ORDER", label: "Order" },
+  { value: "LOADING", label: "Loading" },
+  { value: "CHECKEN", label: "Checken" },
+];
+
 interface Props { userName: string; }
 interface ArtikelRow { id: string; artikel: string; anzahl: string; }
 
@@ -149,20 +155,22 @@ export default function NewGeplantForm({ userName }: Props) {
         <div>
           <label className="label">Typ</label>
           <div className="flex gap-3">
-            {(["ORDER", "LOADING"] as GeplantTyp[]).map((t) => (
+            {TYP_OPTIONS.map(({ value, label }) => (
               <button
-                key={t}
+                key={value}
                 type="button"
-                onClick={() => setTyp(t)}
+                onClick={() => setTyp(value)}
                 className={`flex-1 rounded-xl border-2 py-3 text-sm font-semibold transition-all ${
-                  typ === t
-                    ? t === "LOADING"
+                  typ === value
+                    ? value === "LOADING"
                       ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : value === "CHECKEN"
+                      ? "border-green-500 bg-green-50 text-green-700"
                       : "border-stone-700 bg-stone-100 text-stone-800"
                     : "border-stone-200 bg-white text-stone-400 hover:border-stone-300"
                 }`}
               >
-                {t === "ORDER" ? "Order" : "Loading"}
+                {label}
               </button>
             ))}
           </div>

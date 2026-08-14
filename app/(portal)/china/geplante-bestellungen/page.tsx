@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { GeplantTyp } from "./utils";
 import { parseOrderPi } from "./utils";
-import CheckToggle from "./CheckToggle";
 
 function fmtDate(d: string) {
   if (!d) return "—";
@@ -15,6 +14,13 @@ function TypBadge({ typ }: { typ: GeplantTyp }) {
     return (
       <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700 uppercase tracking-wide">
         Loading
+      </span>
+    );
+  }
+  if (typ === "CHECKEN") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700 uppercase tracking-wide">
+        Checken
       </span>
     );
   }
@@ -74,7 +80,7 @@ export default async function GeplanteBestellungenPage() {
               ) : (
                 bestellungen.map((b) => {
                   const href = `/china/geplante-bestellungen/${b.id}`;
-                  const { datum, typ, checked } = parseOrderPi(b.order_pi_nummer);
+                  const { datum, typ } = parseOrderPi(b.order_pi_nummer);
                   const artikel: Array<{ artikel: string; anzahl: number }> = b.ware_in_china_artikel ?? [];
                   const artikelText = artikel.length
                     ? artikel.map((a) => `${a.artikel}${a.anzahl > 1 ? ` ×${a.anzahl}` : ""}`).join(", ")
@@ -82,14 +88,11 @@ export default async function GeplanteBestellungenPage() {
                   const overdue = datum < today;
                   const soon = !overdue && datum <= soonDate;
                   return (
-                    <tr key={b.id} className={`hover:bg-stone-50 transition-colors cursor-pointer ${checked ? "opacity-60" : ""}`}>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <Link href={href} className="inline-flex">
-                            <TypBadge typ={typ} />
-                          </Link>
-                          <CheckToggle id={b.id} checked={checked} />
-                        </div>
+                    <tr key={b.id} className="hover:bg-stone-50 transition-colors cursor-pointer">
+                      <td className="p-0">
+                        <Link href={href} className="block px-4 py-3">
+                          <TypBadge typ={typ} />
+                        </Link>
                       </td>
                       <td className="p-0 whitespace-nowrap">
                         <Link href={href} className="flex items-center gap-2 px-4 py-3">

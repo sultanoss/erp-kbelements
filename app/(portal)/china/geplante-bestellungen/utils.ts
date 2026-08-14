@@ -1,22 +1,20 @@
-export type GeplantTyp = "ORDER" | "LOADING";
+export type GeplantTyp = "ORDER" | "LOADING" | "CHECKEN";
 
 export interface GeplantParsed {
   datum: string;
   typ: GeplantTyp;
-  checked: boolean;
 }
 
-// Format: "DATUM:2026-09-15:ORDER" or "DATUM:2026-09-15:ORDER:1" (checked)
+// Format: "DATUM:2026-09-15:ORDER"
 export function parseOrderPi(orderPi: string | null): GeplantParsed {
-  if (!orderPi?.startsWith("DATUM:")) return { datum: "", typ: "ORDER", checked: false };
-  const rest = orderPi.slice(6); // "2026-09-15:ORDER" or "2026-09-15:ORDER:1"
+  if (!orderPi?.startsWith("DATUM:")) return { datum: "", typ: "ORDER" };
+  const rest = orderPi.slice(6); // "2026-09-15:ORDER"
   const datum = rest.slice(0, 10);
-  const after = rest.slice(11); // "ORDER" or "ORDER:1"
-  const [typRaw, checkedRaw] = after.split(":");
-  const typ: GeplantTyp = typRaw === "LOADING" ? "LOADING" : "ORDER";
-  return { datum, typ, checked: checkedRaw === "1" };
+  const typRaw = rest.slice(11);
+  const typ: GeplantTyp = typRaw === "LOADING" ? "LOADING" : typRaw === "CHECKEN" ? "CHECKEN" : "ORDER";
+  return { datum, typ };
 }
 
-export function buildOrderPi(datum: string, typ: GeplantTyp, checked = false) {
-  return `DATUM:${datum}:${typ}${checked ? ":1" : ""}`;
+export function buildOrderPi(datum: string, typ: GeplantTyp) {
+  return `DATUM:${datum}:${typ}`;
 }

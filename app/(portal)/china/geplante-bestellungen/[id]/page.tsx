@@ -13,11 +13,18 @@ function formatDatum(dateStr: string) {
   return `${d}.${m}.${y}`;
 }
 
-function TypBadge({ typ }: { typ: "ORDER" | "LOADING" }) {
+function TypBadge({ typ }: { typ: "ORDER" | "LOADING" | "CHECKEN" }) {
   if (typ === "LOADING") {
     return (
       <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
         Loading
+      </span>
+    );
+  }
+  if (typ === "CHECKEN") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+        Checken
       </span>
     );
   }
@@ -41,7 +48,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
 
   if (!ware || !ware.order_pi_nummer?.startsWith("DATUM:")) notFound();
 
-  const { datum, typ, checked } = parseOrderPi(ware.order_pi_nummer);
+  const { datum, typ } = parseOrderPi(ware.order_pi_nummer);
   const today = new Date().toISOString().slice(0, 10);
   const isOverdue = datum < today;
   const isSoon = !isOverdue && datum <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
@@ -89,7 +96,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
         </div>
         <div className="flex items-center gap-2">
           <GeplantEditModal
-            bestellung={{ id: ware.id, fabrik: ware.fabrik, datum, typ, checked, notiz: ware.notiz }}
+            bestellung={{ id: ware.id, fabrik: ware.fabrik, datum, typ, notiz: ware.notiz }}
             initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
           />
           <DeleteGeplantButton id={ware.id} />
