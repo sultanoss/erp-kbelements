@@ -6,7 +6,13 @@ import GeplantEditModal from "./GeplantEditModal";
 import GeplantMedia from "./GeplantMedia";
 import DeleteGeplantButton from "./DeleteGeplantButton";
 
+function extractDatum(orderPi: string | null): string {
+  if (!orderPi?.startsWith("DATUM:")) return "";
+  return orderPi.slice(6);
+}
+
 function formatDatum(dateStr: string) {
+  if (!dateStr) return "—";
   const [y, m, d] = dateStr.split("-");
   return `${d}.${m}.${y}`;
 }
@@ -17,16 +23,17 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: bestellung }, { data: artikel }] = await Promise.all([
-    supabase.from("geplante_bestellungen").select("*").eq("id", id).single(),
-    supabase.from("geplante_bestellungen_artikel").select("*").eq("bestellung_id", id).order("created_at", { ascending: true }),
+  const [{ data: ware }, { data: artikel }] = await Promise.all([
+    supabase.from("ware_in_china").select("*").eq("id", id).single(),
+    supabase.from("ware_in_china_artikel").select("*").eq("ware_id", id).order("created_at", { ascending: true }),
   ]);
 
-  if (!bestellung) notFound();
+  if (!ware || !ware.order_pi_nummer?.startsWith("DATUM:")) notFound();
 
+  const datum = extractDatum(ware.order_pi_nummer);
   const today = new Date().toISOString().slice(0, 10);
-  const isOverdue = bestellung.datum < today;
-  const isSoon = !isOverdue && bestellung.datum <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const isOverdue = datum < today;
+  const isSoon = !isOverdue && datum <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -37,7 +44,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
         <span className="text-stone-700 font-medium truncate max-w-xs">
-          {bestellung.fabrik ?? formatDatum(bestellung.datum)}
+          {ware.fabrik ?? formatDatum(datum)}
         </span>
       </div>
 
@@ -46,7 +53,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
         <div>
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl font-bold text-stone-900">
-              {bestellung.fabrik || <span className="text-stone-400 font-normal">Keine Fabrik</span>}
+              {ware.fabrik || <span className="text-stone-400 font-normal">Keine Fabrik</span>}
             </h1>
             {isOverdue && (
               <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
@@ -60,18 +67,18 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
             )}
           </div>
           <p className="text-stone-500 text-sm mt-1">
-            Geplant am <strong className="text-stone-700">{formatDatum(bestellung.datum)}</strong>
+            Geplant am <strong className="text-stone-700">{formatDatum(datum)}</strong>
           </p>
           <p className="text-stone-400 text-xs mt-1">
-            Erstellt von <strong className="text-stone-600">{bestellung.created_by}</strong> · {formatDate(bestellung.created_at)}
+            Erstellt von <strong className="text-stone-600">{ware.created_by}</strong> · {formatDate(ware.created_at)}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <GeplantEditModal
-            bestellung={{ id: bestellung.id, fabrik: bestellung.fabrik, datum: bestellung.datum, notiz: bestellung.notiz }}
+            bestellung={{ id: ware.id, fabrik: ware.fabrik, datum, notiz: ware.notiz }}
             initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
           />
-          <DeleteGeplantButton id={bestellung.id} />
+          <DeleteGeplantButton id={ware.id} />
         </div>
       </div>
 
@@ -96,10 +103,10 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
             )}
           </div>
 
-          {bestellung.notiz && (
+          {ware.notiz && (
             <div className="card p-4">
               <div className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">Notiz</div>
-              <p className="text-sm text-stone-700 whitespace-pre-wrap">{bestellung.notiz}</p>
+              <p className="text-sm text-stone-700 whitespace-pre-wrap">{ware.notiz}</p>
             </div>
           )}
         </div>

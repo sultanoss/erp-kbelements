@@ -42,19 +42,24 @@ export default function GeplantEditModal({ bestellung, initialArtikel }: Props) 
     setError("");
 
     const { error: dbError } = await supabase
-      .from("geplante_bestellungen")
-      .update({ fabrik: fabrik.trim() || null, datum, notiz: notiz.trim() || null, updated_at: new Date().toISOString() })
+      .from("ware_in_china")
+      .update({
+        order_pi_nummer: `DATUM:${datum}`,
+        fabrik: fabrik.trim() || null,
+        notiz: notiz.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", bestellung.id);
 
     if (dbError) { setError(dbError.message); setSaving(false); return; }
 
-    await supabase.from("geplante_bestellungen_artikel").delete().eq("bestellung_id", bestellung.id);
+    await supabase.from("ware_in_china_artikel").delete().eq("ware_id", bestellung.id);
 
     const validArtikel = artikel.filter((a) => a.artikel.trim());
     if (validArtikel.length > 0) {
       const { error: artError } = await supabase
-        .from("geplante_bestellungen_artikel")
-        .insert(validArtikel.map((a) => ({ bestellung_id: bestellung.id, artikel: a.artikel.trim(), anzahl: parseInt(a.anzahl) || 1 })));
+        .from("ware_in_china_artikel")
+        .insert(validArtikel.map((a) => ({ ware_id: bestellung.id, artikel: a.artikel.trim(), anzahl: parseInt(a.anzahl) || 1 })));
       if (artError) { setError(artError.message); setSaving(false); return; }
     }
 

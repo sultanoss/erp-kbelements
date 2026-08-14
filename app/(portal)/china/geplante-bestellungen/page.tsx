@@ -1,28 +1,28 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
+function extractDatum(orderPi: string | null): string {
+  if (!orderPi?.startsWith("DATUM:")) return "";
+  return orderPi.slice(6);
+}
+
+function fmtDate(d: string) {
+  if (!d) return "—";
+  const [y, m, dd] = d.split("-");
+  return `${dd}.${m}.${y}`;
+}
+
 export default async function GeplanteBestellungenPage() {
   const supabase = await createClient();
 
-  const { data: bestellungen, error } = await supabase
-    .from("geplante_bestellungen")
-    .select("*, geplante_bestellungen_artikel(*)")
-    .order("datum", { ascending: true });
+  const { data: bestellungen } = await supabase
+    .from("ware_in_china")
+    .select("*, ware_in_china_artikel(artikel, anzahl)")
+    .like("order_pi_nummer", "DATUM:%")
+    .order("order_pi_nummer", { ascending: true });
 
-  const cell = "block px-4 py-3";
-
-  function fmtDate(d: string) {
-    return new Date(d + "T00:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
-  }
-
-  function isOverdue(d: string) {
-    return new Date(d + "T00:00:00") < new Date(new Date().toDateString());
-  }
-
-  function isSoon(d: string) {
-    const diff = (new Date(d + "T00:00:00").getTime() - new Date(new Date().toDateString()).getTime()) / (1000 * 60 * 60 * 24);
-    return diff >= 0 && diff <= 7;
-  }
+  const today = new Date().toISOString().slice(0, 10);
+  const soonDate = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -38,12 +38,6 @@ export default async function GeplanteBestellungenPage() {
           Neue Bestellung
         </Link>
       </div>
-
-      {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-          Fehler beim Laden: {error.message}
-        </div>
-      )}
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
@@ -66,35 +60,36 @@ export default async function GeplanteBestellungenPage() {
               ) : (
                 bestellungen.map((b) => {
                   const href = `/china/geplante-bestellungen/${b.id}`;
-                  const artikel: Array<{ artikel: string; anzahl: number }> = b.geplante_bestellungen_artikel ?? [];
+                  const datum = extractDatum(b.order_pi_nummer);
+                  const artikel: Array<{ artikel: string; anzahl: number }> = b.ware_in_china_artikel ?? [];
                   const artikelText = artikel.length
                     ? artikel.map((a) => `${a.artikel}${a.anzahl > 1 ? ` ×${a.anzahl}` : ""}`).join(", ")
                     : null;
-                  const overdue = isOverdue(b.datum);
-                  const soon = !overdue && isSoon(b.datum);
+                  const overdue = datum < today;
+                  const soon = !overdue && datum <= soonDate;
                   return (
                     <tr key={b.id} className="hover:bg-stone-50 transition-colors cursor-pointer">
                       <td className="p-0 whitespace-nowrap">
-                        <Link href={href} className={`${cell} flex items-center gap-2`}>
+                        <Link href={href} className="flex items-center gap-2 px-4 py-3">
                           <span className={`font-medium tabular-nums ${overdue ? "text-red-600" : soon ? "text-amber-600" : "text-stone-700"}`}>
-                            {fmtDate(b.datum)}
+                            {fmtDate(datum)}
                           </span>
                           {overdue && <span className="text-[10px] font-semibold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">Überfällig</span>}
                           {soon && <span className="text-[10px] font-semibold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">Bald</span>}
                         </Link>
                       </td>
                       <td className="p-0">
-                        <Link href={href} className={`${cell} text-stone-700`}>
+                        <Link href={href} className="block px-4 py-3 text-stone-700">
                           {b.fabrik || <span className="text-stone-300">—</span>}
                         </Link>
                       </td>
                       <td className="p-0 max-w-sm">
-                        <Link href={href} className={`${cell} text-stone-600 truncate block`}>
+                        <Link href={href} className="block px-4 py-3 text-stone-600 truncate">
                           {artikelText || <span className="text-stone-300">—</span>}
                         </Link>
                       </td>
                       <td className="p-0 text-xs text-stone-500">
-                        <Link href={href} className={cell}>{b.created_by}</Link>
+                        <Link href={href} className="block px-4 py-3">{b.created_by}</Link>
                       </td>
                     </tr>
                   );

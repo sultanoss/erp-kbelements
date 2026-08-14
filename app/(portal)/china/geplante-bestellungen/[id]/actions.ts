@@ -15,8 +15,8 @@ export async function deleteGeplantBestellung(id: string): Promise<{ error?: str
     }
   }
 
-  await supabase.from("geplante_bestellungen_artikel").delete().eq("bestellung_id", id);
-  const { error } = await supabase.from("geplante_bestellungen").delete().eq("id", id);
+  await supabase.from("ware_in_china_artikel").delete().eq("ware_id", id);
+  const { error } = await supabase.from("ware_in_china").delete().eq("id", id);
   if (error) return { error: error.message };
   return {};
 }

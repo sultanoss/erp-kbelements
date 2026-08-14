@@ -92,11 +92,12 @@ export default function NewGeplantForm({ userName }: Props) {
     setError("");
     setUploadProgress("");
 
+    // Store datum as "DATUM:YYYY-MM-DD" in order_pi_nummer (reuses ware_in_china table)
     const { data, error: dbError } = await supabase
-      .from("geplante_bestellungen")
+      .from("ware_in_china")
       .insert({
+        order_pi_nummer: `DATUM:${datum}`,
         fabrik: fabrik.trim() || null,
-        datum,
         notiz: notiz.trim() || null,
         created_by: userName,
       })
@@ -107,8 +108,8 @@ export default function NewGeplantForm({ userName }: Props) {
 
     if (validArtikel.length > 0) {
       const { error: artError } = await supabase
-        .from("geplante_bestellungen_artikel")
-        .insert(validArtikel.map((a) => ({ bestellung_id: data.id, artikel: a.artikel.trim(), anzahl: parseInt(a.anzahl) || 1 })));
+        .from("ware_in_china_artikel")
+        .insert(validArtikel.map((a) => ({ ware_id: data.id, artikel: a.artikel.trim(), anzahl: parseInt(a.anzahl) || 1 })));
       if (artError) { setError(artError.message); setSaving(false); return; }
     }
 
