@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { GeplantTyp } from "../page";
 
 interface ArtikelRow { id: string; artikel: string; anzahl: string; isNew?: boolean; }
 
 interface Props {
-  bestellung: { id: string; fabrik: string | null; datum: string; notiz: string | null; };
+  bestellung: { id: string; fabrik: string | null; datum: string; typ: GeplantTyp; notiz: string | null; };
   initialArtikel: Array<{ id: string; artikel: string; anzahl: number }>;
 }
 
@@ -17,6 +18,7 @@ function newRow(): ArtikelRow {
 
 export default function GeplantEditModal({ bestellung, initialArtikel }: Props) {
   const [open, setOpen] = useState(false);
+  const [typ, setTyp] = useState<GeplantTyp>(bestellung.typ);
   const [fabrik, setFabrik] = useState(bestellung.fabrik ?? "");
   const [datum, setDatum] = useState(bestellung.datum);
   const [notiz, setNotiz] = useState(bestellung.notiz ?? "");
@@ -44,7 +46,7 @@ export default function GeplantEditModal({ bestellung, initialArtikel }: Props) 
     const { error: dbError } = await supabase
       .from("ware_in_china")
       .update({
-        order_pi_nummer: `DATUM:${datum}`,
+        order_pi_nummer: `DATUM:${datum}:${typ}`,
         fabrik: fabrik.trim() || null,
         notiz: notiz.trim() || null,
         updated_at: new Date().toISOString(),
@@ -85,7 +87,7 @@ export default function GeplantEditModal({ bestellung, initialArtikel }: Props) 
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-          <h2 className="text-base font-semibold text-stone-900">Bestellung bearbeiten</h2>
+          <h2 className="text-base font-semibold text-stone-900">Eintrag bearbeiten</h2>
           <button onClick={() => setOpen(false)} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-stone-100 transition-colors text-stone-500">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -95,6 +97,28 @@ export default function GeplantEditModal({ bestellung, initialArtikel }: Props) 
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {error && <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+          <div>
+            <label className="label">Typ</label>
+            <div className="flex gap-3">
+              {(["ORDER", "LOADING"] as GeplantTyp[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTyp(t)}
+                  className={`flex-1 rounded-xl border-2 py-2.5 text-sm font-semibold transition-all ${
+                    typ === t
+                      ? t === "LOADING"
+                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-stone-700 bg-stone-100 text-stone-800"
+                      : "border-stone-200 bg-white text-stone-400 hover:border-stone-300"
+                  }`}
+                >
+                  {t === "ORDER" ? "Order" : "Loading"}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="space-y-3">
             <div>

@@ -1,15 +1,39 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
-function extractDatum(orderPi: string | null): string {
-  if (!orderPi?.startsWith("DATUM:")) return "";
-  return orderPi.slice(6);
+export type GeplantTyp = "ORDER" | "LOADING";
+
+export function parseOrderPi(orderPi: string | null): { datum: string; typ: GeplantTyp } {
+  if (!orderPi?.startsWith("DATUM:")) return { datum: "", typ: "ORDER" };
+  const parts = orderPi.slice(6).split(":");
+  const datum = parts[0] ?? "";
+  const typ: GeplantTyp = parts[1] === "LOADING" ? "LOADING" : "ORDER";
+  return { datum, typ };
+}
+
+export function buildOrderPi(datum: string, typ: GeplantTyp) {
+  return `DATUM:${datum}:${typ}`;
 }
 
 function fmtDate(d: string) {
   if (!d) return "—";
   const [y, m, dd] = d.split("-");
   return `${dd}.${m}.${y}`;
+}
+
+function TypBadge({ typ }: { typ: GeplantTyp }) {
+  if (typ === "LOADING") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700 uppercase tracking-wide">
+        Loading
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-semibold text-stone-600 uppercase tracking-wide">
+      Order
+    </span>
+  );
 }
 
 export default async function GeplanteBestellungenPage() {
@@ -28,14 +52,14 @@ export default async function GeplanteBestellungenPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Geplante Bestellungen</h1>
+          <h1 className="text-2xl font-bold text-stone-900">Geplante Bestellungen / Loading</h1>
           <p className="text-stone-500 text-sm mt-0.5">{bestellungen?.length ?? 0} Einträge · sortiert nach Datum</p>
         </div>
         <Link href="/china/geplante-bestellungen/new" className="btn-primary">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Neue Bestellung
+          Neu anlegen
         </Link>
       </div>
 
@@ -44,6 +68,7 @@ export default async function GeplanteBestellungenPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-200 bg-stone-50">
+                <th className="text-left px-4 py-3 font-medium text-stone-600">Typ</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Geplant am</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Fabrik</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Artikel</th>
@@ -53,14 +78,14 @@ export default async function GeplanteBestellungenPage() {
             <tbody className="divide-y divide-stone-100">
               {!bestellungen?.length ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-stone-400">
-                    Noch keine geplanten Bestellungen.
+                  <td colSpan={5} className="px-4 py-12 text-center text-stone-400">
+                    Noch keine Einträge.
                   </td>
                 </tr>
               ) : (
                 bestellungen.map((b) => {
                   const href = `/china/geplante-bestellungen/${b.id}`;
-                  const datum = extractDatum(b.order_pi_nummer);
+                  const { datum, typ } = parseOrderPi(b.order_pi_nummer);
                   const artikel: Array<{ artikel: string; anzahl: number }> = b.ware_in_china_artikel ?? [];
                   const artikelText = artikel.length
                     ? artikel.map((a) => `${a.artikel}${a.anzahl > 1 ? ` ×${a.anzahl}` : ""}`).join(", ")
@@ -69,6 +94,11 @@ export default async function GeplanteBestellungenPage() {
                   const soon = !overdue && datum <= soonDate;
                   return (
                     <tr key={b.id} className="hover:bg-stone-50 transition-colors cursor-pointer">
+                      <td className="p-0">
+                        <Link href={href} className="block px-4 py-3">
+                          <TypBadge typ={typ} />
+                        </Link>
+                      </td>
                       <td className="p-0 whitespace-nowrap">
                         <Link href={href} className="flex items-center gap-2 px-4 py-3">
                           <span className={`font-medium tabular-nums ${overdue ? "text-red-600" : soon ? "text-amber-600" : "text-stone-700"}`}>

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { GeplantTyp } from "../page";
 
 interface Props { userName: string; }
 interface ArtikelRow { id: string; artikel: string; anzahl: string; }
@@ -49,6 +50,7 @@ async function compressImage(file: File): Promise<Blob> {
 
 export default function NewGeplantForm({ userName }: Props) {
   const today = new Date().toISOString().slice(0, 10);
+  const [typ, setTyp] = useState<GeplantTyp>("ORDER");
   const [fabrik, setFabrik] = useState("");
   const [datum, setDatum] = useState(today);
   const [notiz, setNotiz] = useState("");
@@ -92,11 +94,10 @@ export default function NewGeplantForm({ userName }: Props) {
     setError("");
     setUploadProgress("");
 
-    // Store datum as "DATUM:YYYY-MM-DD" in order_pi_nummer (reuses ware_in_china table)
     const { data, error: dbError } = await supabase
       .from("ware_in_china")
       .insert({
-        order_pi_nummer: `DATUM:${datum}`,
+        order_pi_nummer: `DATUM:${datum}:${typ}`,
         fabrik: fabrik.trim() || null,
         notiz: notiz.trim() || null,
         created_by: userName,
@@ -143,6 +144,29 @@ export default function NewGeplantForm({ userName }: Props) {
       )}
 
       <div className="card p-4 space-y-4">
+        {/* Typ-Auswahl */}
+        <div>
+          <label className="label">Typ</label>
+          <div className="flex gap-3">
+            {(["ORDER", "LOADING"] as GeplantTyp[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTyp(t)}
+                className={`flex-1 rounded-xl border-2 py-3 text-sm font-semibold transition-all ${
+                  typ === t
+                    ? t === "LOADING"
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-stone-700 bg-stone-100 text-stone-800"
+                    : "border-stone-200 bg-white text-stone-400 hover:border-stone-300"
+                }`}
+              >
+                {t === "ORDER" ? "Order" : "Loading"}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div>
           <label className="label">Fabrik <span className="text-stone-400 font-normal">(optional)</span></label>
           <input className="input" placeholder="z.B. Guangzhou Electronics Co." value={fabrik} onChange={(e) => setFabrik(e.target.value)} />
@@ -237,7 +261,7 @@ export default function NewGeplantForm({ userName }: Props) {
       <div className="flex justify-end gap-3">
         <button type="button" className="btn-secondary" onClick={() => router.push("/china/geplante-bestellungen")} disabled={saving}>Abbrechen</button>
         <button type="submit" className="btn-primary" disabled={saving}>
-          {saving ? (uploadProgress || "Erstellen…") : "Bestellung erstellen"}
+          {saving ? (uploadProgress || "Erstellen…") : "Eintrag erstellen"}
         </button>
       </div>
     </form>

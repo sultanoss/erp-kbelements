@@ -2,19 +2,30 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
+import { parseOrderPi } from "../page";
 import GeplantEditModal from "./GeplantEditModal";
 import GeplantMedia from "./GeplantMedia";
 import DeleteGeplantButton from "./DeleteGeplantButton";
-
-function extractDatum(orderPi: string | null): string {
-  if (!orderPi?.startsWith("DATUM:")) return "";
-  return orderPi.slice(6);
-}
 
 function formatDatum(dateStr: string) {
   if (!dateStr) return "—";
   const [y, m, d] = dateStr.split("-");
   return `${d}.${m}.${y}`;
+}
+
+function TypBadge({ typ }: { typ: "ORDER" | "LOADING" }) {
+  if (typ === "LOADING") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+        Loading
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-600">
+      Order
+    </span>
+  );
 }
 
 export default async function GeplantDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,7 +41,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
 
   if (!ware || !ware.order_pi_nummer?.startsWith("DATUM:")) notFound();
 
-  const datum = extractDatum(ware.order_pi_nummer);
+  const { datum, typ } = parseOrderPi(ware.order_pi_nummer);
   const today = new Date().toISOString().slice(0, 10);
   const isOverdue = datum < today;
   const isSoon = !isOverdue && datum <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
@@ -39,7 +50,9 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
     <div className="p-6 max-w-4xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-stone-500 mb-5">
-        <Link href="/china/geplante-bestellungen" className="hover:text-stone-700 transition-colors">Geplante Bestellungen</Link>
+        <Link href="/china/geplante-bestellungen" className="hover:text-stone-700 transition-colors">
+          Geplante Bestellungen / Loading
+        </Link>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
@@ -55,6 +68,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
             <h1 className="text-2xl font-bold text-stone-900">
               {ware.fabrik || <span className="text-stone-400 font-normal">Keine Fabrik</span>}
             </h1>
+            <TypBadge typ={typ} />
             {isOverdue && (
               <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
                 Überfällig
@@ -75,7 +89,7 @@ export default async function GeplantDetailPage({ params }: { params: Promise<{ 
         </div>
         <div className="flex items-center gap-2">
           <GeplantEditModal
-            bestellung={{ id: ware.id, fabrik: ware.fabrik, datum, notiz: ware.notiz }}
+            bestellung={{ id: ware.id, fabrik: ware.fabrik, datum, typ, notiz: ware.notiz }}
             initialArtikel={(artikel ?? []).map((a) => ({ id: a.id, artikel: a.artikel, anzahl: a.anzahl }))}
           />
           <DeleteGeplantButton id={ware.id} />

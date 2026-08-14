@@ -59,7 +59,7 @@ interface Props {
 const chinaSubItems = [
   { href: "/china/bestellungen", label: "Bestellungen" },
   { href: "/china/ware", label: "Ware in China" },
-  { href: "/china/geplante-bestellungen", label: "Geplante Bestellungen" },
+  { href: "/china/geplante-bestellungen", label: "Geplante Best. / Loading" },
 ];
 
 const todoSubItems = [
