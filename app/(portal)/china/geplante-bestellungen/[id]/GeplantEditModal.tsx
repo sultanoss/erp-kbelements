@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { GeplantTyp, GeplantStatus } from "../utils";
-import { STATUS_LABELS, buildOrderPi } from "../utils";
+import type { GeplantTyp } from "../utils";
+import { buildOrderPi } from "../utils";
 
 interface ArtikelRow { id: string; artikel: string; anzahl: string; isNew?: boolean; }
 
 interface Props {
-  bestellung: { id: string; fabrik: string | null; datum: string; typ: GeplantTyp; status: GeplantStatus; notiz: string | null; };
+  bestellung: { id: string; fabrik: string | null; datum: string; typ: GeplantTyp; checked: boolean; notiz: string | null; };
   initialArtikel: Array<{ id: string; artikel: string; anzahl: number }>;
 }
 
@@ -20,7 +20,6 @@ function newRow(): ArtikelRow {
 export default function GeplantEditModal({ bestellung, initialArtikel }: Props) {
   const [open, setOpen] = useState(false);
   const [typ, setTyp] = useState<GeplantTyp>(bestellung.typ);
-  const [status, setStatus] = useState<GeplantStatus>(bestellung.status);
   const [fabrik, setFabrik] = useState(bestellung.fabrik ?? "");
   const [datum, setDatum] = useState(bestellung.datum);
   const [notiz, setNotiz] = useState(bestellung.notiz ?? "");
@@ -48,7 +47,7 @@ export default function GeplantEditModal({ bestellung, initialArtikel }: Props) 
     const { error: dbError } = await supabase
       .from("ware_in_china")
       .update({
-        order_pi_nummer: buildOrderPi(datum, typ, status),
+        order_pi_nummer: buildOrderPi(datum, typ, bestellung.checked),
         fabrik: fabrik.trim() || null,
         notiz: notiz.trim() || null,
         updated_at: new Date().toISOString(),
@@ -120,19 +119,6 @@ export default function GeplantEditModal({ bestellung, initialArtikel }: Props) 
                 </button>
               ))}
             </div>
-          </div>
-
-          <div>
-            <label className="label">Status</label>
-            <select
-              className="input"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as GeplantStatus)}
-            >
-              {(Object.keys(STATUS_LABELS) as GeplantStatus[]).map((s) => (
-                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-              ))}
-            </select>
           </div>
 
           <div className="space-y-3">

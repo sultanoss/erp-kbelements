@@ -3,8 +3,8 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { GeplantTyp, GeplantStatus } from "../utils";
-import { STATUS_LABELS, buildOrderPi } from "../utils";
+import type { GeplantTyp } from "../utils";
+import { buildOrderPi } from "../utils";
 
 interface Props { userName: string; }
 interface ArtikelRow { id: string; artikel: string; anzahl: string; }
@@ -52,7 +52,6 @@ async function compressImage(file: File): Promise<Blob> {
 export default function NewGeplantForm({ userName }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const [typ, setTyp] = useState<GeplantTyp>("ORDER");
-  const [status, setStatus] = useState<GeplantStatus>("OFFEN");
   const [fabrik, setFabrik] = useState("");
   const [datum, setDatum] = useState(today);
   const [notiz, setNotiz] = useState("");
@@ -99,7 +98,7 @@ export default function NewGeplantForm({ userName }: Props) {
     const { data, error: dbError } = await supabase
       .from("ware_in_china")
       .insert({
-        order_pi_nummer: buildOrderPi(datum, typ, status),
+        order_pi_nummer: buildOrderPi(datum, typ),
         fabrik: fabrik.trim() || null,
         notiz: notiz.trim() || null,
         created_by: userName,
@@ -167,19 +166,6 @@ export default function NewGeplantForm({ userName }: Props) {
               </button>
             ))}
           </div>
-        </div>
-
-        <div>
-          <label className="label">Status</label>
-          <select
-            className="input"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as GeplantStatus)}
-          >
-            {(Object.keys(STATUS_LABELS) as GeplantStatus[]).map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
         </div>
 
         <div>
