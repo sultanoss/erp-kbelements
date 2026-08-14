@@ -84,11 +84,11 @@ export default async function GeplanteBestellungenPage() {
                   return (
                     <tr key={b.id} className={`hover:bg-stone-50 transition-colors cursor-pointer ${checked ? "opacity-60" : ""}`}>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <CheckToggle id={b.id} checked={checked} />
+                        <div className="flex items-center gap-1.5">
                           <Link href={href} className="inline-flex">
                             <TypBadge typ={typ} />
                           </Link>
+                          <CheckToggle id={b.id} checked={checked} />
                         </div>
                       </td>
                       <td className="p-0 whitespace-nowrap">
