@@ -199,7 +199,7 @@ export default async function InventoryPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Neuware-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
               <th className="px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-brand-red">Ø&nbsp;/&nbsp;Tag</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Ø&nbsp;B2B&nbsp;/&nbsp;Tag</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid border-l border-r border-t border-brand-red/30 bg-brand-red/5">Ø&nbsp;B2B&nbsp;/&nbsp;Tag</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
               {canEdit && <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>}
             </tr>
@@ -217,7 +217,7 @@ export default async function InventoryPage({
                     return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>;
                   })()}
                 </td>
-                <td className="px-4 py-3 font-mono tabular-nums text-sm">
+                <td className="px-4 py-3 font-mono tabular-nums text-sm border-l border-r border-brand-red/20 bg-brand-red/[0.03]">
                   {(() => {
                     const avg = ((b2bSkuTotals.get(item.sku) ?? 0) / days).toFixed(1);
                     return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>;
