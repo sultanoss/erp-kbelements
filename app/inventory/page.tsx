@@ -220,7 +220,7 @@ export default async function InventoryPage({
                 <td className="px-4 py-3 font-mono tabular-nums text-sm">
                   {(() => {
                     const avg = ((b2bSkuTotals.get(item.sku) ?? 0) / days).toFixed(1);
-                    return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-grey-dark"}>{avg}</span>;
+                    return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>;
                   })()}
                 </td>
                 <td className="px-4 py-3">
