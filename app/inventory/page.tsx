@@ -49,6 +49,21 @@ export default async function InventoryPage({
     }),
   ]);
   const skuTotals = new Map(saleAgg.map((r) => [r.sku, r._sum.quantity ?? 0]));
+
+  const b2bNames = (await prisma.b2bCustomer.findMany({ select: { name: true } })).map(c => c.name);
+  const b2bInvoiceItems = b2bNames.length > 0 ? await prisma.invoiceItem.findMany({
+    where: {
+      invoice: { customerName: { in: b2bNames }, status: "aktiv", date: { gte: from, lte: to } },
+    },
+    select: { quantity: true, skus: { select: { sku: true } } },
+  }) : [];
+  const b2bSkuTotals = new Map<string, number>();
+  for (const item of b2bInvoiceItems) {
+    const uniqueSkus = [...new Set(item.skus.map(s => s.sku))];
+    for (const sku of uniqueSkus) {
+      b2bSkuTotals.set(sku, (b2bSkuTotals.get(sku) ?? 0) + item.quantity);
+    }
+  }
   const sortedItems =
     sort === "stock_asc" || sort === "stock_desc"
       ? items
@@ -184,6 +199,7 @@ export default async function InventoryPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Neuware-Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
               <th className="px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-brand-red">Ø&nbsp;/&nbsp;Tag</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Ø&nbsp;B2B&nbsp;/&nbsp;Tag</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
               {canEdit && <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Aktion</th>}
             </tr>
@@ -199,6 +215,12 @@ export default async function InventoryPage({
                   {(() => {
                     const avg = ((skuTotals.get(item.sku) ?? 0) / days).toFixed(1);
                     return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>;
+                  })()}
+                </td>
+                <td className="px-4 py-3 font-mono tabular-nums text-sm">
+                  {(() => {
+                    const avg = ((b2bSkuTotals.get(item.sku) ?? 0) / days).toFixed(1);
+                    return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-grey-dark"}>{avg}</span>;
                   })()}
                 </td>
                 <td className="px-4 py-3">
