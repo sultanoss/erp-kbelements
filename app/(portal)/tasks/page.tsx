@@ -32,7 +32,7 @@ export default async function TasksPage({
 
   if (params.q) {
     const q = params.q;
-    query = query.or(`description.ilike.%${q}%,created_by.ilike.%${q}%`);
+    query = query.or(`description.ilike.%${q}%,created_by.ilike.%${q}%,sendungsnummer.ilike.%${q}%,assigned_to::text.ilike.%${q}%`);
   }
   if (params.status) query = query.eq("status", params.status);
   if (params.type) query = query.contains("tags", [params.type]);

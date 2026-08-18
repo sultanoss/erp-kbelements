@@ -29,7 +29,7 @@ export default async function ReturnsPage({
   if (params.q) {
     const q = params.q;
     query = query.or(
-      `order_number.ilike.%${q}%,description.ilike.%${q}%,received_by.ilike.%${q}%,resolved_by.ilike.%${q}%,resolution_notes.ilike.%${q}%`
+      `order_number.ilike.%${q}%,description.ilike.%${q}%,received_by.ilike.%${q}%,resolved_by.ilike.%${q}%,resolution_notes.ilike.%${q}%,tracking_number.ilike.%${q}%`
     );
   }
   if (params.from) query = query.gte("created_at", params.from);
