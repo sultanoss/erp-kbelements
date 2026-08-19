@@ -17,6 +17,8 @@ const jetbrains = JetBrains_Mono({
   display: "swap",
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "KB ELEMENTS ERP",
   description: "Web-ERP fuer KB ELEMENTS",
