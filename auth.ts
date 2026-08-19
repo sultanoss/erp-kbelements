@@ -27,9 +27,18 @@ export const {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email.toLowerCase() },
-        });
+        let user = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            user = await prisma.user.findUnique({
+              where: { email: parsed.data.email.toLowerCase() },
+            });
+            break;
+          } catch {
+            if (attempt === 2) return null;
+            await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+          }
+        }
 
         if (!user?.active) return null;
 
