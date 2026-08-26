@@ -17,13 +17,15 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
   });
   if (!offer || offer.docType !== "angebot") notFound();
 
-  const bruttoPositionen = offer.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-  const shipping = offer.shippingCost ?? 0;
-  const bruttoGesamt = bruttoPositionen + shipping;
-  const shippingMwst = offer.shippingMwst ?? 19;
-  const productNetto = offer.mwstRate > 0 ? bruttoPositionen / (1 + offer.mwstRate / 100) : bruttoPositionen;
+  const isB2B = offer.customerType === "b2b";
+  const rawPositionen = offer.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const productNetto = isB2B ? rawPositionen : (offer.mwstRate > 0 ? rawPositionen / (1 + offer.mwstRate / 100) : rawPositionen);
+  const bruttoPositionen = isB2B ? rawPositionen * (1 + offer.mwstRate / 100) : rawPositionen;
   const productMwstAmt = bruttoPositionen - productNetto;
+  const shipping = offer.shippingCost ?? 0;
+  const shippingMwst = offer.shippingMwst ?? 19;
   const shippingNetto = shipping > 0 && shippingMwst > 0 ? shipping / (1 + shippingMwst / 100) : shipping;
+  const bruttoGesamt = bruttoPositionen + shipping;
 
   return (
     <AppShell>
@@ -71,8 +73,8 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Art.-Nr.</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezeichnung</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">Menge</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">E.-Preis</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">G.-Preis</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">{isB2B ? "E.-Preis (Netto)" : "E.-Preis"}</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid text-right">{isB2B ? "G.-Preis (Netto)" : "G.-Preis"}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-grey-border">

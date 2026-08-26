@@ -325,6 +325,7 @@ export async function createInvoice(data: {
   originalInvoiceNum?: string;
   saveAsB2cCustomer?: boolean;
   saveAsB2bCustomer?: boolean;
+  customerType?: string;
   items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
 }) {
   const user = await requireUser();
@@ -388,6 +389,7 @@ export async function createInvoice(data: {
           paymentInfo: data.paymentInfo || null,
           bezahlt: data.bezahlt ?? true,
           docType: data.docType,
+          customerType: data.customerType ?? "b2c",
           originalInvoiceId: data.originalInvoiceId ?? null,
           originalInvoiceNum: data.originalInvoiceNum ?? null,
           userId: user.id,
@@ -588,6 +590,7 @@ export async function updateInvoice(
     bezahlt?: boolean;
     saveAsB2cCustomer?: boolean;
     saveAsB2bCustomer?: boolean;
+    customerType?: string;
     items: { pos: number; quantity: number; description: string; unitPrice: number; skus: { sku: string; lager: string }[] }[];
   }
 ) {
@@ -633,6 +636,7 @@ export async function updateInvoice(
         notes: data.notes || null,
         paymentInfo: data.paymentInfo || null,
         ...(data.bezahlt !== undefined && { bezahlt: data.bezahlt, bezahltAt: data.bezahlt ? new Date() : null }),
+        ...(data.customerType !== undefined && { customerType: data.customerType }),
         items: {
           create: data.items.map((it) => ({
             pos: it.pos,

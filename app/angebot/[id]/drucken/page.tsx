@@ -63,13 +63,15 @@ export default async function AngebotDruckenPage({ params }: { params: Promise<{
   });
   if (!inv || inv.docType !== "angebot") notFound();
 
+  const isB2B = inv.customerType === "b2b";
   const shipping = inv.shippingCost ?? 0;
   const shippingMwst = inv.shippingMwst ?? 19;
-  const bruttoPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const rawPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const productNetto = isB2B ? rawPositionen : (inv.mwstRate > 0 ? rawPositionen / (1 + inv.mwstRate / 100) : rawPositionen);
+  const bruttoPositionen = isB2B ? rawPositionen * (1 + inv.mwstRate / 100) : rawPositionen;
   const bruttoGesamt = bruttoPositionen + shipping;
 
   const sameMwst = shippingMwst === inv.mwstRate;
-  const productNetto = inv.mwstRate > 0 ? bruttoPositionen / (1 + inv.mwstRate / 100) : bruttoPositionen;
   const productMwstAmt = bruttoPositionen - productNetto;
   const shippingNetto = shipping > 0 && shippingMwst > 0 ? shipping / (1 + shippingMwst / 100) : shipping;
   const shippingMwstAmt = shipping - shippingNetto;
@@ -118,8 +120,8 @@ export default async function AngebotDruckenPage({ params }: { params: Promise<{
               <th style={{ width: "95px" }}>Art.-Nr.</th>
               <th>Bezeichnung</th>
               <th className="r" style={{ width: "50px" }}>MwSt.</th>
-              <th className="r" style={{ width: "80px" }}>E.-Preis</th>
-              <th className="r" style={{ width: "80px" }}>G.-Preis</th>
+              <th className="r" style={{ width: "80px" }}>{isB2B ? "E.-Preis (Netto)" : "E.-Preis"}</th>
+              <th className="r" style={{ width: "80px" }}>{isB2B ? "G.-Preis (Netto)" : "G.-Preis"}</th>
             </tr>
           </thead>
           <tbody>

@@ -147,6 +147,7 @@ model Invoice {
   bezahlt            Boolean       @default(true)
   bezahltAt          DateTime?
   customerPhone      String?
+  customerType       String        @default("b2c")
   user               User          @relation(fields: [userId], references: [id])
   items              InvoiceItem[]
 

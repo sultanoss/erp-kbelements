@@ -41,6 +41,7 @@ export default async function AngebotBearbeitenPage({ params }: { params: Promis
     paymentMethod: "konto",
     paymentInfo: "",
     notes: angebot.notes ?? "",
+    customerType: (angebot.customerType as "b2c" | "b2b") ?? "b2c",
     items: angebot.items.map((it) => ({
       id: _nextId++,
       pos: it.pos,

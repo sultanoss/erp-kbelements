@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "customerType" TEXT NOT NULL DEFAULT 'b2c';

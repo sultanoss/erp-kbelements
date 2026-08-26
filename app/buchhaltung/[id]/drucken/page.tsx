@@ -66,31 +66,18 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
   });
   if (!inv) notFound();
 
+  const isB2B = inv.customerType === "b2b";
   const shipping = inv.shippingCost ?? 0;
   const shippingMwst = inv.shippingMwst ?? 19;
-  const bruttoPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const rawPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const productNetto = isB2B ? rawPositionen : (inv.mwstRate > 0 ? rawPositionen / (1 + inv.mwstRate / 100) : rawPositionen);
+  const bruttoPositionen = isB2B ? rawPositionen * (1 + inv.mwstRate / 100) : rawPositionen;
   const bruttoGesamt = bruttoPositionen + shipping;
 
-  // Calculate netto/MwSt with potentially different shipping VAT
   const sameMwst = shippingMwst === inv.mwstRate;
-  let productNetto: number, productMwstAmt: number, shippingNetto: number, shippingMwstAmt: number;
-
-  if (inv.mwstRate > 0) {
-    productNetto = bruttoPositionen / (1 + inv.mwstRate / 100);
-    productMwstAmt = bruttoPositionen - productNetto;
-  } else {
-    productNetto = bruttoPositionen;
-    productMwstAmt = 0;
-  }
-
-  if (shipping > 0) {
-    shippingNetto = shippingMwst > 0 ? shipping / (1 + shippingMwst / 100) : shipping;
-    shippingMwstAmt = shipping - shippingNetto;
-  } else {
-    shippingNetto = 0;
-    shippingMwstAmt = 0;
-  }
-
+  const productMwstAmt = bruttoPositionen - productNetto;
+  const shippingNetto = shipping > 0 && shippingMwst > 0 ? shipping / (1 + shippingMwst / 100) : shipping;
+  const shippingMwstAmt = shipping - shippingNetto;
   const totalNetto = productNetto + shippingNetto;
   const totalMwstAmt = productMwstAmt + shippingMwstAmt;
   const isStorniert = inv.status === "storniert";
@@ -149,8 +136,8 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
               <th style={{ width: "95px" }}>Art.-Nr.</th>
               <th>Bezeichnung</th>
               <th className="r" style={{ width: "50px" }}>MwSt.</th>
-              <th className="r" style={{ width: "80px" }}>E.-Preis</th>
-              <th className="r" style={{ width: "80px" }}>G.-Preis</th>
+              <th className="r" style={{ width: "80px" }}>{isB2B ? "E.-Preis (Netto)" : "E.-Preis"}</th>
+              <th className="r" style={{ width: "80px" }}>{isB2B ? "G.-Preis (Netto)" : "G.-Preis"}</th>
             </tr>
           </thead>
           <tbody>

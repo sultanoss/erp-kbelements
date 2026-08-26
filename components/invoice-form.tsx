@@ -44,6 +44,7 @@ export type InvoiceInitialData = {
   paymentInfo: string;
   notes: string;
   items: LineItem[];
+  customerType?: "b2c" | "b2b";
 };
 
 const today = new Date().toISOString().slice(0, 10);
@@ -97,7 +98,7 @@ export function InvoiceForm({
   const [selectedB2cId, setSelectedB2cId] = useState("");
   const [lastPrices, setLastPrices] = useState<Record<number, { sku: string; price: number | null } | undefined>>({});
   const [rawPrices, setRawPrices] = useState<Record<number, string>>({});
-  const [customerType, setCustomerType] = useState<"b2c" | "b2b">("b2c");
+  const [customerType, setCustomerType] = useState<"b2c" | "b2b">(initialData?.customerType ?? "b2c");
   const isB2B = customerType === "b2b";
 
   useEffect(() => {
@@ -264,15 +265,14 @@ export function InvoiceForm({
       notes,
       paymentInfo: noPayment ? null : (paymentMethod === "konto" ? paymentInfo.trim() || null : null),
       docType,
+      customerType: isB2B ? "b2b" : "b2c",
       originalInvoiceId: originalInvoiceId ?? undefined,
       originalInvoiceNum: originalInvoiceNum ?? undefined,
       items: items.map((it) => ({
         pos: it.pos,
         quantity: it.quantity,
         description: it.description,
-        unitPrice: isB2B && mwstRate > 0
-          ? Math.round(it.unitPrice * (1 + mwstRate / 100) * 100) / 100
-          : it.unitPrice,
+        unitPrice: it.unitPrice,
         skus: it.skus.filter((s) => s.sku).map((s) => ({ sku: s.sku, lager: s.lager })),
       })),
     };
