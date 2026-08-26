@@ -399,7 +399,7 @@ export function InvoiceForm({
           <span className="text-xs font-bold text-grey-dark">Art.-Nr. / Lager</span>
           <span className="text-xs font-bold text-grey-dark">Bezeichnung</span>
           <span className="text-xs font-bold text-grey-dark text-right">Menge</span>
-          <span className="text-xs font-bold text-grey-dark text-right">Preis (Brutto)</span>
+          <span className="text-xs font-bold text-grey-dark text-right">Preis</span>
           <span />
         </div>
 
@@ -572,7 +572,7 @@ export function InvoiceForm({
           )}
           {shippingVal > 0 && shippingMwst === mwstRate && (
             <div className="flex justify-between font-mono text-sm text-grey-mid">
-              <span>Versand (brutto)</span>
+              <span>Versand</span>
               <span className="tabular-nums">{shippingVal.toFixed(2)} €</span>
             </div>
           )}
