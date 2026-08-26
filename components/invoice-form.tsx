@@ -97,6 +97,8 @@ export function InvoiceForm({
   const [selectedB2cId, setSelectedB2cId] = useState("");
   const [lastPrices, setLastPrices] = useState<Record<number, { sku: string; price: number | null } | undefined>>({});
   const [rawPrices, setRawPrices] = useState<Record<number, string>>({});
+  const [customerType, setCustomerType] = useState<"b2c" | "b2b">("b2c");
+  const isB2B = customerType === "b2b";
 
   useEffect(() => {
     setLastPrices({});
@@ -117,6 +119,7 @@ export function InvoiceForm({
   function selectB2bCustomer(id: string) {
     setSelectedB2bId(id);
     if (!id) return;
+    setCustomerType("b2b");
     const c = b2bCustomers.find((x) => x.id === id);
     if (!c) return;
     setCustomerName(c.name);
@@ -130,6 +133,7 @@ export function InvoiceForm({
 
   function selectB2cCustomer(id: string) {
     setSelectedB2cId(id);
+    setCustomerType("b2c");
     if (!id) { setCustomerNum(""); setCustomerPhone(""); return; }
     const c = b2cCustomers.find((x) => x.id === id);
     if (!c) return;
@@ -156,6 +160,7 @@ export function InvoiceForm({
     setSelectedB2bId("");
     setSelectedB2cId("");
     setRawPrices({});
+    setCustomerType("b2c");
     formRef.current?.reset();
   }
 
@@ -219,11 +224,14 @@ export function InvoiceForm({
     }
   }
 
-  const bruttoPositionen = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const rawPositionen = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  // B2C: Eingabe ist Brutto → Netto wird abgeleitet
+  // B2B: Eingabe ist Netto → Brutto wird abgeleitet
+  const productNetto = isB2B ? rawPositionen : (mwstRate > 0 ? rawPositionen / (1 + mwstRate / 100) : rawPositionen);
+  const bruttoPositionen = isB2B ? rawPositionen * (1 + mwstRate / 100) : rawPositionen;
+  const productMwstAmt = bruttoPositionen - productNetto;
   const shippingVal = shippingCost !== "" ? parseFloat(shippingCost) || 0 : 0;
   const bruttoGesamt = bruttoPositionen + shippingVal;
-  const productNetto = mwstRate > 0 ? bruttoPositionen / (1 + mwstRate / 100) : bruttoPositionen;
-  const productMwstAmt = bruttoPositionen - productNetto;
   const shippingNetto = shippingVal > 0 && shippingMwst > 0 ? shippingVal / (1 + shippingMwst / 100) : shippingVal;
   const shippingMwstAmt = shippingVal - shippingNetto;
   const netto = productNetto + shippingNetto;
@@ -262,7 +270,9 @@ export function InvoiceForm({
         pos: it.pos,
         quantity: it.quantity,
         description: it.description,
-        unitPrice: it.unitPrice,
+        unitPrice: isB2B && mwstRate > 0
+          ? Math.round(it.unitPrice * (1 + mwstRate / 100) * 100) / 100
+          : it.unitPrice,
         skus: it.skus.filter((s) => s.sku).map((s) => ({ sku: s.sku, lager: s.lager })),
       })),
     };
@@ -279,6 +289,27 @@ export function InvoiceForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+
+      {/* Kundentyp */}
+      <div className="flex items-center gap-3 rounded-lg border border-grey-border bg-grey-light/60 px-4 py-3">
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid whitespace-nowrap">Kundentyp</span>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setCustomerType("b2c")}
+            className={`rounded-lg px-4 py-1.5 font-mono text-xs font-semibold transition-colors ${!isB2B ? "bg-brand-red text-white" : "border border-grey-border bg-white text-grey-dark hover:border-brand-red hover:text-brand-red"}`}
+          >
+            B2C – Privatkunde
+          </button>
+          <button
+            type="button"
+            onClick={() => setCustomerType("b2b")}
+            className={`rounded-lg px-4 py-1.5 font-mono text-xs font-semibold transition-colors ${isB2B ? "bg-brand-red text-white" : "border border-grey-border bg-white text-grey-dark hover:border-brand-red hover:text-brand-red"}`}
+          >
+            B2B – Geschäftskunde
+          </button>
+        </div>
+      </div>
 
       {/* B2C Kunde Auswahl */}
       {b2cCustomers.length > 0 && !initialData?.invoiceId && (
@@ -399,7 +430,7 @@ export function InvoiceForm({
           <span className="text-xs font-bold text-grey-dark">Art.-Nr. / Lager</span>
           <span className="text-xs font-bold text-grey-dark">Bezeichnung</span>
           <span className="text-xs font-bold text-grey-dark text-right">Menge</span>
-          <span className="text-xs font-bold text-grey-dark text-right">Preis</span>
+          <span className="text-xs font-bold text-grey-dark text-right">{isB2B ? "Preis (Netto)" : "Preis (Brutto)"}</span>
           <span />
         </div>
 
@@ -581,7 +612,9 @@ export function InvoiceForm({
             <span className="tabular-nums">{bruttoGesamt.toFixed(2)} €</span>
           </div>
           {mwstRate > 0 && (
-            <p className="font-mono text-[10px] text-grey-mid pt-1">* Eingegebene Preise sind Bruttopreise inkl. MwSt.</p>
+            <p className="font-mono text-[10px] text-grey-mid pt-1">
+              {isB2B ? "* Eingegebene Preise sind Nettopreise zzgl. MwSt." : "* Eingegebene Preise sind Bruttopreise inkl. MwSt."}
+            </p>
           )}
         </div>
       </div>
