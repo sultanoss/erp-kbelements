@@ -113,6 +113,10 @@ export default async function AngebotListPage({
                         className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
                         Ansehen
                       </Link>
+                      <Link href={`/angebot/${offer.id}/bearbeiten`}
+                        className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+                        Bearbeiten
+                      </Link>
                       <Link href={`/angebot/${offer.id}/drucken`} target="_blank"
                         className="rounded border border-grey-border px-2 py-1 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
                         Drucken

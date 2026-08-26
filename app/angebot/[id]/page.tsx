@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import { DeleteAngebotButton } from "@/components/delete-angebot-button";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +34,15 @@ export default async function AngebotDetailPage({ params }: { params: Promise<{ 
           className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-grey-light px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:bg-grey-border transition-colors">
           ← Alle Angebote
         </Link>
+        <Link href={`/angebot/${id}/bearbeiten`}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-grey-border bg-white px-3 py-1.5 font-mono text-xs font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors">
+          Bearbeiten
+        </Link>
         <Link href={`/angebot/${id}/drucken`} target="_blank"
           className="inline-flex items-center gap-1.5 rounded-lg bg-brand-red px-3 py-1.5 font-mono text-xs font-semibold text-white hover:bg-brand-red-dark transition-colors">
           Drucken / PDF
         </Link>
+        <DeleteAngebotButton angebotId={id} />
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">

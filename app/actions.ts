@@ -772,6 +772,20 @@ export async function convertProformaToRechnung(proformaId: string) {
   redirect(`/buchhaltung/${newInv.id}`);
 }
 
+export async function deleteAngebot(angebotId: string) {
+  await requireUser();
+
+  const angebot = await prisma.invoice.findUnique({ where: { id: angebotId }, select: { docType: true } });
+  if (!angebot || angebot.docType !== "angebot") {
+    throw new Error("Kein löschbares Angebot gefunden");
+  }
+
+  await prisma.invoice.delete({ where: { id: angebotId } });
+
+  revalidatePath("/angebot");
+  redirect("/angebot");
+}
+
 export async function deleteProforma(proformaId: string) {
   await requireUser();
 
