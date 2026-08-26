@@ -578,7 +578,7 @@ export function InvoiceForm({
         </div>
         <div className="w-80 space-y-1.5 rounded-lg border border-grey-border bg-grey-light p-4">
           <div className="flex justify-between font-mono text-sm text-grey-mid">
-            <span>Netto Produkte ({mwstRate} %)</span>
+            <span>Nettobetrag</span>
             <span className="tabular-nums">{productNetto.toFixed(2)} €</span>
           </div>
           {mwstRate > 0 && (

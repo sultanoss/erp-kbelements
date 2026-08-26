@@ -165,7 +165,7 @@ export default async function GutschriftDruckenPage({ params }: { params: Promis
                 </>
               ) : (
                 <>
-                  <tr><td>Netto Produkte ({gs.mwstRate},00 %)</td><td>{fmt(productNetto)} €</td></tr>
+                  <tr><td>Nettobetrag</td><td>{fmt(productNetto)} €</td></tr>
                   {gs.mwstRate > 0 && <tr><td>zzgl. MwSt ({gs.mwstRate},00 %)</td><td>{fmt(productMwstAmt)} €</td></tr>}
                   <tr><td>Netto Versand ({shippingMwst},00 %)</td><td>{fmt(shippingNetto)} €</td></tr>
                   {shippingMwst > 0 && <tr><td>zzgl. MwSt ({shippingMwst},00 %)</td><td>{fmt(shippingMwstAmt)} €</td></tr>}

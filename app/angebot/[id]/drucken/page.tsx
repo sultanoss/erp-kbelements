@@ -160,7 +160,7 @@ export default async function AngebotDruckenPage({ params }: { params: Promise<{
                 </>
               ) : (
                 <>
-                  <tr><td>Netto Produkte ({inv.mwstRate},00 %)</td><td>{fmt(productNetto)} €</td></tr>
+                  <tr><td>Nettobetrag</td><td>{fmt(productNetto)} €</td></tr>
                   {inv.mwstRate > 0 && <tr><td>zzgl. MwSt ({inv.mwstRate},00 %)</td><td>{fmt(productMwstAmt)} €</td></tr>}
                   <tr><td>Netto Versand ({shippingMwst},00 %)</td><td>{fmt(shippingNetto)} €</td></tr>
                   {shippingMwst > 0 && <tr><td>zzgl. MwSt ({shippingMwst},00 %)</td><td>{fmt(shippingMwstAmt)} €</td></tr>}

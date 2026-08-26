@@ -95,7 +95,7 @@ export default async function GutschriftDetailPage({ params }: { params: Promise
         <div className="flex justify-end border-t border-grey-border p-5">
           <div className="w-64 space-y-1.5">
             <div className="flex justify-between font-mono text-sm text-grey-mid">
-              <span>Netto Produkte ({gs.mwstRate} %)</span>
+              <span>Nettobetrag</span>
               <span className="tabular-nums">{productNetto.toFixed(2)} €</span>
             </div>
             {gs.mwstRate > 0 && (
