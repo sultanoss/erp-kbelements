@@ -42,9 +42,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     }
   }
 
-  const isB2B = inv.customerType === "b2b";
+  const pricingB2B = inv.customerType === "b2b";
   const rawPositionen = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
-  const bruttoPositionen = isB2B ? rawPositionen * (1 + inv.mwstRate / 100) : rawPositionen;
+  const bruttoPositionen = pricingB2B ? rawPositionen * (1 + inv.mwstRate / 100) : rawPositionen;
   const shipping = inv.shippingCost ?? 0;
   const bruttoGesamt = bruttoPositionen + shipping;
   const netto = inv.mwstRate > 0 ? bruttoGesamt / (1 + inv.mwstRate / 100) : bruttoGesamt;
