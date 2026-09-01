@@ -69,6 +69,10 @@ export default async function GutschriftListPage({
             </Link>
           )}
         </form>
+        <Link href="/gutschrift/neu"
+          className="h-9 inline-flex items-center rounded-lg bg-brand-red px-4 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors whitespace-nowrap">
+          + Neue Gutschrift
+        </Link>
       </div>
 
       <Panel className="overflow-x-auto">
