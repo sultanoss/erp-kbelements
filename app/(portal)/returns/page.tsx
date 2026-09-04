@@ -24,7 +24,7 @@ export default async function ReturnsPage({
     .from("returns")
     .select("*, return_items(sku, quantity, is_manual)")
     .is("archived_at", null)
-    .not("resolution_notes", "ilike", "REPARATUR:%")
+    .or("resolution_notes.is.null,resolution_notes.not.ilike.REPARATUR:*")
     .order("created_at", { ascending: false });
 
   if (params.q) {
