@@ -17,9 +17,10 @@ export default function ReparaturStatusButtons({ returnId, currentReparaturStatu
 
   async function setStatus(newStatus: string | null) {
     setSaving(true);
+    const resolution_notes = newStatus ? `REPARATUR:${newStatus}` : "REPARATUR:offen";
     await supabase
       .from("returns")
-      .update({ reparatur_status: newStatus, updated_at: new Date().toISOString() })
+      .update({ resolution_notes, updated_at: new Date().toISOString() })
       .eq("id", returnId);
     setSaving(false);
     startTransition(() => router.refresh());

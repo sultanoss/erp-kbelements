@@ -18,19 +18,24 @@ export default async function ReparaturenPage({
   let query = supabase
     .from("returns")
     .select("*, return_items(sku, quantity)")
-    .eq("status", "reparatur")
+    .ilike("resolution_notes", "REPARATUR:%")
     .is("archived_at", null)
     .order("created_at", { ascending: false });
 
   if (filter === "wartet_auf_teile") {
-    query = query.eq("reparatur_status", "wartet_auf_teile");
+    query = query.eq("resolution_notes", "REPARATUR:wartet_auf_teile");
   } else if (filter === "erledigt") {
-    query = query.eq("reparatur_status", "erledigt");
+    query = query.eq("resolution_notes", "REPARATUR:erledigt");
   } else if (filter === "offen") {
-    query = query.is("reparatur_status", null);
+    query = query.eq("resolution_notes", "REPARATUR:offen");
   }
 
   const { data: reparaturen, error } = await query;
+
+  function getReparaturSubStatus(resolutionNotes: string | null): string | null {
+    if (!resolutionNotes?.startsWith("REPARATUR:")) return null;
+    return resolutionNotes.slice(10) || null;
+  }
 
   const cell = "block px-4 py-3";
 
@@ -160,12 +165,12 @@ export default async function ReparaturenPage({
                         </Link>
                       </td>
                       <td className="px-4 py-3">
-                        {reparaturBadge(r.reparatur_status)}
+                        {reparaturBadge(getReparaturSubStatus(r.resolution_notes))}
                       </td>
                       <td className="px-4 py-3">
                         <ReparaturStatusButtons
                           returnId={r.id}
-                          currentReparaturStatus={r.reparatur_status}
+                          currentReparaturStatus={getReparaturSubStatus(r.resolution_notes)}
                         />
                       </td>
                     </tr>

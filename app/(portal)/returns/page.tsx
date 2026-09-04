@@ -110,7 +110,10 @@ export default async function ReturnsPage({
                   const href = `/returns/${r.id}`;
                   const items = (r.return_items as Array<{ sku: string; quantity: number; is_manual: boolean }>) ?? [];
                   const skuList = items.map(i => `${i.sku}${i.quantity > 1 ? ` ×${i.quantity}` : ""}`).join(", ");
-                  const status = STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-stone-100 text-stone-600" };
+                  const isReparatur = r.resolution_notes?.startsWith("REPARATUR:");
+                  const status = isReparatur
+                    ? STATUS_LABELS.reparatur
+                    : (STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-stone-100 text-stone-600" });
                   const resolution = r.resolution ? RESOLUTION_LABELS[r.resolution] : null;
                   const bearbeiter = r.status === "erledigt" ? r.resolved_by : r.received_by;
                   const hasNewReply = !!r.last_reply_at && !!r.last_reply_author && r.last_reply_author !== currentUserName && r.status !== "warte_auf_kunde_antwort";

@@ -60,7 +60,7 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
     } else if (mode === "reparatur") {
       const { error: e } = await supabase
         .from("returns")
-        .update({ status: "reparatur", updated_at: now })
+        .update({ status: "garantie", resolution_notes: "REPARATUR:offen", updated_at: now })
         .eq("id", returnId);
 
       if (e) { setError(e.message); setSaving(false); return; }
