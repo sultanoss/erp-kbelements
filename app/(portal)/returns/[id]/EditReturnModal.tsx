@@ -179,7 +179,7 @@ export default function EditReturnModal({ returnId, currentStatus, userName, ini
               <div>
                 <label className="label">Status</label>
                 <div className="flex flex-wrap gap-2">
-                  {Object.entries(STATUS_LABELS).map(([value, { label, className }]) => (
+                  {Object.entries(STATUS_LABELS).filter(([value]) => value !== "reparatur").map(([value, { label, className }]) => (
                     <button
                       key={value}
                       type="button"
