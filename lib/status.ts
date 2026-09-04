@@ -8,6 +8,7 @@ export const STATUS_LABELS: Record<string, { label: string; className: string }>
   garantie:                { label: "Garantie",                className: "bg-teal-100 text-teal-700" },
   austausch:               { label: "Austausch",               className: "bg-indigo-100 text-indigo-700" },
   warte_auf_kunde_antwort: { label: "Warte auf Antwort", className: "bg-amber-50 text-amber-700 border border-dashed border-amber-400" },
+  reparatur:               { label: "Reparatur",          className: "bg-red-100 text-red-700" },
 };
 
 export const RESOLUTION_LABELS: Record<string, string> = {
