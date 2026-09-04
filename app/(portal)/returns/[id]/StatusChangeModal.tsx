@@ -217,7 +217,7 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
             Warte auf Kunden-Antwort
           </button>
         )}
-        {(currentStatus === "eingegangen" || currentStatus === "in_bearbeitung" || currentStatus === "klaeren_mit_kunde") && (
+        {currentStatus !== "erledigt" && (
           <button onClick={() => openModal("reparatur")} className="btn-secondary">
             Reparatur
           </button>
