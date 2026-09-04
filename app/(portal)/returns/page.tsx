@@ -24,7 +24,6 @@ export default async function ReturnsPage({
     .from("returns")
     .select("*, return_items(sku, quantity, is_manual)")
     .is("archived_at", null)
-    .or("resolution_notes.is.null,resolution_notes.not.ilike.REPARATUR:*")
     .order("created_at", { ascending: false });
 
   if (params.q) {
@@ -39,10 +38,12 @@ export default async function ReturnsPage({
   if (params.resolution) query = query.eq("resolution", params.resolution);
   if (params.outlet === "1") query = query.eq("is_outlet", true);
 
-  const [{ data: returns, error }, { data: { user: currentUser } }] = await Promise.all([
+  const [{ data: allReturns, error }, { data: { user: currentUser } }] = await Promise.all([
     query,
     supabase.auth.getUser(),
   ]);
+
+  const returns = allReturns?.filter(r => !r.resolution_notes?.startsWith("REPARATUR:"));
 
   const currentUserName = currentUser?.user_metadata?.full_name ?? currentUser?.email ?? "";
 
