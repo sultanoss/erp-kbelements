@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     for (const sf of storefronts) {
       try {
         // Nur Bestellungen ab Go-Live importieren (kein historischer Backlog)
-        await saveOrders(await fetchKauflandOrders("2026-07-16T00:00:00Z", sf));
+        await saveOrders(await fetchKauflandOrders(undefined, sf));
       } catch (e) {
         errors.push(`KAUFLAND/${sf.toUpperCase()}: ${(e as Error).message}`);
       }
