@@ -90,7 +90,7 @@ export async function GET(request: Request) {
 
   if (process.env.MEDIAMARKT_API_KEY) {
     try {
-      await saveOrders(await fetchMediaMarktOrders("2026-07-16T00:00:00Z"));
+      await saveOrders(await fetchMediaMarktOrders());
     } catch (e) {
       errors.push(`MEDIAMARKT: ${(e as Error).message}`);
     }
