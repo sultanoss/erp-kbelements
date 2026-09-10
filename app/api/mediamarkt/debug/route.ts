@@ -1,5 +1,3 @@
-import { auth } from "@/auth";
-
 const BASE = "https://mediamarktsaturn.mirakl.net/api";
 
 function authHeaders(): Record<string, string> {
@@ -8,8 +6,6 @@ function authHeaders(): Record<string, string> {
 }
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
   const states = searchParams.get("states") ?? "WAITING_ACCEPTANCE,WAITING_DEBIT,WAITING_DEBIT_PAYMENT,SHIPPING";
