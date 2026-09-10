@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { fetchNewOrders, type NormalizedOrder } from "@/lib/connectors/otto";
 import { fetchKauflandOrders } from "@/lib/connectors/kaufland";
-import { fetchMediaMarktOrders } from "@/lib/connectors/mediamarkt";
+import { fetchMediaMarktOrders, acceptMediaMarktOrder } from "@/lib/connectors/mediamarkt";
 import { fetchShopifyOrders } from "@/lib/connectors/shopify";
 import { fetchEbayOrders, fetchEbayOutletOrders } from "@/lib/connectors/ebay";
 
@@ -64,6 +64,13 @@ export async function GET(request: Request) {
           },
         });
         imported++;
+        if (order.marketplace === "MEDIAMARKT") {
+          try {
+            await acceptMediaMarktOrder(order.externalId);
+          } catch (e) {
+            errors.push(`MEDIAMARKT_ACCEPT ${order.externalId}: ${(e as Error).message}`);
+          }
+        }
       } catch (e) {
         errors.push(`${order.externalId}: ${(e as Error).message}`);
       }

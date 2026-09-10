@@ -133,6 +133,22 @@ export async function fetchMediaMarktOrders(fromIso?: string): Promise<Normalize
   return orders;
 }
 
+export async function acceptMediaMarktOrder(orderId: string): Promise<void> {
+  const res = await fetch(`${BASE}/orders/${orderId}/accept`, {
+    method: "PUT",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ order_lines: [] }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    if (res.status === 400 || res.status === 409) {
+      const lower = text.toLowerCase();
+      if (lower.includes("already") || lower.includes("state") || lower.includes("accept")) return;
+    }
+    throw new Error(`MediaMarkt OR21 Fehler ${res.status}: ${text}`);
+  }
+}
+
 export async function sendMediaMarktShipmentNotification(params: {
   orderId: string;
   trackingNumber: string;
