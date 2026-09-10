@@ -5,7 +5,7 @@ import { fetchMediaMarktOrders } from "@/lib/connectors/mediamarkt";
 import { fetchShopifyOrders } from "@/lib/connectors/shopify";
 import { fetchEbayOrders, fetchEbayOutletOrders } from "@/lib/connectors/ebay";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -81,7 +81,8 @@ export async function GET(request: Request) {
     for (const sf of storefronts) {
       try {
         // Nur Bestellungen ab Go-Live importieren (kein historischer Backlog)
-        await saveOrders(await fetchKauflandOrders(undefined, sf));
+        const kauflandFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        await saveOrders(await fetchKauflandOrders(kauflandFrom, sf));
       } catch (e) {
         errors.push(`KAUFLAND/${sf.toUpperCase()}: ${(e as Error).message}`);
       }
