@@ -65,7 +65,7 @@ export async function fetchMediaMarktOrders(fromIso?: string): Promise<Normalize
   const max = 100;
 
   while (true) {
-    const url = `${BASE}/orders?order_state_codes=WAITING_ACCEPTANCE,SHIPPING&max=${max}&offset=${offset}`;
+    const url = `${BASE}/orders?order_state_codes=WAITING_ACCEPTANCE,WAITING_DEBIT,WAITING_DEBIT_PAYMENT,SHIPPING&max=${max}&offset=${offset}`;
     const res = await fetch(url, { headers: authHeaders() });
     if (!res.ok) {
       const text = await res.text();
