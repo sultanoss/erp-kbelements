@@ -94,12 +94,9 @@ async function fetchOrdersWithCreds(creds: EbayCreds, marketplace: string): Prom
   const limit = 50;
 
   for (;;) {
-    const url = new URL(`${EBAY_API}/sell/fulfillment/v1/order`);
-    url.searchParams.set("filter", "orderfulfillmentstatus:{NOT_STARTED|IN_PROGRESS}");
-    url.searchParams.set("limit", String(limit));
-    url.searchParams.set("offset", String(offset));
+    const url = `${EBAY_API}/sell/fulfillment/v1/order?filter=orderfulfillmentstatus:%7BNOT_STARTED%7CIN_PROGRESS%7D&limit=${limit}&offset=${offset}`;
 
-    const res = await fetch(url.toString(), {
+    const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         "X-EBAY-C-MARKETPLACE-ID": "EBAY_DE",
