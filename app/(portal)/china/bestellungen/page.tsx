@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
 import ChinaFilterBar from "./ChinaFilterBar";
+import DeleteBestellungButton from "./[id]/DeleteBestellungButton";
 
 interface SearchParams {
   q?: string;
@@ -84,12 +85,13 @@ export default async function ChinaBestellungenPage({
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Verschifft</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Lager Ankunft</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Abgeladen</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {!bestellungen?.length ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-stone-400">
+                  <td colSpan={9} className="px-4 py-12 text-center text-stone-400">
                     {Object.values(params).some(Boolean)
                       ? "Keine Bestellungen für diese Filterkriterien."
                       : "Noch keine Bestellungen. Erstelle die erste Bestellung."}
@@ -147,6 +149,9 @@ export default async function ChinaBestellungenPage({
                             {b.abgeladen ? "Ja" : "Nein"}
                           </span>
                         </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        <DeleteBestellungButton id={b.id} />
                       </td>
                     </tr>
                   );
