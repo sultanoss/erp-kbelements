@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 export async function deleteBestellung(id: string): Promise<{ error?: string }> {
@@ -7,5 +8,6 @@ export async function deleteBestellung(id: string): Promise<{ error?: string }> 
   await supabase.from("china_media").delete().eq("bestellung_id", id);
   const { error } = await supabase.from("china_bestellungen").delete().eq("id", id);
   if (error) return { error: error.message };
+  revalidatePath("/china/bestellungen");
   return {};
 }
