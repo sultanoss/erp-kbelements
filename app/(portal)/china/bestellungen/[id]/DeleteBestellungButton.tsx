@@ -19,8 +19,7 @@ export default function DeleteBestellungButton({ id }: { id: string }) {
       setDeleting(false);
       return;
     }
-    router.push("/china/bestellungen");
-    router.refresh();
+    window.location.href = "/china/bestellungen";
   }
 
   if (error) {
