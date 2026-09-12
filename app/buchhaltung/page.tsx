@@ -172,7 +172,15 @@ export default async function BuchhaltungPage({
 
         </form>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {b2b === "1" && (
+            <a
+              href={`/api/export/b2b-orders${from || to ? `?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) }).toString()}` : ""}`}
+              className="inline-flex items-center gap-2 rounded-lg border border-grey-border bg-white px-4 py-2.5 font-mono text-sm font-semibold text-grey-dark hover:border-brand-red hover:text-brand-red transition-colors whitespace-nowrap"
+            >
+              ↓ Excel
+            </a>
+          )}
           <Link
             href="/buchhaltung/neu"
             className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 font-mono text-sm font-semibold text-white hover:bg-brand-red-dark transition-colors whitespace-nowrap"
