@@ -1,32 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { adminSupabase } from "@/lib/supabase/admin";
 
 export async function deleteBestellung(id: string): Promise<{ error?: string }> {
-  const supabase = await createClient();
-
   // Storage-Dateien holen und löschen
-  const { data: mediaRows } = await supabase
+  const { data: mediaRows } = await adminSupabase
     .from("china_media")
     .select("storage_path")
     .eq("bestellung_id", id);
 
   if (mediaRows && mediaRows.length > 0) {
-    await supabase.storage
+    await adminSupabase.storage
       .from("china-media")
       .remove(mediaRows.map((m: { storage_path: string }) => m.storage_path));
   }
 
-  // Media-Zeilen löschen (mit Fehlerprüfung)
-  const { error: mediaError } = await supabase
+  // Media-Zeilen löschen
+  const { error: mediaError } = await adminSupabase
     .from("china_media")
     .delete()
     .eq("bestellung_id", id);
   if (mediaError) return { error: mediaError.message };
 
   // Bestellung löschen
-  const { error } = await supabase
+  const { error } = await adminSupabase
     .from("china_bestellungen")
     .delete()
     .eq("id", id);
