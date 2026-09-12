@@ -133,11 +133,13 @@ export async function fetchMediaMarktOrders(fromIso?: string): Promise<Normalize
   return orders;
 }
 
-export async function acceptMediaMarktOrder(orderId: string): Promise<void> {
+export async function acceptMediaMarktOrder(orderId: string, lineIds: string[]): Promise<void> {
   const res = await fetch(`${BASE}/orders/${orderId}/accept`, {
     method: "PUT",
     headers: { ...authHeaders(), "Content-Type": "application/json" },
-    body: JSON.stringify({ order_lines: [] }),
+    body: JSON.stringify({
+      order_lines: lineIds.map((id) => ({ id, accepted: true })),
+    }),
   });
   if (!res.ok) {
     const text = await res.text();

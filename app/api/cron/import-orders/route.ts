@@ -31,7 +31,8 @@ export async function GET(request: Request) {
           if (!hasBadData && !hasBadName && !hasBadAddress) {
             skipped++;
             if (order.marketplace === "MEDIAMARKT") {
-              try { await acceptMediaMarktOrder(order.externalId); } catch {}
+              const lineIds = order.items.map((i) => i.positionItemId).filter(Boolean) as string[];
+              try { await acceptMediaMarktOrder(order.externalId, lineIds); } catch {}
             }
             continue;
           }
@@ -71,8 +72,9 @@ export async function GET(request: Request) {
         });
         imported++;
         if (order.marketplace === "MEDIAMARKT") {
+          const lineIds = order.items.map((i) => i.positionItemId).filter(Boolean) as string[];
           try {
-            await acceptMediaMarktOrder(order.externalId);
+            await acceptMediaMarktOrder(order.externalId, lineIds);
           } catch (e) {
             errors.push(`MEDIAMARKT_ACCEPT ${order.externalId}: ${(e as Error).message}`);
           }
