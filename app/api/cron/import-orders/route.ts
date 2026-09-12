@@ -28,7 +28,13 @@ export async function GET(request: Request) {
           });
           const hasBadName = existing.customerName === "Unbekannt";
           const hasBadAddress = !existing.street && !existing.zip;
-          if (!hasBadData && !hasBadName && !hasBadAddress) { skipped++; continue; }
+          if (!hasBadData && !hasBadName && !hasBadAddress) {
+            skipped++;
+            if (order.marketplace === "MEDIAMARKT") {
+              try { await acceptMediaMarktOrder(order.externalId); } catch {}
+            }
+            continue;
+          }
           await prisma.orderItem.deleteMany({ where: { orderId: existing.id } });
           await prisma.shipmentItem.deleteMany({ where: { shipment: { orderId: existing.id } } });
           await prisma.shipment.deleteMany({ where: { orderId: existing.id } });
