@@ -59,12 +59,15 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
 
   const shipping = inv.shippingCost ?? 0;
   const shippingMwst = inv.shippingMwst ?? 19;
-  const bruttoPos = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  const isB2B = inv.customerType === "b2b";
+  const rawPos = inv.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+  // B2B: unitPrice gespeichert als Netto → Brutto = rawPos * (1 + mwstRate/100)
+  const productNetto = isB2B ? rawPos : (inv.mwstRate > 0 ? rawPos / (1 + inv.mwstRate / 100) : rawPos);
+  const bruttoPos = isB2B ? rawPos * (1 + inv.mwstRate / 100) : rawPos;
   const bruttoGesamt = bruttoPos + shipping;
   const isStorniert = inv.status === "storniert";
 
   const sameMwst = shippingMwst === inv.mwstRate || shipping === 0;
-  const productNetto = inv.mwstRate > 0 ? bruttoPos / (1 + inv.mwstRate / 100) : bruttoPos;
   const productMwstAmt = bruttoPos - productNetto;
   const shippingNetto = shippingMwst > 0 && shipping > 0 ? shipping / (1 + shippingMwst / 100) : shipping;
   const shippingMwstAmt = shipping - shippingNetto;
