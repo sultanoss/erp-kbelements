@@ -48,7 +48,7 @@ const CSS = `
   .totals .grand-total td { font-size: 10.5pt; font-weight: 900; border-top: 2px solid #000; padding-top: 6px; }
   .totals .bold td { font-weight: bold; }
   .payment-row { margin-top: 4mm; font-size: 8.5pt; color: #444; text-align: right; }
-  .footer { position: fixed; bottom: 12mm; left: 25mm; right: 20mm; border-top: 0.5px solid #ccc; padding-top: 3mm; display: flex; justify-content: space-between; font-size: 7.5pt; color: #555; }
+  .footer { position: fixed; bottom: 12mm; left: 25mm; right: 20mm; border-top: 0.5px solid #ccc; padding-top: 5mm; display: flex; justify-content: space-between; font-size: 8pt; color: #333; }
   .footer .col { line-height: 1.5; }
   .page-num { position: fixed; bottom: 5mm; right: 20mm; font-size: 7pt; color: #999; }
   @media print {
@@ -220,9 +220,6 @@ export default async function DruckenPage({ params }: { params: Promise<{ id: st
           <div>Bank 1: Sparkasse Düren</div>
           <div>IBAN: DE25 3955 0110 1201 3854 97</div>
           <div>SWIFT: SDUEDE33XXX</div>
-          <div>Bank 2: Sparkasse Heidelberg</div>
-          <div>IBAN: DE82 6725 0020 0009 2936 55</div>
-          <div>SWIFT: SOLADES1HDB</div>
         </div>
       </div>
       <div className="page-num">Seite: 1</div>

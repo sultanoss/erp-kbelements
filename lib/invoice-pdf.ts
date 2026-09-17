@@ -295,18 +295,19 @@ export async function generateInvoicePdf(inv: InvWithItems): Promise<Uint8Array>
   page.drawLine({ start: { x: ML, y: FY }, end: { x: W - MR, y: FY }, thickness: 0.5, color: rgb(0.8, 0.8, 0.8) });
 
   const colW = CW / 3;
-  const FS = 7.5;
+  const FS = 8.5;
+  const DARK = rgb(0.3, 0.3, 0.3);
 
   const footer = [
     { x: ML, lines: [{ b: true, t: "KB ELEMENTS GmbH" }, { b: false, t: "Im Weidchen 21" }, { b: false, t: "52353 Düren" }] },
     { x: ML + colW, lines: [{ b: false, t: "Amtsgericht Düren, HRB 8363" }, { b: false, t: "USt-ID/VAT-ID DE323 000 595" }, { b: false, t: "Steuer-Nr. 207/572/01773" }, { b: false, t: "Geschäftsführer: Hassan Karime" }] },
-    { x: ML + colW * 2, lines: [{ b: false, t: "Bank 1: Sparkasse Düren" }, { b: false, t: "IBAN: DE25 3955 0110 1201 3854 97" }, { b: false, t: "Bank 2: Sparkasse Heidelberg" }, { b: false, t: "IBAN: DE82 6725 0020 0009 2936 55" }] },
+    { x: ML + colW * 2, lines: [{ b: false, t: "Bank 1: Sparkasse Düren" }, { b: false, t: "IBAN: DE25 3955 0110 1201 3854 97" }] },
   ];
 
   for (const col of footer) {
-    let fy = FY - 6;
+    let fy = FY - 10;
     for (const { b, t } of col.lines) {
-      page.drawText(t, { x: col.x, y: fy, size: FS, font: b ? B : R, color: GREY });
+      page.drawText(t, { x: col.x, y: fy, size: FS, font: b ? B : R, color: DARK });
       fy -= 11;
     }
   }
