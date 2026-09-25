@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState } from "react";
-import { markAsPickedUp, deleteDeliveryNote } from "./actions";
+import { markAsPickedUp, deleteDeliveryNote, revertPickedUp } from "./actions";
 
 export function MarkAsPickedUpButton({ id }: { id: string }) {
   const [pending, startTransition] = useTransition();
@@ -92,6 +92,58 @@ export function DeleteDeliveryNoteButton({ id }: { id: string }) {
     >
       Löschen
     </button>
+  );
+}
+
+export function RevertPickedUpButton({ id }: { id: string }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState(false);
+
+  function handleConfirm() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await revertPickedUp(id);
+        setConfirm(false);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Fehler");
+        setConfirm(false);
+      }
+    });
+  }
+
+  if (confirm) {
+    return (
+      <span className="flex items-center gap-2">
+        <button
+          onClick={handleConfirm}
+          disabled={pending}
+          className="rounded border border-amber-500 bg-amber-500 px-2 py-1 font-mono text-[11px] font-semibold text-white hover:bg-amber-600 disabled:opacity-50 transition-colors"
+        >
+          {pending ? "…" : "Ja, rückgängig"}
+        </button>
+        <button
+          onClick={() => setConfirm(false)}
+          className="rounded border border-grey-border px-2 py-1 font-mono text-[11px] text-grey-mid hover:text-grey-dark transition-colors"
+        >
+          Abbrechen
+        </button>
+        {error && <span className="font-mono text-[11px] text-brand-red">{error}</span>}
+      </span>
+    );
+  }
+
+  return (
+    <span>
+      <button
+        onClick={() => setConfirm(true)}
+        className="rounded border border-amber-400 px-2 py-1 font-mono text-[11px] font-semibold text-amber-700 hover:bg-amber-50 transition-colors"
+      >
+        Rückgängig
+      </button>
+      {error && <span className="ml-2 font-mono text-[11px] text-brand-red">{error}</span>}
+    </span>
   );
 }
 

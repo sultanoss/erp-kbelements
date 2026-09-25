@@ -164,6 +164,61 @@ export async function markAsPickedUp(id: string) {
   revalidatePath("/lagerprotokoll");
 }
 
+export async function revertPickedUp(id: string) {
+  const session = await auth();
+  const userId = getUserId(session);
+
+  const note = await prisma.aitDeliveryNote.findUnique({
+    where: { id },
+    include: { lines: true },
+  });
+  if (!note) throw new Error("Lieferschein nicht gefunden");
+  if (note.status !== "PICKED_UP") throw new Error("Lieferschein ist nicht abgeholt");
+
+  await prisma.$transaction(async (tx) => {
+    for (const line of note.lines) {
+      const dbItem = await tx.item.findUnique({ where: { sku: line.sku }, select: { stockAIT: true } });
+      if (!dbItem) throw new Error(`Artikel ${line.sku} nicht gefunden`);
+      if (dbItem.stockAIT < line.quantity) {
+        throw new Error(`AIT-Lager reicht nicht für ${line.sku}: ${dbItem.stockAIT} verfügbar, ${line.quantity} benötigt`);
+      }
+    }
+
+    for (const line of note.lines) {
+      const before = await tx.item.findUnique({ where: { sku: line.sku }, select: { stock: true, stockAIT: true } });
+      if (!before) continue;
+
+      await tx.item.update({
+        where: { sku: line.sku },
+        data: {
+          stockAIT: { decrement: line.quantity },
+          stock: { increment: line.quantity },
+        },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          type: "CORRECTION",
+          sku: line.sku,
+          oldStock: before.stock,
+          newStock: before.stock + line.quantity,
+          note: `AIT Lieferschein ${note.number} rückgängig: AIT Lager→Neuware ${line.quantity}x ${line.sku}`,
+          userId,
+        },
+      });
+    }
+
+    await tx.aitDeliveryNote.update({
+      where: { id },
+      data: { status: "NOT_PICKED_UP", pickedUpAt: null },
+    });
+  });
+
+  revalidatePath("/ait/warenanmeldung");
+  revalidatePath("/inventory");
+  revalidatePath("/lagerprotokoll");
+}
+
 export async function uploadScan(id: string, formData: FormData) {
   const session = await auth();
   getUserId(session);

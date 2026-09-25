@@ -4,7 +4,7 @@ import { Panel } from "@/components/ui";
 import { requireUser } from "@/lib/auth-guards";
 import { prisma } from "@/lib/prisma";
 import { NeuerLieferscheinForm } from "./neuer-lieferschein-form";
-import { MarkAsPickedUpButton, DeleteDeliveryNoteButton, ScanUploadButton } from "./lieferschein-actions";
+import { MarkAsPickedUpButton, DeleteDeliveryNoteButton, ScanUploadButton, RevertPickedUpButton } from "./lieferschein-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -94,7 +94,9 @@ export default async function WarenanmeldungPage() {
                         >
                           PDF
                         </a>
-                        {!isPicked && (
+                        {isPicked ? (
+                          <RevertPickedUpButton id={note.id} />
+                        ) : (
                           <>
                             <MarkAsPickedUpButton id={note.id} />
                             <DeleteDeliveryNoteButton id={note.id} />
