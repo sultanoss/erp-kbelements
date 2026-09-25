@@ -34,18 +34,19 @@ export default async function PalettenlabelPage() {
             <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid">
               SKU
             </label>
-            <select
+            <input
+              list="sku-list"
               name="sku"
               required
+              autoComplete="off"
+              placeholder="SKU eingeben oder suchen…"
               className="w-full rounded-lg border border-grey-border bg-white px-3 py-2.5 font-mono text-sm text-grey-dark focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/10"
-            >
-              <option value="">SKU auswählen…</option>
+            />
+            <datalist id="sku-list">
               {items.map((item) => (
-                <option key={item.sku} value={item.sku}>
-                  {item.sku}
-                </option>
+                <option key={item.sku} value={item.sku} />
               ))}
-            </select>
+            </datalist>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

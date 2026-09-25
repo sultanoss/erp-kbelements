@@ -107,21 +107,22 @@ export function NeuerLieferscheinForm({ items }: { items: Item[] }) {
             + Zeile hinzufügen
           </button>
         </div>
+        <datalist id="warenanmeldung-sku-list">
+          {items.map(item => (
+            <option key={item.sku} value={item.sku} />
+          ))}
+        </datalist>
         <div className="space-y-2">
           {lines.map((line, idx) => (
             <div key={idx} className="flex items-center gap-2">
-              <select
+              <input
+                list="warenanmeldung-sku-list"
                 value={line.sku}
                 onChange={e => updateLine(idx, "sku", e.target.value)}
+                autoComplete="off"
+                placeholder="SKU suchen…"
                 className={`${inputCls} flex-1`}
-              >
-                <option value="">SKU auswählen…</option>
-                {items.map(item => (
-                  <option key={item.sku} value={item.sku}>
-                    {item.sku}
-                  </option>
-                ))}
-              </select>
+              />
               <input
                 type="number"
                 min={1}
