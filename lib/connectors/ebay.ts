@@ -155,12 +155,13 @@ export async function fetchEbayOutletOrders(): Promise<NormalizedOrder[]> {
 const EBAY_CARRIER_MAP: Record<string, string> = {
   DHL: "DHL",
   GEL: "GEL_EXPRESS",
+  AIT: "OTHER",
 };
 
 export type SendEbayShipmentParams = {
   orderId: string;
   trackingNumber: string;
-  carrier: "DHL" | "GEL";
+  carrier: "DHL" | "GEL" | "AIT";
   lineItems: { lineItemId: string; quantity: number }[];
 };
 

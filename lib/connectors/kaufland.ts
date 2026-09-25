@@ -190,10 +190,9 @@ export async function fetchKauflandOrders(fromIso?: string, storefront?: string)
 export async function sendKauflandShipmentNotification(params: {
   orderUnitIds: string[];
   trackingNumber: string;
-  carrier: "DHL" | "GEL";
+  carrier: "DHL" | "GEL" | "AIT";
 }): Promise<void> {
-  // Kaufland erwartet Großbuchstaben: "DHL", "GEL" etc.
-  const carrierCode = params.carrier === "DHL" ? "DHL" : "GEL";
+  const carrierCode = params.carrier === "DHL" ? "DHL" : params.carrier === "GEL" ? "GEL" : "AIT";
 
   for (const unitId of params.orderUnitIds) {
     const url = `${BASE}/order-units/${unitId}/send`;

@@ -1,4 +1,4 @@
-export type Carrier = "DHL" | "GEL";
+export type Carrier = "DHL" | "GEL" | "AIT";
 
 export interface ShipmentItemInput {
   internalSku: string;

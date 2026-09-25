@@ -60,7 +60,8 @@ const inputClass =
 
 export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, consignee, label }: Props) {
   const [open, setOpen] = useState(false);
-  const [carrier, setCarrier] = useState<"DHL" | "GEL">("DHL");
+  const [carrier, setCarrier] = useState<"DHL" | "GEL" | "AIT">("DHL");
+  const [aitDisposal, setAitDisposal] = useState(false);
   const [weight, setWeight] = useState("");
   const [manualTracking, setManualTracking] = useState("");
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
@@ -143,6 +144,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     fd.set("carrier", carrier);
     if (carrier === "DHL") fd.set("weight", weight);
     if (carrier === "GEL") fd.set("trackingNumber", manualTracking);
+    if (carrier === "AIT" && aitDisposal) fd.set("aitDisposal", "on");
     fd.set("items", JSON.stringify(selectedItems));
     fd.set("manualItems", JSON.stringify(manualItems));
     if (isHerdset && marketplace !== "EBAY_OUTLET") fd.set("isHerdset", "on");
@@ -165,6 +167,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setSelectedItems([]);
     setManualItems([]);
     setCarrier("DHL");
+    setAitDisposal(false);
     setWeight("");
     setManualTracking("");
     setSearch("");
@@ -288,9 +291,32 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                 <div>
                   <div className="font-bold text-grey-dark">Versand erstellt</div>
                   <div className="mt-1 font-mono text-xs text-grey-mid">
-                    Tracking: {result.trackingNumber}
+                    {result.aitSelfServiceId ? "Auftrag-Nr." : "Tracking"}: {result.trackingNumber}
                   </div>
                 </div>
+                {result.aitSelfServiceId && (
+                  <div className="w-full rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-left">
+                    <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-green-700 mb-1">AIT SelfServiceId</div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex-1 font-mono text-xs text-green-900 break-all">{result.aitSelfServiceId}</span>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(result.aitSelfServiceId ?? "")}
+                        className="flex-shrink-0 rounded border border-green-300 px-2 py-1 font-mono text-[10px] text-green-700 hover:bg-green-100 transition-colors"
+                      >
+                        Kopieren
+                      </button>
+                    </div>
+                    <div className="mt-1 font-mono text-[10px] text-green-600">
+                      Diese ID bei Amazon/Portal als Sendungsnummer eintragen.
+                    </div>
+                  </div>
+                )}
+                {!result.aitSelfServiceId && carrier === "AIT" && (
+                  <div className="w-full rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-mono text-[10px] text-amber-700 text-left">
+                    SelfServiceId noch nicht verfügbar — in der Bestellansicht nachladen.
+                  </div>
+                )}
                 {result.labelUrl && (
                   <button
                     type="button"
@@ -331,8 +357,8 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                     <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
                       Versandart
                     </div>
-                    <div className="flex gap-3">
-                      {(["DHL", "GEL"] as const).map((c) => (
+                    <div className="flex flex-wrap gap-3">
+                      {(["DHL", "GEL", "AIT"] as const).map((c) => (
                         <label
                           key={c}
                           className={`flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 transition-colors ${
@@ -350,7 +376,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                             className="sr-only"
                           />
                           <span className="font-mono text-sm font-semibold">
-                            {c === "DHL" ? "DHL Paket" : "GEL Express"}
+                            {c === "DHL" ? "DHL Paket" : c === "GEL" ? "GEL Express" : "AIT Home Delivery"}
                           </span>
                         </label>
                       ))}
@@ -568,6 +594,27 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                           className={inputClass}
                         />
                       </label>
+                    </div>
+                  )}
+
+                  {carrier === "AIT" && (
+                    <div>
+                      <div className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">
+                        AIT-Optionen
+                      </div>
+                      <label className="flex cursor-pointer items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={aitDisposal}
+                          onChange={(e) => setAitDisposal(e.target.checked)}
+                          className="h-4 w-4 rounded border-grey-border text-brand-red focus:ring-brand-red"
+                        />
+                        <span className="font-mono text-xs font-semibold text-grey-dark">Altgerät mitnehmen</span>
+                      </label>
+                      <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 font-mono text-[10px] text-blue-700">
+                        Liefertermin wird vom Kunden direkt per SMS/E-Mail mit AIT vereinbart.
+                        Der Auftrag wird sofort an AIT übermittelt.
+                      </div>
                     </div>
                   )}
                 </div>

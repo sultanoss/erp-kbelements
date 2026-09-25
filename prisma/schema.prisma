@@ -39,6 +39,10 @@ model Item {
   highlights           String?
   imageUrl             String?
   scopeOfDelivery      String?
+  aitWeight            Float?
+  aitHeight            Int?
+  aitWidth             Int?
+  aitDepth             Int?
   activities           ActivityLog[]
   corrections          Correction[]
   image                ItemImage?
@@ -239,6 +243,10 @@ model Shipment {
   salesCreated         Boolean        @default(false)
   labelPrinted         Boolean        @default(false)
   positionItemIds      String[]       @default([])
+  aitConsignmentNo     String?
+  aitSelfServiceId     String?
+  aitTrackingIds       String?
+  aitStatus            String?
   order                Order          @relation(fields: [orderId], references: [id])
   items                ShipmentItem[]
 
@@ -380,6 +388,20 @@ model LaterShipment {
   shippingDate DateTime @db.Date
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model AitReceipt {
+  id        String   @id @default(cuid())
+  date      DateTime @default(now())
+  sku       String
+  quantity  Int
+  notes     String?
+  userId    String
+  receiptId String?
+  createdAt DateTime @default(now())
+
+  @@index([sku])
+  @@index([date])
 }
 
 model ActivityLog {

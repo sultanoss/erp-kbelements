@@ -163,12 +163,13 @@ const TRACKING_URL_MAP: Record<string, string> = {
 const CARRIER_COMPANY_MAP: Record<string, string> = {
   DHL: "DHL",
   GEL: "Other",
+  AIT: "AIT Home Delivery",
 };
 
 export async function sendShopifyFulfillment(params: {
   orderId: string;
   trackingNumber: string;
-  carrier: "DHL" | "GEL";
+  carrier: "DHL" | "GEL" | "AIT";
 }): Promise<void> {
   const foData = await shopifyGql<{
     order: {

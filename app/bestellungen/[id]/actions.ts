@@ -13,6 +13,7 @@ import { createInvoiceFromOrder } from "@/lib/invoice-helper";
 import { generateInvoicePdf } from "@/lib/invoice-pdf";
 import { auth } from "@/auth";
 import { cancelDHLShipment } from "@/lib/shipping/dhl";
+import { createAitOrder, getAitOrder } from "@/lib/shipping/ait";
 import { stornoInvoice, applyInvoiceStorno, markInvoiceStorniert } from "@/app/actions";
 import type { Marketplace } from "@prisma/client";
 
@@ -84,14 +85,15 @@ export async function markAsOffen(formData: FormData) {
 }
 
 export type ShipOrderResult =
-  | { ok: true; trackingNumber: string; labelUrl?: string; returnTrackingNumber?: string; sandbox?: boolean }
+  | { ok: true; trackingNumber: string; labelUrl?: string; returnTrackingNumber?: string; sandbox?: boolean; aitSelfServiceId?: string }
   | { ok: false; error: string };
 
 export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const id = formData.get("id") as string;
-  const carrier = formData.get("carrier") as "DHL" | "GEL";
+  const carrier = formData.get("carrier") as "DHL" | "GEL" | "AIT";
   const weight = formData.get("weight") ? parseFloat(formData.get("weight") as string) : undefined;
   const manualTracking = (formData.get("trackingNumber") as string | null)?.trim() || undefined;
+  const aitDisposal = formData.get("aitDisposal") === "on";
   const itemsJson = formData.get("items") as string;
   const shipName       = (formData.get("shipName")       as string | null)?.trim() || null;
   const shipStreet     = (formData.get("shipStreet")     as string | null)?.trim() || null;
@@ -103,7 +105,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const isHerdset = formData.get("isHerdset") === "on";
 
   if (!id || !carrier) return { ok: false, error: "Fehlende Pflichtfelder" };
-  if (carrier !== "DHL" && carrier !== "GEL") return { ok: false, error: "Ungültiger Carrier" };
+  if (carrier !== "DHL" && carrier !== "GEL" && carrier !== "AIT") return { ok: false, error: "Ungültiger Carrier" };
 
   let items: { internalSku: string; quantity: number; warehouse: "neuware" | "ns" }[];
   let manualItems: { description: string; quantity: number; warehouse: string }[] = [];
@@ -129,11 +131,19 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   // Vorhandene Sendungen laden
   const existingShipments = await prisma.shipment.findMany({
     where: { orderId: id },
-    select: { positionItemIds: true },
+    select: { positionItemIds: true, carrier: true, aitConsignmentNo: true },
   });
 
-  // Nicht-OTTO-Bestellungen: nur eine Sendung erlaubt
-  if (order.marketplace !== "OTTO" && existingShipments.length > 0) {
+  // AIT: nur doppelten AIT-Versand blockieren (DHL+AIT auf gleicher Bestellung ist erlaubt)
+  if (carrier === "AIT") {
+    const existingAit = existingShipments.find((s) => s.carrier === "AIT");
+    if (existingAit) {
+      return { ok: false, error: `AIT-Auftrag ${existingAit.aitConsignmentNo ?? ""} wurde bereits gesendet.` };
+    }
+  }
+
+  // Nicht-OTTO, Nicht-AIT: nur eine Sendung erlaubt
+  if (carrier !== "AIT" && order.marketplace !== "OTTO" && existingShipments.length > 0) {
     return { ok: false, error: "Für diese Bestellung wurde bereits ein Versand erstellt" };
   }
 
@@ -189,6 +199,174 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       };
     }
     stockBefore.set(item.internalSku, { stock: dbItem.stock, stockNS: dbItem.stockNS });
+  }
+
+  // AIT-Versandflow (komplett eigenständig, returns early)
+  if (carrier === "AIT") {
+    // AIT-Dimensionen aus DB laden
+    const allSkus = items.map((i) => i.internalSku);
+    const dbItemsForAit = await prisma.item.findMany({ where: { sku: { in: allSkus } } });
+    const aitLineItems: { sku: string; description: string; quantity: number; weight: number; cube: number; height: number; width: number; depth: number }[] = [];
+    for (const item of items) {
+      const db = dbItemsForAit.find((d) => d.sku === item.internalSku);
+      if (!db?.aitWeight || !db.aitHeight || !db.aitWidth || !db.aitDepth) {
+        return { ok: false, error: `Keine AIT-Dimensionen für SKU ${item.internalSku} hinterlegt — bitte unter AIT Lager → Produkte eintragen` };
+      }
+      const cube = parseFloat((db.aitHeight * db.aitWidth * db.aitDepth / 1_000_000).toFixed(3));
+      aitLineItems.push({ sku: item.internalSku, description: db.name, quantity: item.quantity, weight: db.aitWeight, cube, height: db.aitHeight, width: db.aitWidth, depth: db.aitDepth });
+    }
+
+    if (!order.phoneNumber?.trim()) {
+      return { ok: false, error: "Keine Telefonnummer in der Bestellung — AIT benötigt eine Telefonnummer" };
+    }
+
+    const marketplacePrefix: Record<string, string> = { OTTO: "O", KAUFLAND: "KL", MEDIAMARKT: "MM", EBAY: "EB", EBAY_OUTLET: "EB", SHOPIFY: "SH", AMAZON: "AZ" };
+    const prefix = marketplacePrefix[order.marketplace] ?? "X";
+    const consignmentNo = `KBE-${prefix}-${order.orderNumber ?? order.id.slice(0, 8)}`;
+
+    try {
+      await createAitOrder({
+        consignmentNo,
+        clientOrderNo: order.orderNumber ?? "",
+        customer: { name: shipName ?? order.customerName, street: shipStreet ?? order.street, zip: shipZip ?? order.zip, city: shipCity ?? order.city, phone: order.phoneNumber, email: "" },
+        items: aitLineItems,
+        disposal: aitDisposal,
+      });
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    }
+
+    // Shipment + Lagerabzug + Bestellstatus in einer Transaktion
+    let aitShipmentId: string;
+    try {
+      const txResult = await prisma.$transaction(async (tx) => {
+        const shipment = await tx.shipment.create({
+          data: {
+            orderId: id, carrier: "AIT", status: "LABEL_CREATED",
+            trackingNumber: consignmentNo, aitConsignmentNo: consignmentNo,
+            positionItemIds: notifyPosIds,
+            items: { create: items.map((item) => ({ internalSku: item.internalSku, quantity: item.quantity, warehouse: item.warehouse })) },
+          },
+        });
+        for (const item of items) {
+          if (item.warehouse === "ns") {
+            await tx.item.update({ where: { sku: item.internalSku }, data: { stockNS: { decrement: item.quantity } } });
+          } else {
+            await tx.item.update({ where: { sku: item.internalSku }, data: { stock: { decrement: item.quantity } } });
+          }
+        }
+        const newOrderStatus = order.marketplace === "OTTO" && !allOttoCovered ? "NEU" : "ABGESCHLOSSEN";
+        await tx.order.update({ where: { id }, data: { status: newOrderStatus, trackingNumber: consignmentNo, isHerdset, herdsetLabel: isHerdset ? (order.items[0]?.marketplaceSku ?? null) : null } });
+        return shipment;
+      });
+      aitShipmentId = txResult.id;
+    } catch (e) {
+      return { ok: false, error: `Datenbankfehler: ${(e as Error).message}` };
+    }
+
+    // ActivityLogs
+    {
+      const shipSession = await auth();
+      const shipUserId = (shipSession?.user as { id?: string } | null)?.id;
+      if (shipUserId) {
+        for (const item of items) {
+          const before = stockBefore.get(item.internalSku);
+          if (!before) continue;
+          const isNS = item.warehouse === "ns";
+          const oldStock = isNS ? before.stockNS : before.stock;
+          await prisma.activityLog.create({ data: { type: "SHIPMENT", sku: item.internalSku, oldStock, newStock: oldStock - item.quantity, note: `${order.marketplace}${order.orderNumber ? ` #${order.orderNumber}` : ""} (${isNS ? "NS-Lager" : "Neuware"}) AIT`, userId: shipUserId } });
+        }
+      }
+    }
+
+    // get_order für SelfServiceId (non-blocking)
+    let aitSelfServiceId: string | undefined;
+    try {
+      const aitOrderData = await getAitOrder(consignmentNo);
+      aitSelfServiceId = aitOrderData.selfServiceId;
+      if (aitSelfServiceId || aitOrderData.trackingIds.length > 0) {
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { aitSelfServiceId: aitSelfServiceId ?? null, aitTrackingIds: aitOrderData.trackingIds.length > 0 ? JSON.stringify(aitOrderData.trackingIds) : null } });
+      }
+    } catch (err) {
+      console.error("AIT get_order fehlgeschlagen:", err);
+    }
+
+    // Portal-Meldung nur wenn SelfServiceId verfügbar (Amazon: keine automatische Meldung)
+    if (aitSelfServiceId) {
+      const trackingForPortal = aitSelfServiceId;
+
+      if (order.marketplace === "OTTO" && notifyPosIds.length > 0) {
+        try {
+          await sendOttoShipmentNotification({ salesOrderId: order.externalId, carrier: "AIT", trackingNumber: trackingForPortal, positionItemIds: notifyPosIds, shipDate: new Date().toISOString().slice(0, 10) });
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED", notifiedOttoAt: new Date() } });
+        } catch {
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+        }
+      }
+
+      if (order.marketplace === "KAUFLAND") {
+        const orderUnitIds = order.items.map((i) => i.positionItemId).filter((pid): pid is string => !!pid);
+        try {
+          const s = await auth(); const uid = (s?.user as { id?: string } | null)?.id; if (!uid) throw new Error("Kein Benutzer-Kontext");
+          const inv = await createInvoiceFromOrder(order, uid);
+          const pdfBytes = await generateInvoicePdf(inv);
+          if (orderUnitIds.length > 0) await sendKauflandShipmentNotification({ orderUnitIds, trackingNumber: trackingForPortal, carrier: "AIT" });
+          await uploadKauflandInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+          revalidatePath("/buchhaltung");
+        } catch (err) {
+          console.error("Kaufland-Meldung (AIT) fehlgeschlagen:", err);
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+        }
+      }
+
+      if (order.marketplace === "MEDIAMARKT") {
+        try {
+          const s2 = await auth(); const uid2 = (s2?.user as { id?: string } | null)?.id;
+          const inv = await createInvoiceFromOrder(order, uid2 ?? "");
+          const pdfBytes = await generateInvoicePdf(inv);
+          const mmLineIds = order.items.map((i) => i.positionItemId).filter((x): x is string => !!x);
+          await sendMediaMarktShipmentNotification({ orderId: order.externalId, trackingNumber: trackingForPortal, carrier: "AIT", orderLineIds: mmLineIds });
+          await uploadMediaMarktInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+          revalidatePath("/buchhaltung");
+        } catch (err) {
+          console.error("MediaMarkt-Meldung (AIT) fehlgeschlagen:", err);
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+        }
+      }
+
+      if (order.marketplace === "EBAY" || order.marketplace === "EBAY_OUTLET") {
+        const lineItems = order.items.filter((i) => i.positionItemId).map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
+        try {
+          const s = await auth(); const uid = (s?.user as { id?: string } | null)?.id; if (!uid) throw new Error("Kein Benutzer-Kontext");
+          await createInvoiceFromOrder(order, uid);
+          const sender = order.marketplace === "EBAY_OUTLET" ? sendEbayOutletShipment : sendEbayShipment;
+          await sender({ orderId: order.externalId, trackingNumber: trackingForPortal, carrier: "AIT", lineItems });
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+          revalidatePath("/buchhaltung");
+        } catch (err) {
+          console.error("eBay-Meldung (AIT) fehlgeschlagen:", err);
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+        }
+      }
+
+      if (order.marketplace === "SHOPIFY") {
+        try {
+          await sendShopifyFulfillment({ orderId: order.externalId, trackingNumber: trackingForPortal, carrier: "AIT" });
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+        } catch (err) {
+          console.error("Shopify-Meldung (AIT) fehlgeschlagen:", err);
+          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+        }
+      }
+    }
+
+    revalidatePath(`/bestellungen/${id}`);
+    revalidatePath("/bestellungen");
+    revalidatePath("/");
+
+    return { ok: true, trackingNumber: consignmentNo, aitSelfServiceId };
   }
 
   // Call carrier service — if this fails, nothing is saved

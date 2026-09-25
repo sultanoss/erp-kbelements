@@ -154,13 +154,15 @@ export async function acceptMediaMarktOrder(orderId: string, lineIds: string[]):
 export async function sendMediaMarktShipmentNotification(params: {
   orderId: string;
   trackingNumber: string;
-  carrier: "DHL" | "GEL";
+  carrier: "DHL" | "GEL" | "AIT";
   orderLineIds?: string[];
 }): Promise<void> {
-  const carrierName = params.carrier === "DHL" ? "DHL" : "GEL Express";
+  const carrierName = params.carrier === "DHL" ? "DHL" : params.carrier === "GEL" ? "GEL Express" : "AIT Home Delivery";
   const carrierUrl = params.carrier === "DHL"
     ? `https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode=${params.trackingNumber}`
-    : `https://www.gel-express.de/de/sendungsverfolgung`;
+    : params.carrier === "GEL"
+    ? `https://www.gel-express.de/de/sendungsverfolgung`
+    : `https://aithomedelivery.com/de/kundencenter/`;
 
   // OR23: Tracking-Daten übermitteln (PUT /tracking)
   const or23Res = await fetch(`${BASE}/orders/${params.orderId}/tracking`, {
