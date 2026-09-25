@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { Panel } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { markAsAbgeschlossen } from "./actions";
+import { markAsAbgeschlossen, markAsOffen } from "./actions";
 import { ShipDialog } from "./ship-dialog";
 import { PrintLabelButton } from "./print-label-button";
 import { RetryKauflandButton } from "./retry-kaufland-button";
@@ -12,6 +12,7 @@ import { RetryShopifyButton } from "./retry-shopify-button";
 import { RetryEbayButton } from "./retry-ebay-button";
 import { RetryOttoButton } from "./retry-otto-button";
 import { StorniereButton } from "./stornieren-button";
+import { OhneVersandButton } from "./ohne-versand-button";
 import { OrderEditPanel } from "./order-edit-panel";
 
 export const dynamic = "force-dynamic";
@@ -173,6 +174,15 @@ export default async function BestellungDetailPage({
                         </div>
                       </div>
                     </div>
+                    <form action={markAsOffen}>
+                      <input type="hidden" name="id" value={order.id} />
+                      <button
+                        type="submit"
+                        className="w-full rounded-lg border border-grey-border bg-white px-4 py-2 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
+                      >
+                        Als offen markieren
+                      </button>
+                    </form>
                     <StorniereButton orderId={order.id} />
                   </>
                 ) : (
@@ -202,15 +212,7 @@ export default async function BestellungDetailPage({
                       }}
                       label={order.shipments.length > 0 ? "Weitere Sendung erstellen" : undefined}
                     />
-                    <form action={markAsAbgeschlossen}>
-                      <input type="hidden" name="id" value={order.id} />
-                      <button
-                        type="submit"
-                        className="w-full rounded-lg border border-grey-border bg-white px-4 py-2 font-mono text-xs text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
-                      >
-                        Ohne Versand abschließen (kein Lagerabzug)
-                      </button>
-                    </form>
+                    <OhneVersandButton orderId={order.id} />
                     <StorniereButton orderId={order.id} />
                   </>
                 )}
