@@ -118,7 +118,7 @@ export function NeuerLieferscheinForm({ items }: { items: Item[] }) {
                 <option value="">SKU auswählen…</option>
                 {items.map(item => (
                   <option key={item.sku} value={item.sku}>
-                    {item.sku} — {item.name || "Kein Name"}
+                    {item.sku}
                   </option>
                 ))}
               </select>

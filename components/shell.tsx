@@ -15,7 +15,7 @@ const baseLinks: NavItem[] = [
   { label: "AIT Spedition", icon: "Truck", separator: true, children: [
     { href: "/ait/auftraege",      label: "Aufträge"       },
     { href: "/ait/warenanmeldung", label: "Warenanmeldung" },
-    { href: "/ait/produkte",       label: "Produkte"       },
+    { href: "/ait/palettenlabel",  label: "Palettenlabel"  },
   ]},
   { label: "Lager", icon: "Boxes", children: [
     { href: "/inventory",                    label: "Übersicht"            },

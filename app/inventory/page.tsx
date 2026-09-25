@@ -197,8 +197,8 @@ export default async function InventoryPage({
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">SKU</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Bezeichnung</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Neuware-Lager</th>
+              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid border-l border-r border-t border-blue-300/50 bg-blue-50/40">AIT Lager</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">NS-Lager</th>
-              <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">AIT Lager</th>
               <th className="px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-brand-red">Ø&nbsp;/&nbsp;Tag</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid border-l border-r border-t border-brand-red/30 bg-brand-red/5">Ø&nbsp;B2B&nbsp;/&nbsp;Tag</th>
               <th className="px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Status</th>
@@ -211,8 +211,8 @@ export default async function InventoryPage({
                 <td className="px-4 py-3 font-mono text-sm font-semibold text-brand-red">{item.sku}</td>
                 <td className="px-4 py-3 text-sm text-grey-dark">{item.name || <span className="text-grey-mid italic">—</span>}</td>
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stock}</td>
+                <td className="px-4 py-3 font-mono tabular-nums font-semibold text-blue-700 border-l border-r border-blue-200/40 bg-blue-50/20">{item.stockAIT}</td>
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stockNS}</td>
-                <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stockAIT}</td>
                 <td className="px-4 py-3 font-mono tabular-nums text-sm">
                   {(() => {
                     const avg = ((skuTotals.get(item.sku) ?? 0) / days).toFixed(1);

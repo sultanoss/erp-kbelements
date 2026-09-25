@@ -58,8 +58,7 @@ export default async function WarenanmeldungPage() {
                       <div className="space-y-0.5">
                         {note.lines.map((l) => (
                           <div key={l.id} className="font-mono text-xs text-grey-dark">
-                            {l.quantity}× <span className="text-brand-red">{l.sku}</span>{" "}
-                            <span className="text-grey-mid">{l.description}</span>
+                            {l.quantity}× <span className="text-brand-red">{l.sku}</span>
                           </div>
                         ))}
                       </div>
