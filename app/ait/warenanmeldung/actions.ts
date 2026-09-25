@@ -20,6 +20,7 @@ function nextDeliveryNoteNumber(last: string | null): string {
 export type DeliveryNoteLine = {
   sku: string;
   quantity: number;
+  palletCount: number;
 };
 
 export async function createDeliveryNote(pickupDate: string, notes: string, lines: DeliveryNoteLine[]) {
@@ -48,6 +49,7 @@ export async function createDeliveryNote(pickupDate: string, notes: string, line
           sku: l.sku,
           description: nameMap.get(l.sku) || l.sku,
           quantity: l.quantity,
+          palletCount: l.palletCount ?? 1,
         })),
       },
     },
@@ -81,6 +83,7 @@ export async function updateDeliveryNote(id: string, pickupDate: string, notes: 
           sku: l.sku,
           description: nameMap.get(l.sku) || l.sku,
           quantity: l.quantity,
+          palletCount: l.palletCount ?? 1,
         })),
       },
     },

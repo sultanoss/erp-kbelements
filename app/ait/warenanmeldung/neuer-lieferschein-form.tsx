@@ -9,21 +9,21 @@ export function NeuerLieferscheinForm({ items }: { items: Item[] }) {
   const [open, setOpen] = useState(false);
   const [pickupDate, setPickupDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<{ sku: string; quantity: number }[]>([{ sku: "", quantity: 1 }]);
+  const [lines, setLines] = useState<{ sku: string; quantity: number; palletCount: number }[]>([{ sku: "", quantity: 1, palletCount: 1 }]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const skuMap = new Map(items.map(i => [i.sku, i.name]));
 
   function addLine() {
-    setLines(prev => [...prev, { sku: "", quantity: 1 }]);
+    setLines(prev => [...prev, { sku: "", quantity: 1, palletCount: 1 }]);
   }
 
   function removeLine(idx: number) {
     setLines(prev => prev.filter((_, i) => i !== idx));
   }
 
-  function updateLine(idx: number, field: "sku" | "quantity", value: string | number) {
+  function updateLine(idx: number, field: "sku" | "quantity" | "palletCount", value: string | number) {
     setLines(prev => prev.map((l, i) => i === idx ? { ...l, [field]: value } : l));
   }
 
@@ -36,9 +36,9 @@ export function NeuerLieferscheinForm({ items }: { items: Item[] }) {
 
     startTransition(async () => {
       try {
-        await createDeliveryNote(pickupDate, notes, validLines);
+        await createDeliveryNote(pickupDate, notes, validLines.map(l => ({ sku: l.sku, quantity: l.quantity, palletCount: l.palletCount })));
         setOpen(false);
-        setLines([{ sku: "", quantity: 1 }]);
+        setLines([{ sku: "", quantity: 1, palletCount: 1 }]);
         setNotes("");
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : "Fehler beim Speichern");
@@ -128,8 +128,18 @@ export function NeuerLieferscheinForm({ items }: { items: Item[] }) {
                 value={line.quantity}
                 onChange={e => updateLine(idx, "quantity", parseInt(e.target.value) || 1)}
                 className={`${inputCls} w-20`}
+                title="Anzahl Stück"
               />
-              <span className="font-mono text-xs text-grey-mid">Stück</span>
+              <span className="font-mono text-xs text-grey-mid">Stk.</span>
+              <input
+                type="number"
+                min={1}
+                value={line.palletCount}
+                onChange={e => updateLine(idx, "palletCount", parseInt(e.target.value) || 1)}
+                className={`${inputCls} w-20`}
+                title="Anzahl Paletten"
+              />
+              <span className="font-mono text-xs text-grey-mid">Pal.</span>
               {lines.length > 1 && (
                 <button
                   type="button"

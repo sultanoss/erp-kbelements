@@ -69,15 +69,17 @@ export async function generateAitDeliveryNotePdf(note: DeliveryNoteWithLines): P
   y -= 18;
 
   // ── Tabellen-Header ────────────────────────────────────────────────────
-  const colSku  = ML;
-  const colDesc = ML + 90;
-  const colQty  = W - MR;
+  const colSku     = ML;
+  const colDesc    = ML + 90;
+  const colPallets = W - MR - 60;
+  const colQty     = W - MR;
 
   page.drawRectangle({ x: ML, y: y - 4, width: CW, height: 18, color: LGREY });
 
-  text("SKU",          colSku,  y, 8, B, DGREY);
-  text("Bezeichnung",  colDesc, y, 8, B, DGREY);
-  right("Menge",       colQty,  y, 8, B, DGREY);
+  text("SKU",          colSku,     y, 8, B, DGREY);
+  text("Bezeichnung",  colDesc,    y, 8, B, DGREY);
+  right("Paletten",    colPallets, y, 8, B, DGREY);
+  right("Menge",       colQty,     y, 8, B, DGREY);
 
   y -= 6;
   line(ML, y, W - MR, y, GREY, 0.5);
@@ -85,18 +87,21 @@ export async function generateAitDeliveryNotePdf(note: DeliveryNoteWithLines): P
 
   // ── Tabellenzeilen ─────────────────────────────────────────────────────
   let totalQty = 0;
+  let totalPallets = 0;
   for (const l of note.lines) {
     totalQty += l.quantity;
-    const descMaxW = colQty - colDesc - 50;
+    totalPallets += (l.palletCount ?? 1);
+    const descMaxW = colPallets - colDesc - 10;
     let desc = l.description;
     while (desc.length > 0 && R.widthOfTextAtSize(desc, 9) > descMaxW) {
       desc = desc.slice(0, -1);
     }
     if (desc !== l.description) desc += "…";
 
-    text(l.sku,              colSku,  y, 9, R, BLACK);
-    text(desc,               colDesc, y, 9, R, DGREY);
-    right(`${l.quantity}`,   colQty,  y, 9, B, BLACK);
+    text(l.sku,                       colSku,     y, 9, R, BLACK);
+    text(desc,                        colDesc,    y, 9, R, DGREY);
+    right(`${l.palletCount ?? 1}`,    colPallets, y, 9, R, DGREY);
+    right(`${l.quantity}`,            colQty,     y, 9, B, BLACK);
 
     y -= 16;
     line(ML, y + 4, W - MR, y + 4, LGREY, 0.5);
@@ -106,7 +111,7 @@ export async function generateAitDeliveryNotePdf(note: DeliveryNoteWithLines): P
   line(ML, y, W - MR, y, GREY, 1);
   y -= 16;
 
-  right(`Gesamt: ${totalQty} Stück`, W - MR, y, 9, B, BLACK);
+  right(`Paletten: ${totalPallets}  ·  Gesamt: ${totalQty} Stück`, W - MR, y, 9, B, BLACK);
 
   // ── Bemerkungen ────────────────────────────────────────────────────────
   if (note.notes) {

@@ -414,6 +414,7 @@ model AitDeliveryNoteLine {
   sku            String
   description    String
   quantity       Int
+  palletCount    Int             @default(1)
   deliveryNote   AitDeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
 
   @@index([deliveryNoteId])

@@ -94,6 +94,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const weight = formData.get("weight") ? parseFloat(formData.get("weight") as string) : undefined;
   const manualTracking = (formData.get("trackingNumber") as string | null)?.trim() || undefined;
   const aitDisposal = formData.get("aitDisposal") === "on";
+  const aitPhone = (formData.get("aitPhone") as string | null)?.trim() ?? "";
+  const aitEmail = (formData.get("aitEmail") as string | null)?.trim() ?? "";
   const itemsJson = formData.get("items") as string;
   const shipName       = (formData.get("shipName")       as string | null)?.trim() || null;
   const shipStreet     = (formData.get("shipStreet")     as string | null)?.trim() || null;
@@ -220,8 +222,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       aitLineItems.push({ sku: item.internalSku, description: db.name, quantity: item.quantity, weight: db.aitWeight, cube, height: db.aitHeight, width: db.aitWidth, depth: db.aitDepth });
     }
 
-    if (!order.phoneNumber?.trim()) {
-      return { ok: false, error: "Keine Telefonnummer in der Bestellung — AIT benötigt eine Telefonnummer" };
+    if (!aitPhone) {
+      return { ok: false, error: "Telefonnummer fehlt — bitte im Versenden-Dialog eintragen" };
     }
 
     const marketplacePrefix: Record<string, string> = { OTTO: "O", KAUFLAND: "KL", MEDIAMARKT: "MM", EBAY: "EB", EBAY_OUTLET: "EB", SHOPIFY: "SH", AMAZON: "AZ" };
@@ -232,7 +234,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       await createAitOrder({
         consignmentNo,
         clientOrderNo: order.orderNumber ?? "",
-        customer: { name: shipName ?? order.customerName, street: shipStreet ?? order.street, zip: shipZip ?? order.zip, city: shipCity ?? order.city, phone: order.phoneNumber, email: "" },
+        customer: { name: shipName ?? order.customerName, street: shipStreet ?? order.street, zip: shipZip ?? order.zip, city: shipCity ?? order.city, phone: aitPhone, email: aitEmail },
         items: aitLineItems,
         disposal: aitDisposal,
       });

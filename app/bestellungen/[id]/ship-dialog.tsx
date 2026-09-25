@@ -75,6 +75,8 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const manualIdRef = useRef(0);
 
   const [isHerdset, setIsHerdset] = useState(false);
+  const [aitPhone, setAitPhone] = useState("");
+  const [aitEmail, setAitEmail] = useState("");
 
   const [shipName, setShipName] = useState(consignee.name);
   const [shipStreet, setShipStreet] = useState(consignee.street);
@@ -145,6 +147,10 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     if (carrier === "DHL") fd.set("weight", weight);
     if (carrier === "GEL") fd.set("trackingNumber", manualTracking);
     if (carrier === "AIT" && aitDisposal) fd.set("aitDisposal", "on");
+    if (carrier === "AIT") {
+      fd.set("aitPhone", aitPhone.trim());
+      fd.set("aitEmail", aitEmail.trim());
+    }
     fd.set("items", JSON.stringify(selectedItems));
     fd.set("manualItems", JSON.stringify(manualItems));
     if (isHerdset && marketplace !== "EBAY_OUTLET") fd.set("isHerdset", "on");
@@ -173,6 +179,8 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setSearch("");
     setSearchResults([]);
     setIsHerdset(false);
+    setAitPhone("");
+    setAitEmail("");
     setShipName(consignee.name);
     setShipStreet(consignee.street);
     setShipZip(consignee.zip);
@@ -611,6 +619,33 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                         />
                         <span className="font-mono text-xs font-semibold text-grey-dark">Altgerät mitnehmen</span>
                       </label>
+                      <div className="mt-3 space-y-2">
+                        <div>
+                          <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid">
+                            Telefon *
+                          </label>
+                          <input
+                            type="tel"
+                            value={aitPhone}
+                            onChange={(e) => setAitPhone(e.target.value)}
+                            placeholder="+49 170 1234567"
+                            required
+                            className={inputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid">
+                            E-Mail (optional)
+                          </label>
+                          <input
+                            type="email"
+                            value={aitEmail}
+                            onChange={(e) => setAitEmail(e.target.value)}
+                            placeholder="kunde@beispiel.de"
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
                       <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 font-mono text-[10px] text-blue-700">
                         Liefertermin wird vom Kunden direkt per SMS/E-Mail mit AIT vereinbart.
                         Der Auftrag wird sofort an AIT übermittelt.
