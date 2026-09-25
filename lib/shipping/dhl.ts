@@ -3,7 +3,8 @@ import type { ShipmentInput, ShipmentItemInput, ShipmentResult, ShippingProvider
 function buildRefNo(orderNumber: string | undefined, items: ShipmentItemInput[]): string {
   const skus = items.map(i => i.internalSku).join(",");
   const ref = [orderNumber, skus].filter(Boolean).join(" ");
-  return ref.slice(0, 35);
+  // DHL: min 8, max 35 Zeichen
+  return ref.slice(0, 35).padEnd(8, "-");
 }
 
 const BASE_URLS = {
