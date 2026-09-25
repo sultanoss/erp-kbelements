@@ -43,6 +43,7 @@ model Item {
   aitHeight            Int?
   aitWidth             Int?
   aitDepth             Int?
+  stockAIT             Int                    @default(0)
   activities           ActivityLog[]
   corrections          Correction[]
   image                ItemImage?
@@ -388,6 +389,34 @@ model LaterShipment {
   shippingDate DateTime @db.Date
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model AitDeliveryNote {
+  id             String               @id @default(cuid())
+  number         String               @unique
+  pickupDate     DateTime
+  notes          String?
+  status         String               @default("NOT_PICKED_UP")
+  pickedUpAt     DateTime?
+  signedScanData Bytes?
+  signedScanMime String?
+  userId         String
+  createdAt      DateTime             @default(now())
+  lines          AitDeliveryNoteLine[]
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+model AitDeliveryNoteLine {
+  id             String          @id @default(cuid())
+  deliveryNoteId String
+  sku            String
+  description    String
+  quantity       Int
+  deliveryNote   AitDeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryNoteId])
 }
 
 model AitReceipt {

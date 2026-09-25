@@ -187,18 +187,22 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const allOttoCovered = allOttoPosIds.length === 0 || allOttoPosIds.every((pid) => nowCovered.has(pid));
 
   // Validate stock + Bestand vor Abzug merken
-  const stockBefore = new Map<string, { stock: number; stockNS: number }>();
+  const stockBefore = new Map<string, { stock: number; stockNS: number; stockAIT: number }>();
   for (const item of items) {
     const dbItem = await prisma.item.findUnique({ where: { sku: item.internalSku } });
     if (!dbItem) return { ok: false, error: `Artikel ${item.internalSku} nicht gefunden` };
-    const available = item.warehouse === "ns" ? dbItem.stockNS : dbItem.stock;
+    const available = carrier === "AIT"
+      ? dbItem.stockAIT
+      : item.warehouse === "ns" ? dbItem.stockNS : dbItem.stock;
     if (available < item.quantity) {
       return {
         ok: false,
-        error: `Nicht genug Bestand für ${item.internalSku}: ${available} verfügbar, ${item.quantity} angefordert`,
+        error: carrier === "AIT"
+          ? `AIT-Lager reicht nicht für ${item.internalSku}: ${available} verfügbar, ${item.quantity} benötigt. Bitte zuerst einen Lieferschein abschließen.`
+          : `Nicht genug Bestand für ${item.internalSku}: ${available} verfügbar, ${item.quantity} angefordert`,
       };
     }
-    stockBefore.set(item.internalSku, { stock: dbItem.stock, stockNS: dbItem.stockNS });
+    stockBefore.set(item.internalSku, { stock: dbItem.stock, stockNS: dbItem.stockNS, stockAIT: dbItem.stockAIT });
   }
 
   // AIT-Versandflow (komplett eigenständig, returns early)
@@ -249,11 +253,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
           },
         });
         for (const item of items) {
-          if (item.warehouse === "ns") {
-            await tx.item.update({ where: { sku: item.internalSku }, data: { stockNS: { decrement: item.quantity } } });
-          } else {
-            await tx.item.update({ where: { sku: item.internalSku }, data: { stock: { decrement: item.quantity } } });
-          }
+          await tx.item.update({ where: { sku: item.internalSku }, data: { stockAIT: { decrement: item.quantity } } });
         }
         const newOrderStatus = order.marketplace === "OTTO" && !allOttoCovered ? "NEU" : "ABGESCHLOSSEN";
         await tx.order.update({ where: { id }, data: { status: newOrderStatus, trackingNumber: consignmentNo, isHerdset, herdsetLabel: isHerdset ? (order.items[0]?.marketplaceSku ?? null) : null } });
@@ -272,9 +272,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         for (const item of items) {
           const before = stockBefore.get(item.internalSku);
           if (!before) continue;
-          const isNS = item.warehouse === "ns";
-          const oldStock = isNS ? before.stockNS : before.stock;
-          await prisma.activityLog.create({ data: { type: "SHIPMENT", sku: item.internalSku, oldStock, newStock: oldStock - item.quantity, note: `${order.marketplace}${order.orderNumber ? ` #${order.orderNumber}` : ""} (${isNS ? "NS-Lager" : "Neuware"}) AIT`, userId: shipUserId } });
+          const oldStock = before.stockAIT;
+          await prisma.activityLog.create({ data: { type: "SHIPMENT", sku: item.internalSku, oldStock, newStock: oldStock - item.quantity, note: `${order.marketplace}${order.orderNumber ? ` #${order.orderNumber}` : ""} (AIT Lager) AIT`, userId: shipUserId } });
         }
       }
     }
@@ -654,12 +653,13 @@ export async function storniereBestellung(formData: FormData) {
   // Lagerbestand aus allen Sendungen zurückbuchen + STORNO-Log
   for (const s of order.shipments) {
     for (const item of s.items) {
-      const isNS = item.warehouse === "ns";
+      const isAIT = s.carrier === "AIT";
+      const isNS = !isAIT && item.warehouse === "ns";
       const dbItem = await prisma.item.findUnique({ where: { sku: item.internalSku } });
-      const oldStock = dbItem ? (isNS ? dbItem.stockNS : dbItem.stock) : 0;
+      const oldStock = dbItem ? (isAIT ? dbItem.stockAIT : isNS ? dbItem.stockNS : dbItem.stock) : 0;
       await prisma.item.update({
         where: { sku: item.internalSku },
-        data: isNS ? { stockNS: { increment: item.quantity } } : { stock: { increment: item.quantity } },
+        data: isAIT ? { stockAIT: { increment: item.quantity } } : isNS ? { stockNS: { increment: item.quantity } } : { stock: { increment: item.quantity } },
       });
       if (stornoUserId) {
         await prisma.activityLog.create({

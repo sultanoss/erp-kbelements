@@ -12,6 +12,11 @@ const baseLinks: NavItem[] = [
   { href: "/", label: "Dashboard", icon: "Home" },
   { href: "https://kb-portal-omega.vercel.app/", label: "KB Portal", icon: "ExternalLink" },
   { href: "/bestellungen", label: "Bestellungen", icon: "ShoppingBag" },
+  { label: "AIT Spedition", icon: "Truck", separator: true, children: [
+    { href: "/ait/auftraege",      label: "Aufträge"       },
+    { href: "/ait/warenanmeldung", label: "Warenanmeldung" },
+    { href: "/ait/produkte",       label: "Produkte"       },
+  ]},
   { label: "Lager", icon: "Boxes", children: [
     { href: "/inventory",                    label: "Übersicht"            },
     { href: "/lager/portale-bestand-sync",   label: "Portale Bestand Sync" },
