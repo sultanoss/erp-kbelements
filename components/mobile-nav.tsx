@@ -105,7 +105,7 @@ export function MobileNav({ links, initials, userName, userRole, children }: Mob
         <div className="space-y-0.5">
           {links.map((link) => (
             <div key={link.label}>
-              {link.separator && <div className="mx-3 my-2 border-t border-white/25" />}
+              {link.separator && <div className="mx-3 my-2 border-t border-brand-red/50" />}
               {link.children ? (
                 <NavGroup icon={link.icon} label={link.label} children={link.children} />
               ) : (
