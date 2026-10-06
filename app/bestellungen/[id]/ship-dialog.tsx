@@ -14,6 +14,8 @@ interface SelectedItem {
   internalSku: string;
   quantity: number;
   warehouse: "neuware" | "ns";
+  stockNeuware: number;
+  stockNS: number;
 }
 
 interface ManualItem {
@@ -77,6 +79,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const [isHerdset, setIsHerdset] = useState(false);
   const [aitPhone, setAitPhone] = useState("");
   const [aitEmail, setAitEmail] = useState("");
+  const [showLowStockWarning, setShowLowStockWarning] = useState(false);
 
   const [shipName, setShipName] = useState(consignee.name);
   const [shipStreet, setShipStreet] = useState(consignee.street);
@@ -110,7 +113,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   function addItem(item: StockItem) {
     setSelectedItems((prev) => [
       ...prev,
-      { internalSku: item.sku, quantity: 1, warehouse: marketplace === "EBAY_OUTLET" ? "ns" : "neuware" },
+      { internalSku: item.sku, quantity: 1, warehouse: marketplace === "EBAY_OUTLET" ? "ns" : "neuware", stockNeuware: item.stock, stockNS: item.stockNS },
     ]);
     setSearch("");
     setSearchResults([]);
@@ -141,6 +144,20 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    // Bestandswarnung für Neuware/NS (nicht AIT)
+    if (!showLowStockWarning && carrier !== "AIT") {
+      const lowItems = selectedItems.filter((item) => {
+        const avail = item.warehouse === "ns" ? item.stockNS : item.stockNeuware;
+        return avail <= 0;
+      });
+      if (lowItems.length > 0) {
+        setShowLowStockWarning(true);
+        return;
+      }
+    }
+    setShowLowStockWarning(false);
+
     const fd = new FormData();
     fd.set("id", orderId);
     fd.set("carrier", carrier);
@@ -181,6 +198,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setIsHerdset(false);
     setAitPhone("");
     setAitEmail("");
+    setShowLowStockWarning(false);
     setShipName(consignee.name);
     setShipStreet(consignee.street);
     setShipZip(consignee.zip);
@@ -654,14 +672,37 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                   )}
                 </div>
 
+                {/* Bestandswarnung */}
+                {showLowStockWarning && (
+                  <div className="mx-6 mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+                    <div className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-700">
+                      ⚠ Kein Bestand verfügbar
+                    </div>
+                    <div className="font-mono text-[11px] text-amber-800">
+                      {selectedItems
+                        .filter((item) => (item.warehouse === "ns" ? item.stockNS : item.stockNeuware) <= 0)
+                        .map((item) => (
+                          <div key={item.internalSku}>
+                            <span className="font-semibold">{item.internalSku}</span>
+                            {" — "}
+                            {item.warehouse === "ns" ? item.stockNS : item.stockNeuware} verfügbar
+                          </div>
+                        ))}
+                    </div>
+                    <div className="mt-2 font-mono text-[11px] text-amber-700">
+                      Bestand geht ins Minus und wird verrechnet wenn neue Ware kommt.
+                    </div>
+                  </div>
+                )}
+
                 {/* Footer */}
                 <div className="flex items-center justify-between border-t border-grey-border px-6 py-4">
                   <button
                     type="button"
-                    onClick={handleClose}
+                    onClick={showLowStockWarning ? () => setShowLowStockWarning(false) : handleClose}
                     className="rounded-lg border border-grey-border px-4 py-2 font-mono text-sm text-grey-mid hover:border-brand-red hover:text-brand-red transition-colors"
                   >
-                    Abbrechen
+                    {showLowStockWarning ? "Abbrechen" : "Abbrechen"}
                   </button>
                   <button
                     type="submit"
@@ -682,7 +723,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                           <line x1="22" y1="2" x2="11" y2="13" />
                           <polygon points="22 2 15 22 11 13 2 9 22 2" />
                         </svg>
-                        Versenden
+                        {showLowStockWarning ? "Trotzdem versenden" : "Versenden"}
                       </>
                     )}
                   </button>
