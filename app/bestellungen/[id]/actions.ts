@@ -189,19 +189,16 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const allOttoCovered = allOttoPosIds.length === 0 || allOttoPosIds.every((pid) => nowCovered.has(pid));
 
   // Validate stock + Bestand vor Abzug merken
+  // AIT: harte Prüfung (Ware muss physisch im AIT-Lager sein)
+  // Neuware / NS-Lager: negativer Bestand erlaubt (wird verrechnet wenn neue Ware kommt)
   const stockBefore = new Map<string, { stock: number; stockNS: number; stockAIT: number }>();
   for (const item of items) {
     const dbItem = await prisma.item.findUnique({ where: { sku: item.internalSku } });
     if (!dbItem) return { ok: false, error: `Artikel ${item.internalSku} nicht gefunden` };
-    const available = carrier === "AIT"
-      ? dbItem.stockAIT
-      : item.warehouse === "ns" ? dbItem.stockNS : dbItem.stock;
-    if (available < item.quantity) {
+    if (carrier === "AIT" && dbItem.stockAIT < item.quantity) {
       return {
         ok: false,
-        error: carrier === "AIT"
-          ? `AIT-Lager reicht nicht für ${item.internalSku}: ${available} verfügbar, ${item.quantity} benötigt. Bitte zuerst einen Lieferschein abschließen.`
-          : `Nicht genug Bestand für ${item.internalSku}: ${available} verfügbar, ${item.quantity} angefordert`,
+        error: `AIT-Lager reicht nicht für ${item.internalSku}: ${dbItem.stockAIT} verfügbar, ${item.quantity} benötigt. Bitte zuerst einen Lieferschein abschließen.`,
       };
     }
     stockBefore.set(item.internalSku, { stock: dbItem.stock, stockNS: dbItem.stockNS, stockAIT: dbItem.stockAIT });
