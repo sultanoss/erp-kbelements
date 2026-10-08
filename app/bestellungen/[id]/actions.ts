@@ -282,7 +282,17 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       }
     }
 
-    // get_order für SelfServiceId (non-blocking)
+    // Otto sofort melden — kein Warten auf SelfServiceId
+    if (order.marketplace === "OTTO" && notifyPosIds.length > 0) {
+      try {
+        await sendOttoShipmentNotification({ salesOrderId: order.externalId, carrier: "FORWARDER", trackingNumber: "AIT", positionItemIds: notifyPosIds, shipDate: new Date().toISOString().slice(0, 10) });
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED", notifiedOttoAt: new Date() } });
+      } catch {
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+      }
+    }
+
+    // get_order für SelfServiceId (non-blocking, für andere Marktplätze)
     let aitSelfServiceId: string | undefined;
     try {
       const aitOrderData = await getAitOrder(consignmentNo);
@@ -294,18 +304,9 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       console.error("AIT get_order fehlgeschlagen:", err);
     }
 
-    // Portal-Meldung nur wenn SelfServiceId verfügbar (Amazon: keine automatische Meldung)
+    // Portal-Meldung für Kaufland/MediaMarkt/eBay/Shopify (brauchen SelfServiceId)
     if (aitSelfServiceId) {
       const trackingForPortal = aitSelfServiceId;
-
-      if (order.marketplace === "OTTO" && notifyPosIds.length > 0) {
-        try {
-          await sendOttoShipmentNotification({ salesOrderId: order.externalId, carrier: "AIT", trackingNumber: trackingForPortal, positionItemIds: notifyPosIds, shipDate: new Date().toISOString().slice(0, 10) });
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED", notifiedOttoAt: new Date() } });
-        } catch {
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
-        }
-      }
 
       if (order.marketplace === "KAUFLAND") {
         const orderUnitIds = order.items.map((i) => i.positionItemId).filter((pid): pid is string => !!pid);
