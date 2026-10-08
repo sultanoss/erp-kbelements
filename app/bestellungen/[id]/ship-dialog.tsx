@@ -79,6 +79,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const [isHerdset, setIsHerdset] = useState(false);
   const [aitPhone, setAitPhone] = useState("");
   const [aitEmail, setAitEmail] = useState("");
+  const [aitServiceType, setAitServiceType] = useState<"1" | "2" | "3">("2");
   const [showLowStockWarning, setShowLowStockWarning] = useState(false);
   const [dimWeight, setDimWeight] = useState("");
   const [dimHeight, setDimHeight] = useState("");
@@ -172,6 +173,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     if (carrier === "AIT") {
       fd.set("aitPhone", aitPhone.trim());
       fd.set("aitEmail", aitEmail.trim());
+      fd.set("aitServiceType", aitServiceType);
     }
     fd.set("items", JSON.stringify(selectedItems));
     fd.set("manualItems", JSON.stringify(manualItems));
@@ -222,6 +224,7 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setIsHerdset(false);
     setAitPhone("");
     setAitEmail("");
+    setAitServiceType("2");
     setShowLowStockWarning(false);
     setShipName(consignee.name);
     setShipStreet(consignee.street);
@@ -360,6 +363,11 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                     <div className="mt-1 font-mono text-[10px] text-green-600">
                       Diese ID bei Amazon/Portal als Sendungsnummer eintragen.
                     </div>
+                  </div>
+                )}
+                {result.aitUpdated && (
+                  <div className="w-full rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-mono text-[10px] text-amber-700 text-left">
+                    ⚠ Auftrag bereits bei AIT vorhanden — wurde aktualisiert (consignmentno schon vergeben).
                   </div>
                 )}
                 {!result.aitSelfServiceId && carrier === "AIT" && (
@@ -726,6 +734,19 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                             placeholder="kunde@beispiel.de"
                             className={inputClass}
                           />
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid">
+                          Servicetyp
+                        </label>
+                        <div className="flex gap-2">
+                          {(["1", "2", "3"] as const).map((v) => (
+                            <label key={v} className={`flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2 font-mono text-xs font-semibold transition-colors ${aitServiceType === v ? "border-brand-red bg-brand-red/5 text-brand-red" : "border-grey-border text-grey-mid hover:border-brand-red/50"}`}>
+                              <input type="radio" name="aitServiceTypeRadio" value={v} checked={aitServiceType === v} onChange={() => setAitServiceType(v)} className="sr-only" />
+                              {v}-Mann
+                            </label>
+                          ))}
                         </div>
                       </div>
                       <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 font-mono text-[10px] text-blue-700">

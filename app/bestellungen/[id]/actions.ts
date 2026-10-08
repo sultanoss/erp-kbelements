@@ -85,7 +85,7 @@ export async function markAsOffen(formData: FormData) {
 }
 
 export type ShipOrderResult =
-  | { ok: true; trackingNumber: string; labelUrl?: string; returnTrackingNumber?: string; sandbox?: boolean; aitSelfServiceId?: string }
+  | { ok: true; trackingNumber: string; labelUrl?: string; returnTrackingNumber?: string; sandbox?: boolean; aitSelfServiceId?: string; aitUpdated?: boolean }
   | { ok: false; error: string; missingDimensionsSku?: string };
 
 export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
@@ -96,6 +96,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const aitDisposal = formData.get("aitDisposal") === "on";
   const aitPhone = (formData.get("aitPhone") as string | null)?.trim() ?? "";
   const aitEmail = (formData.get("aitEmail") as string | null)?.trim() ?? "";
+  const aitServiceType = parseInt((formData.get("aitServiceType") as string | null) ?? "2", 10) || 2;
   const itemsJson = formData.get("items") as string;
   const shipName       = (formData.get("shipName")       as string | null)?.trim() || null;
   const shipStreet     = (formData.get("shipStreet")     as string | null)?.trim() || null;
@@ -225,16 +226,20 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
 
     const marketplacePrefix: Record<string, string> = { OTTO: "O", KAUFLAND: "KL", MEDIAMARKT: "MM", EBAY: "EB", EBAY_OUTLET: "EB", SHOPIFY: "SH", AMAZON: "AZ" };
     const prefix = marketplacePrefix[order.marketplace] ?? "X";
-    const consignmentNo = `KBE-${prefix}-${order.orderNumber ?? order.id.slice(0, 8)}`;
+    const rawOrderNo = order.orderNumber ?? order.id.slice(0, 8);
+    const consignmentNo = `KBE-${prefix}-${rawOrderNo.replace(/^#/, "")}`;
 
+    let aitUpdated = false;
     try {
-      await createAitOrder({
+      const aitResult = await createAitOrder({
         consignmentNo,
         clientOrderNo: order.orderNumber ?? "",
         customer: { name: shipName ?? order.customerName, street: shipStreet ?? order.street, zip: shipZip ?? order.zip, city: shipCity ?? order.city, phone: aitPhone, email: aitEmail },
         items: aitLineItems,
         disposal: aitDisposal,
+        serviceType: aitServiceType,
       });
+      aitUpdated = aitResult.updated;
     } catch (e) {
       return { ok: false, error: (e as Error).message };
     }
@@ -364,7 +369,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     revalidatePath("/bestellungen");
     revalidatePath("/");
 
-    return { ok: true, trackingNumber: consignmentNo, aitSelfServiceId };
+    return { ok: true, trackingNumber: consignmentNo, aitSelfServiceId, aitUpdated };
   }
 
   // Call carrier service — if this fails, nothing is saved

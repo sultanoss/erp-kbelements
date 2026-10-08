@@ -54,17 +54,18 @@ export async function createAitOrder(params: {
   items: Array<{ sku: string; description: string; quantity: number; weight: number; cube: number; height: number; width: number; depth: number }>;
   disposal: boolean;
   serviceType?: number;
-}): Promise<void> {
+}): Promise<{ updated: boolean }> {
   if (!params.customer.phone?.trim()) {
     throw new Error("Keine Telefonnummer in der Bestellung — AIT benötigt eine Telefonnummer für die Lieferterminvereinbarung");
   }
 
-  await aitPost("create_order", {
+  const result = await aitPost<Record<string, unknown>>("create_order", {
     consignmentno: params.consignmentNo,
     clientorderno: params.clientOrderNo,
     deliveryname: params.customer.name,
     deliveryaddress1: params.customer.street,
-    deliveryaddress2: params.customer.city,
+    deliveryaddress2: "",
+    deliveryaddress3: params.customer.city,
     deliverypostcode: params.customer.zip,
     deliverycountrycode: "DEU",
     deliverytelephone1: params.customer.phone,
@@ -87,6 +88,9 @@ export async function createAitOrder(params: {
       depth: String(i.depth),
     })),
   });
+
+  const msg = typeof result?.message === "string" ? result.message : "";
+  return { updated: msg.toLowerCase().includes("updated") };
 }
 
 export interface AitOrderData {
