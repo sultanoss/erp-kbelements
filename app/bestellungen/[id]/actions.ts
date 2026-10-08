@@ -86,7 +86,7 @@ export async function markAsOffen(formData: FormData) {
 
 export type ShipOrderResult =
   | { ok: true; trackingNumber: string; labelUrl?: string; returnTrackingNumber?: string; sandbox?: boolean; aitSelfServiceId?: string }
-  | { ok: false; error: string };
+  | { ok: false; error: string; missingDimensionsSku?: string };
 
 export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const id = formData.get("id") as string;
@@ -213,7 +213,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     for (const item of items) {
       const db = dbItemsForAit.find((d) => d.sku === item.internalSku);
       if (!db?.aitWeight || !db.aitHeight || !db.aitWidth || !db.aitDepth) {
-        return { ok: false, error: `Keine AIT-Dimensionen für SKU ${item.internalSku} hinterlegt — bitte unter AIT Lager → Produkte eintragen` };
+        return { ok: false, error: `Keine AIT-Dimensionen für SKU ${item.internalSku} hinterlegt`, missingDimensionsSku: item.internalSku };
       }
       const cube = parseFloat((db.aitHeight * db.aitWidth * db.aitDepth / 1_000_000).toFixed(3));
       aitLineItems.push({ sku: item.internalSku, description: db.name, quantity: item.quantity, weight: db.aitWeight, cube, height: db.aitHeight, width: db.aitWidth, depth: db.aitDepth });

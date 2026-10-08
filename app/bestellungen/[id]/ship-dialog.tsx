@@ -80,6 +80,11 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const [aitPhone, setAitPhone] = useState("");
   const [aitEmail, setAitEmail] = useState("");
   const [showLowStockWarning, setShowLowStockWarning] = useState(false);
+  const [dimWeight, setDimWeight] = useState("");
+  const [dimHeight, setDimHeight] = useState("");
+  const [dimWidth, setDimWidth] = useState("");
+  const [dimDepth, setDimDepth] = useState("");
+  const [dimSaving, setDimSaving] = useState(false);
 
   const [shipName, setShipName] = useState(consignee.name);
   const [shipStreet, setShipStreet] = useState(consignee.street);
@@ -182,6 +187,25 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
       const res = await shipOrder(fd);
       setResult(res);
     });
+  }
+
+  async function handleSaveDimensions(sku: string) {
+    setDimSaving(true);
+    try {
+      const { updateAitDimensions } = await import("@/app/ait/produkte/actions");
+      const fd = new FormData();
+      fd.set("sku", sku);
+      fd.set("aitWeight", dimWeight);
+      fd.set("aitHeight", dimHeight);
+      fd.set("aitWidth", dimWidth);
+      fd.set("aitDepth", dimDepth);
+      await updateAitDimensions(fd);
+      setResult(null);
+      setDimWeight(""); setDimHeight(""); setDimWidth(""); setDimDepth("");
+      formRef.current?.requestSubmit();
+    } finally {
+      setDimSaving(false);
+    }
   }
 
   function handleClose() {
@@ -372,9 +396,49 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                 <div className="max-h-[60vh] overflow-y-auto p-6 space-y-5">
 
                   {/* Error */}
-                  {result && !result.ok && (
+                  {result && !result.ok && !result.missingDimensionsSku && (
                     <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 font-mono text-xs text-red-700">
                       {result.error}
+                    </div>
+                  )}
+
+                  {/* Fehlende AIT-Dimensionen — inline eintragen */}
+                  {result && !result.ok && result.missingDimensionsSku && (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-4 space-y-3">
+                      <div>
+                        <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-700">
+                          AIT-Dimensionen fehlen
+                        </div>
+                        <div className="mt-0.5 font-mono text-xs text-amber-800">
+                          Bitte Maße für <span className="font-semibold">{result.missingDimensionsSku}</span> eintragen:
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="grid gap-1">
+                          <span className="font-mono text-[10px] text-amber-700">Gewicht (kg)</span>
+                          <input type="number" step="0.1" min="0.1" value={dimWeight} onChange={(e) => setDimWeight(e.target.value)} placeholder="z.B. 35.5" className={inputClass} />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="font-mono text-[10px] text-amber-700">Höhe (cm)</span>
+                          <input type="number" min="1" value={dimHeight} onChange={(e) => setDimHeight(e.target.value)} placeholder="z.B. 90" className={inputClass} />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="font-mono text-[10px] text-amber-700">Breite (cm)</span>
+                          <input type="number" min="1" value={dimWidth} onChange={(e) => setDimWidth(e.target.value)} placeholder="z.B. 60" className={inputClass} />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="font-mono text-[10px] text-amber-700">Tiefe (cm)</span>
+                          <input type="number" min="1" value={dimDepth} onChange={(e) => setDimDepth(e.target.value)} placeholder="z.B. 60" className={inputClass} />
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={dimSaving || !dimWeight || !dimHeight || !dimWidth || !dimDepth}
+                        onClick={() => handleSaveDimensions(result.missingDimensionsSku!)}
+                        className="w-full rounded-lg bg-amber-500 px-4 py-2 font-mono text-xs font-semibold text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {dimSaving ? "Speichern…" : "Speichern & Versenden"}
+                      </button>
                     </div>
                   )}
 
