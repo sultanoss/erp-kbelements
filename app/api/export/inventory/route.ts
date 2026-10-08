@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-guards";
+import * as XLSX from "xlsx";
 
 export async function GET(req: Request) {
   await requireUser();
@@ -15,30 +16,30 @@ export async function GET(req: Request) {
 
   const date = new Date().toISOString().slice(0, 10);
 
-  let header: string[];
-  let rows: string[][];
+  let rows: { SKU: string; Menge: number }[] | { SKU: string; "Neuware-Lager": number; "NS-Lager": number }[];
+  let suffix: string;
 
   if (lager === "neuware") {
-    header = ["SKU", "Bezeichnung", "Neuware-Lager"];
-    rows = items.map((i) => [i.sku, i.name, String(i.stock)]);
+    rows = items.map((i) => ({ SKU: i.sku, Menge: i.stock }));
+    suffix = "-neuware";
   } else if (lager === "ns") {
-    header = ["SKU", "Bezeichnung", "NS-Lager"];
-    rows = items.map((i) => [i.sku, i.name, String(i.stockNS)]);
+    rows = items.map((i) => ({ SKU: i.sku, Menge: i.stockNS }));
+    suffix = "-ns";
   } else {
-    header = ["SKU", "Bezeichnung", "Neuware-Lager", "NS-Lager"];
-    rows = items.map((i) => [i.sku, i.name, String(i.stock), String(i.stockNS)]);
+    rows = items.map((i) => ({ SKU: i.sku, "Neuware-Lager": i.stock, "NS-Lager": i.stockNS }));
+    suffix = "";
   }
 
-  const csv = [header, ...rows]
-    .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(";"))
-    .join("\r\n");
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Lager");
 
-  const suffix = lager === "neuware" ? "-neuware" : lager === "ns" ? "-ns" : "";
+  const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-  return new NextResponse(csv, {
+  return new NextResponse(buf, {
     headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="lager-export${suffix}-${date}.csv"`,
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="lager-export${suffix}-${date}.xlsx"`,
     },
   });
 }
