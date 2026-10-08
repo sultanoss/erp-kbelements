@@ -285,7 +285,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     // Otto sofort melden — kein Warten auf SelfServiceId
     if (order.marketplace === "OTTO" && notifyPosIds.length > 0) {
       try {
-        await sendOttoShipmentNotification({ salesOrderId: order.externalId, carrier: "FORWARDER", trackingNumber: "AIT", positionItemIds: notifyPosIds, shipDate: new Date().toISOString().slice(0, 10) });
+        await sendOttoShipmentNotification({ salesOrderId: order.externalId, carrier: "FORWARDER", trackingNumber: "AIT", returnTrackingNumber: "AIT", positionItemIds: notifyPosIds, shipDate: new Date().toISOString().slice(0, 10) });
         await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED", notifiedOttoAt: new Date() } });
       } catch {
         await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
