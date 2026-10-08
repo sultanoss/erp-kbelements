@@ -27,7 +27,7 @@ type LastSave = {
 };
 
 function newLine(id: number): LineItem {
-  return { id, sku: "", quantity: 1, purchasePrice: 0, currentAvgPrice: 0, currentStock: 0 };
+  return { id, sku: "", quantity: 0, purchasePrice: 0, currentAvgPrice: 0, currentStock: 0 };
 }
 
 function calcNewStock(currentStock: number, qty: number) {
@@ -380,8 +380,9 @@ export function PurchaseForm({ allItems }: { allItems: ItemInfo[] }) {
                     type="number"
                     min={1}
                     step={1}
-                    value={line.quantity}
-                    onChange={(e) => updateLine(line.id, "quantity", parseInt(e.target.value) || 1)}
+                    value={line.quantity === 0 ? "" : line.quantity}
+                    onChange={(e) => updateLine(line.id, "quantity", parseInt(e.target.value) || 0)}
+                    placeholder="Menge"
                     className={inputClass}
                   />
                   <div className={readonlyClass + " justify-center font-semibold text-green-700"}>
