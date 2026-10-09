@@ -152,14 +152,14 @@ export async function fetchNewOrders(): Promise<NormalizedOrder[]> {
 
 export async function sendOttoShipmentNotification(params: {
   salesOrderId: string;
-  carrier: "DHL" | "GEL" | "AIT";
+  carrier: "DHL" | "GEL" | "AIT" | "FORWARDER";
   trackingNumber: string;
   returnTrackingNumber?: string;
   positionItemIds: string[];
   shipDate: string; // YYYY-MM-DD
 }): Promise<void> {
   const token = await getToken("shipments");
-  const ottoCarrier = params.carrier === "DHL" ? "DHL" : params.carrier === "GEL" ? "GEL" : "AIT";
+  const ottoCarrier = params.carrier === "DHL" ? "DHL" : params.carrier === "GEL" ? "GEL" : params.carrier === "FORWARDER" ? "FORWARDER" : "AIT";
 
   const body = {
     trackingKey: {
