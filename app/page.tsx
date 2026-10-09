@@ -108,8 +108,13 @@ export default async function DashboardPage() {
     const dailyRate = soldQty / 7;
     const daysLeft = dailyRate > 0 ? Math.floor(totalStock / dailyRate) : null;
     return { sku, totalStock, weeklyAvg: soldQty, daysLeft };
-  }).filter((r) => r.daysLeft !== null && r.daysLeft < 60)
-    .sort((a, b) => (a.daysLeft ?? 999) - (b.daysLeft ?? 999));
+  }).sort((a, b) => {
+    if (a.daysLeft === null && b.daysLeft === null) return 0;
+    if (a.daysLeft === null) return 1;
+    if (b.daysLeft === null) return -1;
+    return a.daysLeft - b.daysLeft;
+  });
+  const reorderUrgentCount = reorderRows.filter((r) => r.daysLeft !== null && r.daysLeft < 60).length;
   const chartData = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, qty: dayMap.get(i + 1) ?? 0, herdsets: herdsetDayMap.get(i + 1) ?? 0 }));
   const maxQty = Math.max(...chartData.map((d) => d.qty + d.herdsets), 1);
   const monthLabel = MONTH_NAMES[now.getMonth()];
@@ -202,62 +207,67 @@ export default async function DashboardPage() {
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
         {/* Mindestbestand unterschritten */}
         <Panel className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-grey-border px-5 py-3">
-            <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Unter Mindestbestand</div>
-            {lowStockItems.length > 0 && (
-              <span className="font-mono text-xs font-bold text-brand-red">{lowStockItems.length} Artikel</span>
-            )}
-          </div>
-          {lowStockItems.length === 0 ? (
-            <div className="p-5 font-mono text-xs text-grey-mid">✓ Alle Artikel über Mindestbestand</div>
-          ) : (
-            <div className="max-h-64 divide-y divide-grey-border overflow-y-auto">
-              {lowStockItems.map((item) => (
-                <div key={item.sku} className="flex items-center justify-between px-5 py-2.5">
-                  <span className="font-mono text-sm font-semibold text-brand-red">{item.sku}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono tabular-nums text-sm text-grey-dark">{item.stock} Stk.</span>
-                    <span className="font-mono text-xs text-grey-mid">(Min. {item.minStock})</span>
+          <details open>
+            <summary className="flex cursor-pointer list-none items-center justify-between border-b border-grey-border px-5 py-3 [&::-webkit-details-marker]:hidden">
+              <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Unter Mindestbestand</div>
+              <div className="flex items-center gap-2">
+                {lowStockItems.length > 0 && <span className="font-mono text-xs font-bold text-brand-red">{lowStockItems.length} Artikel</span>}
+                <span className="font-mono text-[10px] text-grey-mid select-none">▾</span>
+              </div>
+            </summary>
+            {lowStockItems.length === 0 ? (
+              <div className="p-5 font-mono text-xs text-grey-mid">✓ Alle Artikel über Mindestbestand</div>
+            ) : (
+              <div className="max-h-64 divide-y divide-grey-border overflow-y-auto">
+                {lowStockItems.map((item) => (
+                  <div key={item.sku} className="flex items-center justify-between px-5 py-2.5">
+                    <span className="font-mono text-sm font-semibold text-brand-red">{item.sku}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono tabular-nums text-sm text-grey-dark">{item.stock} Stk.</span>
+                      <span className="font-mono text-xs text-grey-mid">(Min. {item.minStock})</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </details>
         </Panel>
 
         {/* Top-Verkäufe diesen Monat */}
         <Panel className="overflow-hidden">
-          <div className="border-b border-grey-border px-5 py-3">
-            <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Top-Verkäufe {monthLabel}</div>
-          </div>
-          {topSkus.length === 0 ? (
-            <div className="p-5 font-mono text-xs text-grey-mid">Noch keine Verkäufe diesen Monat.</div>
-          ) : (
-            <div className="divide-y divide-grey-border">
-              {topSkus.map((row, i) => (
-                <div key={row.sku} className="flex items-center gap-3 px-5 py-2.5">
-                  <span className="w-5 font-mono text-xs text-grey-mid">{i + 1}.</span>
-                  <span className="flex-1 font-mono text-sm font-semibold text-brand-red">{row.sku}</span>
-                  <span className="font-mono tabular-nums text-sm text-grey-dark">{row._sum.quantity} Stk.</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <details open>
+            <summary className="flex cursor-pointer list-none items-center justify-between border-b border-grey-border px-5 py-3 [&::-webkit-details-marker]:hidden">
+              <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Top-Verkäufe {monthLabel}</div>
+              <span className="font-mono text-[10px] text-grey-mid select-none">▾</span>
+            </summary>
+            {topSkus.length === 0 ? (
+              <div className="p-5 font-mono text-xs text-grey-mid">Noch keine Verkäufe diesen Monat.</div>
+            ) : (
+              <div className="divide-y divide-grey-border">
+                {topSkus.map((row, i) => (
+                  <div key={row.sku} className="flex items-center gap-3 px-5 py-2.5">
+                    <span className="w-5 font-mono text-xs text-grey-mid">{i + 1}.</span>
+                    <span className="flex-1 font-mono text-sm font-semibold text-brand-red">{row.sku}</span>
+                    <span className="font-mono tabular-nums text-sm text-grey-dark">{row._sum.quantity} Stk.</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </details>
         </Panel>
       </div>
 
       {/* Zeile 3: Nachorder-Karte */}
       <div className="mt-5">
         <Panel className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-grey-border px-5 py-3">
-            <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Nachorder nötig (Reichweite &lt; 60 Tage)</div>
-            {reorderRows.length > 0 && (
-              <span className="font-mono text-xs font-bold text-brand-red">{reorderRows.length} Artikel</span>
-            )}
-          </div>
-          {reorderRows.length === 0 ? (
-            <div className="p-5 font-mono text-xs text-green-600">✓ Alle Artikel ausreichend bevorratet (&gt;60 Tage)</div>
-          ) : (
+          <details open>
+            <summary className="flex cursor-pointer list-none items-center justify-between border-b border-grey-border px-5 py-3 [&::-webkit-details-marker]:hidden">
+              <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Warenbestellung — Reichweite (60 Tage Ziel)</div>
+              <div className="flex items-center gap-2">
+                {reorderUrgentCount > 0 && <span className="font-mono text-xs font-bold text-brand-red">{reorderUrgentCount} unter 60 Tage</span>}
+                <span className="font-mono text-[10px] text-grey-mid select-none">▾</span>
+              </div>
+            </summary>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -269,30 +279,39 @@ export default async function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-grey-border">
-                  {reorderRows.map((r) => (
-                    <tr key={r.sku}>
-                      <td className="px-5 py-2 font-mono text-sm font-semibold text-brand-red">{r.sku}</td>
-                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.totalStock} Stk.</td>
-                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.weeklyAvg} Stk.</td>
-                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm font-bold text-brand-red">{r.daysLeft} Tage</td>
-                    </tr>
-                  ))}
+                  {reorderRows.map((r) => {
+                    const urgent = r.daysLeft !== null && r.daysLeft < 60;
+                    const ok = r.daysLeft !== null && r.daysLeft >= 60;
+                    return (
+                      <tr key={r.sku}>
+                        <td className={`px-5 py-2 font-mono text-sm font-semibold ${urgent ? "text-brand-red" : "text-grey-dark"}`}>{r.sku}</td>
+                        <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.totalStock} Stk.</td>
+                        <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.weeklyAvg} Stk.</td>
+                        <td className={`px-5 py-2 text-right font-mono tabular-nums text-sm font-bold ${urgent ? "text-brand-red" : ok ? "text-green-600" : "text-grey-mid"}`}>
+                          {r.daysLeft !== null ? `${r.daysLeft} Tage` : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          )}
+          </details>
         </Panel>
       </div>
 
       {/* Zeile 5: Monatsdiagramm */}
       <div className="mt-5">
         <Panel className="overflow-hidden">
-          <div className="border-b border-grey-border px-5 py-3">
-            <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Verkäufe {monthLabel} — Tag für Tag</div>
-          </div>
-          <div className="p-5">
-            <SalesChart data={chartData} maxQty={maxQty} />
-          </div>
+          <details open>
+            <summary className="flex cursor-pointer list-none items-center justify-between border-b border-grey-border px-5 py-3 [&::-webkit-details-marker]:hidden">
+              <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Verkäufe {monthLabel} — Tag für Tag</div>
+              <span className="font-mono text-[10px] text-grey-mid select-none">▾</span>
+            </summary>
+            <div className="p-5">
+              <SalesChart data={chartData} maxQty={maxQty} />
+            </div>
+          </details>
         </Panel>
       </div>
     </AppShell>
