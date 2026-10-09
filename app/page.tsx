@@ -11,6 +11,14 @@ export const dynamic = "force-dynamic";
 
 const MONTH_NAMES = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
+const WATCH_SKUS = [
+  "ELK60FB1","ELK60PB1","ELK77CR1","ELK105PF","ELK106PF","ELK60CR1",
+  "ELK75EV1P","ELK75EV2P","ELK75DV1","ELK75DV2","ELK75DV3","ELK45EV1",
+  "ELK90DV1","ELK60AB1","ELK151H80","ELK150H60","ELK60PR1","ELK60PR2",
+  "ELK156S60S","ELK156S60B","ELK156S90B","ELK156S90S","ELK76GH1","ELK60GH1",
+  "ELK26BS1","ELK26BR1","ELK60GH2","ELK70GH1","ELK90GH1","ELK25MB1",
+];
+
 export default async function DashboardPage() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -21,7 +29,9 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments] = await Promise.all([
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments, watchSales, watchItems] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
@@ -67,6 +77,15 @@ export default async function DashboardPage() {
         order: { select: { id: true, orderNumber: true, customerName: true, marketplace: true } },
       },
     }),
+    prisma.sale.groupBy({
+      by: ["sku"],
+      where: { sku: { in: WATCH_SKUS }, date: { gte: sevenDaysAgo } },
+      _sum: { quantity: true },
+    }),
+    prisma.item.findMany({
+      where: { sku: { in: WATCH_SKUS } },
+      select: { sku: true, stock: true, stockAIT: true },
+    }),
   ]);
 
   // Build day-by-day map for chart
@@ -81,6 +100,16 @@ export default async function DashboardPage() {
     herdsetDayMap.set(day, (herdsetDayMap.get(day) ?? 0) + (row._sum.quantity ?? 0));
   }
   const lowStockItems = lowStock.filter((i) => i.stock < i.minStock);
+
+  const reorderRows = WATCH_SKUS.map((sku) => {
+    const item = watchItems.find((i) => i.sku === sku);
+    const totalStock = (item?.stock ?? 0) + (item?.stockAIT ?? 0);
+    const soldQty = watchSales.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
+    const dailyRate = soldQty / 7;
+    const daysLeft = dailyRate > 0 ? Math.floor(totalStock / dailyRate) : null;
+    return { sku, totalStock, weeklyAvg: soldQty, daysLeft };
+  }).filter((r) => r.daysLeft !== null && r.daysLeft < 60)
+    .sort((a, b) => (a.daysLeft ?? 999) - (b.daysLeft ?? 999));
   const chartData = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, qty: dayMap.get(i + 1) ?? 0, herdsets: herdsetDayMap.get(i + 1) ?? 0 }));
   const maxQty = Math.max(...chartData.map((d) => d.qty + d.herdsets), 1);
   const monthLabel = MONTH_NAMES[now.getMonth()];
@@ -217,7 +246,45 @@ export default async function DashboardPage() {
         </Panel>
       </div>
 
-      {/* Zeile 3: Monatsdiagramm */}
+      {/* Zeile 3: Nachorder-Karte */}
+      <div className="mt-5">
+        <Panel className="overflow-hidden">
+          <div className="flex items-center justify-between border-b border-grey-border px-5 py-3">
+            <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Nachorder nötig (Reichweite &lt; 60 Tage)</div>
+            {reorderRows.length > 0 && (
+              <span className="font-mono text-xs font-bold text-brand-red">{reorderRows.length} Artikel</span>
+            )}
+          </div>
+          {reorderRows.length === 0 ? (
+            <div className="p-5 font-mono text-xs text-green-600">✓ Alle Artikel ausreichend bevorratet (&gt;60 Tage)</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-grey-border bg-grey-light/30">
+                    <th className="px-5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">SKU</th>
+                    <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Bestand</th>
+                    <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Ø/Woche</th>
+                    <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Reichweite</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-grey-border">
+                  {reorderRows.map((r) => (
+                    <tr key={r.sku}>
+                      <td className="px-5 py-2 font-mono text-sm font-semibold text-brand-red">{r.sku}</td>
+                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.totalStock} Stk.</td>
+                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.weeklyAvg} Stk.</td>
+                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm font-bold text-brand-red">{r.daysLeft} Tage</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+      </div>
+
+      {/* Zeile 5: Monatsdiagramm */}
       <div className="mt-5">
         <Panel className="overflow-hidden">
           <div className="border-b border-grey-border px-5 py-3">
