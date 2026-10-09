@@ -16,7 +16,7 @@ const baseLinks: NavItem[] = [
     { href: "/bestellungen/neu",      label: "Manuelle Bestellung" },
     { href: "/bestellungen/abholung", label: "Manuelle Abholung"   },
   ]},
-  { href: "/sales", label: "Verkäufe", icon: "ClipboardList" },
+  { href: "/sales", label: "Verkäufe", icon: "ClipboardList", separator: true },
   { href: "/auswertung", label: "Auswertung", icon: "BarChart2" },
   { href: "/corrections", label: "Korrekturen", icon: "SlidersHorizontal" },
   { label: "Lager", icon: "Boxes", separator: true, children: [
