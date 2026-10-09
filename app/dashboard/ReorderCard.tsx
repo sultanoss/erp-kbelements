@@ -16,7 +16,7 @@ export function ReorderCard({ rows }: { rows: ReorderRow[] }) {
     <Panel className="overflow-hidden">
       <details open>
         <summary className="flex cursor-pointer list-none items-center justify-between border-b border-grey-border px-5 py-3 [&::-webkit-details-marker]:hidden">
-          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Warenbestellung — Reichweite (60 Tage Ziel)</div>
+          <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Warenladung China — Reichweite (60 Tage Ziel)</div>
           <div className="flex items-center gap-2">
             {urgentCount > 0 && <span className="font-mono text-xs font-bold text-brand-red">{urgentCount} unter 60 Tage</span>}
             <span className="font-mono text-[10px] text-grey-mid select-none">▾</span>
