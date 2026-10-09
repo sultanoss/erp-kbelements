@@ -13,8 +13,10 @@ import { DeleteProformaButton } from "@/components/delete-proforma-button";
 
 export const dynamic = "force-dynamic";
 
-export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function InvoiceDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string>> }) {
   const { id } = await params;
+  const sp = await searchParams;
+  const stockWarning = sp.stock_warning === "1";
   const [inv, session] = await Promise.all([
     prisma.invoice.findUnique({
       where: { id },
@@ -54,6 +56,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   return (
     <AppShell>
       <PageHeader title={inv.number} eyebrow={inv.docType === "proforma" ? "Proforma-Rechnung" : "Rechnung"} />
+
+      {stockWarning && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+          <span className="rounded bg-amber-500 px-2 py-0.5 font-mono text-xs font-bold text-white">LAGER</span>
+          <span className="font-mono text-sm text-amber-800">Mindestens ein Artikel wurde unter 0 abgebucht — bitte Lagerbestand prüfen.</span>
+        </div>
+      )}
 
       {inv.docType === "proforma" && inv.status === "aktiv" && (
         <div className="mb-4 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">

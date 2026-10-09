@@ -414,11 +414,11 @@ export async function createInvoice(data: {
             const item = await tx.item.findUnique({ where: { sku: s.sku } });
             if (!item) continue;
             if (s.lager === "ns") {
-              const newStockVal = Math.max(0, item.stockNS - qty);
+              const newStockVal = item.stockNS - qty;
               await tx.item.update({ where: { sku: s.sku }, data: { stockNS: newStockVal } });
               stockChanges.push({ sku: s.sku, oldStock: item.stockNS, newStock: newStockVal, lager: "ns" });
             } else {
-              const newStockVal = Math.max(0, item.stock - qty);
+              const newStockVal = item.stock - qty;
               await tx.item.update({ where: { sku: s.sku }, data: { stock: newStockVal } });
               stockChanges.push({ sku: s.sku, oldStock: item.stock, newStock: newStockVal, lager: "neuware" });
             }
@@ -472,7 +472,8 @@ export async function createInvoice(data: {
 
   if (data.docType === "angebot") redirect(`/angebot/${invoice.id}`);
   if (data.docType === "gutschrift") redirect(`/gutschrift/${invoice.id}`);
-  redirect(`/buchhaltung/${invoice.id}`);
+  const hasNegativeStock = invoice.stockChanges.some((c) => c.newStock < 0);
+  redirect(`/buchhaltung/${invoice.id}${hasNegativeStock ? "?stock_warning=1" : ""}`);
 }
 
 export async function createGutschrift(originalInvoiceId: string, formData: FormData) {
