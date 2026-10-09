@@ -6,6 +6,7 @@ import { VersandFertigButton } from "@/components/versand-fertig";
 import { VersandAbgeschlossenButton } from "@/components/versand-abgeschlossen-button";
 import { SpaeterVersandCard } from "@/app/spaeter-versand/SpaeterVersandCard";
 import { UnprintedLabelsCard } from "@/app/dashboard/UnprintedLabelsCard";
+import { ReorderCard } from "@/app/dashboard/ReorderCard";
 
 export const dynamic = "force-dynamic";
 
@@ -259,45 +260,7 @@ export default async function DashboardPage() {
 
       {/* Zeile 3: Nachorder-Karte */}
       <div className="mt-5">
-        <Panel className="overflow-hidden">
-          <details open>
-            <summary className="flex cursor-pointer list-none items-center justify-between border-b border-grey-border px-5 py-3 [&::-webkit-details-marker]:hidden">
-              <div className="border-l-2 border-brand-red pl-3 text-sm font-bold text-grey-dark">Warenbestellung — Reichweite (60 Tage Ziel)</div>
-              <div className="flex items-center gap-2">
-                {reorderUrgentCount > 0 && <span className="font-mono text-xs font-bold text-brand-red">{reorderUrgentCount} unter 60 Tage</span>}
-                <span className="font-mono text-[10px] text-grey-mid select-none">▾</span>
-              </div>
-            </summary>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-grey-border bg-grey-light/30">
-                    <th className="px-5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">SKU</th>
-                    <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Bestand</th>
-                    <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Ø/Woche</th>
-                    <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Reichweite</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-grey-border">
-                  {reorderRows.map((r) => {
-                    const urgent = r.daysLeft !== null && r.daysLeft < 60;
-                    const ok = r.daysLeft !== null && r.daysLeft >= 60;
-                    return (
-                      <tr key={r.sku}>
-                        <td className={`px-5 py-2 font-mono text-sm font-semibold ${urgent ? "text-brand-red" : "text-grey-dark"}`}>{r.sku}</td>
-                        <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.totalStock} Stk.</td>
-                        <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.weeklyAvg} Stk.</td>
-                        <td className={`px-5 py-2 text-right font-mono tabular-nums text-sm font-bold ${urgent ? "text-brand-red" : ok ? "text-green-600" : "text-grey-mid"}`}>
-                          {r.daysLeft !== null ? `${r.daysLeft} Tage` : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </details>
-        </Panel>
+        <ReorderCard rows={reorderRows} />
       </div>
 
       {/* Zeile 5: Monatsdiagramm */}
