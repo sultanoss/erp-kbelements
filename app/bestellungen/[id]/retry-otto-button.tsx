@@ -12,12 +12,13 @@ export function RetryOttoButton({ orderId }: { orderId: string }) {
     setState("loading");
     try {
       const res = await fetch(`/api/otto/retry-shipment-notify?orderId=${orderId}`);
-      const data = await res.json();
-      if (data.result === "success") {
+      const data = await res.json() as { orderId?: string; results?: Array<{ result: string; error?: string }>; result?: string; error?: string };
+      if (res.ok && data.results?.every((r) => r.result === "success")) {
         setState("success");
         router.refresh();
       } else {
-        setErrorMsg(data.error ?? data.result ?? "Unbekannter Fehler");
+        const msg = data.results?.find((r) => r.error)?.error ?? data.error ?? data.result ?? "Unbekannter Fehler";
+        setErrorMsg(msg);
         setState("error");
       }
     } catch {
@@ -36,9 +37,11 @@ export function RetryOttoButton({ orderId }: { orderId: string }) {
 
   if (state === "error") {
     return (
-      <span className="font-mono text-[10px] text-red-600" title={errorMsg}>
-        Fehler — {errorMsg.length > 40 ? errorMsg.slice(0, 40) + "…" : errorMsg}
-      </span>
+      <div className="max-w-sm rounded border border-red-200 bg-red-50 p-2">
+        <div className="font-mono text-[10px] font-bold text-red-700 mb-1">Fehler:</div>
+        <div className="font-mono text-[10px] text-red-600 break-all whitespace-pre-wrap">{errorMsg}</div>
+        <button onClick={handleClick} className="mt-1 font-mono text-[10px] text-brand-red hover:underline">Nochmal versuchen</button>
+      </div>
     );
   }
 
