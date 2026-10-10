@@ -349,25 +349,20 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       }
     }
 
-    // Portal-Meldung für eBay (braucht SelfServiceId)
-    if (aitSelfServiceId) {
-      const trackingForPortal = aitSelfServiceId;
-
-      if (order.marketplace === "EBAY" || order.marketplace === "EBAY_OUTLET") {
-        const lineItems = order.items.filter((i) => i.positionItemId).map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
-        try {
-          const s = await auth(); const uid = (s?.user as { id?: string } | null)?.id; if (!uid) throw new Error("Kein Benutzer-Kontext");
-          await createInvoiceFromOrder(order, uid);
-          const sender = order.marketplace === "EBAY_OUTLET" ? sendEbayOutletShipment : sendEbayShipment;
-          await sender({ orderId: order.externalId, trackingNumber: trackingForPortal, carrier: "AIT", lineItems });
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
-          revalidatePath("/buchhaltung");
-        } catch (err) {
-          console.error("eBay-Meldung (AIT) fehlgeschlagen:", err);
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
-        }
+    // eBay-Meldung mit consignmentNo (KBE-EB-<Bestellnummer>) — unabhängig von aitSelfServiceId
+    if (order.marketplace === "EBAY" || order.marketplace === "EBAY_OUTLET") {
+      const lineItems = order.items.filter((i) => i.positionItemId).map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
+      try {
+        const s = await auth(); const uid = (s?.user as { id?: string } | null)?.id; if (!uid) throw new Error("Kein Benutzer-Kontext");
+        await createInvoiceFromOrder(order, uid);
+        const sender = order.marketplace === "EBAY_OUTLET" ? sendEbayOutletShipment : sendEbayShipment;
+        await sender({ orderId: order.externalId, trackingNumber: consignmentNo, carrier: "AIT", lineItems });
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+        revalidatePath("/buchhaltung");
+      } catch (err) {
+        console.error("eBay-Meldung (AIT) fehlgeschlagen:", err);
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
       }
-
     }
 
     revalidatePath(`/bestellungen/${id}`);

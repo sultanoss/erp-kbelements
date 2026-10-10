@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     await sender({
       orderId: order.externalId,
       trackingNumber: shipment.trackingNumber,
-      carrier: shipment.carrier as "DHL" | "GEL",
+      carrier: shipment.carrier as "DHL" | "GEL" | "AIT",
       lineItems,
     });
     await prisma.shipment.update({
