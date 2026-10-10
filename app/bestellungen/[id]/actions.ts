@@ -227,7 +227,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
     const marketplacePrefix: Record<string, string> = { OTTO: "O", KAUFLAND: "KL", MEDIAMARKT: "MM", EBAY: "EB", EBAY_OUTLET: "EB", SHOPIFY: "SH", AMAZON: "AZ" };
     const prefix = marketplacePrefix[order.marketplace] ?? "X";
     const rawOrderNo = order.orderNumber ?? order.id.slice(0, 8);
-    const consignmentNo = `KBE-${prefix}-${rawOrderNo.replace(/^#/, "")}`;
+    const consignmentNo = `KBE-${prefix}-${rawOrderNo.replace(/^#/, "").replace(/_/g, "-")}`;
 
     let aitUpdated = false;
     try {
