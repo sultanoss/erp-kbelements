@@ -434,6 +434,18 @@ model AitReceipt {
   @@index([date])
 }
 
+model SkuIncoming {
+  id          String    @id @default(cuid())
+  sku         String
+  type        String    // "UNTERWEGS" | "CHINA_LAGER"
+  quantity    Int
+  arrivalDate DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([sku])
+}
+
 model ActivityLog {
   id           String       @id @default(cuid())
   type         ActivityType

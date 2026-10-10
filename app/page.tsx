@@ -32,7 +32,7 @@ export default async function DashboardPage() {
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments, watchSales, watchItems] = await Promise.all([
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments, watchSales, watchItems, incomingData] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
@@ -86,6 +86,10 @@ export default async function DashboardPage() {
     prisma.item.findMany({
       where: { sku: { in: WATCH_SKUS } },
       select: { sku: true, stock: true, stockAIT: true },
+    }),
+    prisma.skuIncoming.findMany({
+      where: { sku: { in: WATCH_SKUS } },
+      orderBy: { arrivalDate: "asc" },
     }),
   ]);
 
@@ -260,7 +264,7 @@ export default async function DashboardPage() {
 
       {/* Zeile 3: Nachorder-Karte */}
       <div className="mt-5">
-        <ReorderCard rows={reorderRows} />
+        <ReorderCard rows={reorderRows} incoming={incomingData} />
       </div>
 
       {/* Zeile 5: Monatsdiagramm */}
