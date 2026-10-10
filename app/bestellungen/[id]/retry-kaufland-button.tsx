@@ -36,9 +36,11 @@ export function RetryKauflandButton({ orderId }: { orderId: string }) {
 
   if (state === "error") {
     return (
-      <span className="font-mono text-[10px] text-red-600" title={errorMsg}>
-        Fehler — {errorMsg.length > 40 ? errorMsg.slice(0, 40) + "…" : errorMsg}
-      </span>
+      <div className="max-w-sm rounded border border-red-200 bg-red-50 p-2">
+        <div className="font-mono text-[10px] font-bold text-red-700 mb-1">Fehler:</div>
+        <div className="font-mono text-[10px] text-red-600 break-all whitespace-pre-wrap">{errorMsg}</div>
+        <button onClick={handleClick} className="mt-1 font-mono text-[10px] text-brand-red hover:underline">Nochmal versuchen</button>
+      </div>
     );
   }
 
