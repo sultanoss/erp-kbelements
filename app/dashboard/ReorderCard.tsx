@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Panel } from "@/components/ui";
 import { addUnterwegs, upsertChinaLager, deleteIncoming } from "./reorder-actions";
 
-type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null };
+type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null; daysLeftTotal: number | null };
 type Incoming = { id: string; sku: string; type: string; quantity: number; arrivalDate: Date | null };
 
 export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: Incoming[] }) {
@@ -114,6 +114,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Bestand</th>
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Ø/Tag</th>
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Reichweite</th>
+                <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">inkl. Unterwegs</th>
               </tr>
             </thead>
             <tbody>
@@ -137,12 +138,15 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       <td className={`px-5 py-2 text-right font-mono tabular-nums text-sm font-bold ${urgent ? "text-brand-red" : ok ? "text-green-600" : "text-grey-mid"}`}>
                         {r.daysLeft !== null ? `${r.daysLeft} Tage` : "—"}
                       </td>
+                      <td className={`px-5 py-2 text-right font-mono tabular-nums text-sm font-bold ${r.daysLeftTotal !== null ? (r.daysLeftTotal >= 60 ? "text-green-600" : "text-brand-red") : "text-grey-mid"}`}>
+                        {r.daysLeftTotal !== null ? `${r.daysLeftTotal} Tage` : "—"}
+                      </td>
                     </tr>
 
                     {/* Unterwegs-Einträge */}
                     {unterwegs.map((u) => (
                       <tr key={u.id}>
-                        <td colSpan={3} className="px-5 py-1 font-mono text-xs text-blue-600">
+                        <td colSpan={4} className="px-5 py-1 font-mono text-xs text-blue-600">
                           ↳ <span className="font-semibold text-blue-700">Unterwegs:</span> {u.quantity} Stk. — Ankunft {formatDate(u.arrivalDate)}
                         </td>
                         <td className="px-5 py-1 text-right">
@@ -157,7 +161,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
 
                     {/* China-Lager-Eintrag */}
                     <tr>
-                      <td colSpan={3} className="px-5 py-1 font-mono text-xs text-green-600">
+                      <td colSpan={4} className="px-5 py-1 font-mono text-xs text-green-600">
                         ↳ <span className="font-semibold text-green-700">China-Lager:</span>{" "}
                         {isEditingChina ? (
                           <span className="inline-flex items-center gap-1">

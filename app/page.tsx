@@ -111,7 +111,13 @@ export default async function DashboardPage() {
     const soldQty = watchSales.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
     const dailyRate = soldQty / 7;
     const daysLeft = dailyRate > 0 ? Math.max(0, Math.floor(totalStock / dailyRate)) : null;
-    return { sku, totalStock, dailyAvg: Math.round(dailyRate), daysLeft };
+    const unterwegsQty = incomingData
+      .filter((i) => i.sku === sku && i.type === "UNTERWEGS")
+      .reduce((sum, i) => sum + i.quantity, 0);
+    const daysLeftTotal = dailyRate > 0 && unterwegsQty > 0
+      ? Math.max(0, Math.floor((totalStock + unterwegsQty) / dailyRate))
+      : null;
+    return { sku, totalStock, dailyAvg: Math.round(dailyRate), daysLeft, daysLeftTotal };
   }).sort((a, b) => {
     if (a.daysLeft === null && b.daysLeft === null) return 0;
     if (a.daysLeft === null) return 1;
