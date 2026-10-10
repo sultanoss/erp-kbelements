@@ -196,7 +196,7 @@ export async function sendKauflandShipmentNotification(params: {
 
   for (const unitId of params.orderUnitIds) {
     const url = `${BASE}/order-units/${unitId}/send`;
-    const bodyObj = { tracking_numbers: [params.trackingNumber], carrier_code: carrierCode };
+    const bodyObj = { shipment: { tracking_numbers: [params.trackingNumber], carrier_code: carrierCode } };
     const bodyStr = JSON.stringify(bodyObj);
 
     const res = await fetch(url, {
