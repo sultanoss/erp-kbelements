@@ -8,7 +8,7 @@ type ReorderRow = { sku: string; totalStock: number; weeklyAvg: number; daysLeft
 type Incoming = { id: string; sku: string; type: string; quantity: number; arrivalDate: Date | null };
 
 export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: Incoming[] }) {
-  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
 
   // Per-SKU UI state
@@ -18,10 +18,16 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
   const [newQty, setNewQty] = useState("");
   const [chinaQty, setChinaQty] = useState("");
 
+  function toggleSku(sku: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(sku) ? next.delete(sku) : next.add(sku);
+      return next;
+    });
+  }
+
   const urgentCount = rows.filter((r) => r.daysLeft !== null && r.daysLeft < 60).length;
-  const filtered = query.trim()
-    ? rows.filter((r) => r.sku.toLowerCase().includes(query.trim().toLowerCase()))
-    : rows;
+  const filtered = selected.size > 0 ? rows.filter((r) => selected.has(r.sku)) : rows;
 
   function formatDate(d: Date | null) {
     if (!d) return "";
@@ -63,15 +69,23 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
           </div>
         </summary>
 
-        {/* Suchfeld */}
-        <div className="border-b border-grey-border px-5 py-2">
-          <input
-            type="search"
-            placeholder="SKU suchen…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded border border-grey-border bg-transparent px-3 py-1.5 font-mono text-sm text-grey-dark placeholder:text-grey-mid focus:outline-none focus:ring-1 focus:ring-brand-red"
-          />
+        {/* SKU-Chips */}
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-grey-border px-5 py-3">
+          {rows.map((r) => (
+            <button
+              key={r.sku}
+              onClick={() => toggleSku(r.sku)}
+              className={selected.has(r.sku)
+                ? "rounded bg-brand-red px-2 py-0.5 font-mono text-[11px] font-bold text-white"
+                : "rounded border border-grey-border px-2 py-0.5 font-mono text-[11px] text-grey-mid hover:border-brand-red hover:text-brand-red"}
+            >{r.sku}</button>
+          ))}
+          {selected.size > 0 && (
+            <button
+              onClick={() => setSelected(new Set())}
+              className="ml-1 font-mono text-[10px] text-grey-mid hover:underline"
+            >✕ Auswahl aufheben</button>
+          )}
         </div>
 
         <div className="overflow-x-auto">
