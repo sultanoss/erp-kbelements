@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     await sendMediaMarktShipmentNotification({
       orderId: order.externalId,
       trackingNumber: shipment.trackingNumber,
-      carrier: shipment.carrier as "DHL" | "GEL",
+      carrier: shipment.carrier as "DHL" | "GEL" | "AIT",
       orderLineIds,
     });
     log.push("OR23 + OR24 OK");

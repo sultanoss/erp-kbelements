@@ -332,25 +332,26 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       }
     }
 
-    // Portal-Meldung für MediaMarkt/eBay (brauchen SelfServiceId)
+    // MediaMarkt-Meldung mit consignmentNo (KBE-MM-<Bestellnummer>) — unabhängig von aitSelfServiceId
+    if (order.marketplace === "MEDIAMARKT") {
+      try {
+        const s2 = await auth(); const uid2 = (s2?.user as { id?: string } | null)?.id;
+        const inv = await createInvoiceFromOrder(order, uid2 ?? "");
+        const pdfBytes = await generateInvoicePdf(inv);
+        const mmLineIds = order.items.map((i) => i.positionItemId).filter((x): x is string => !!x);
+        await sendMediaMarktShipmentNotification({ orderId: order.externalId, trackingNumber: consignmentNo, carrier: "AIT", orderLineIds: mmLineIds });
+        await uploadMediaMarktInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+        revalidatePath("/buchhaltung");
+      } catch (err) {
+        console.error("MediaMarkt-Meldung (AIT) fehlgeschlagen:", err);
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+      }
+    }
+
+    // Portal-Meldung für eBay (braucht SelfServiceId)
     if (aitSelfServiceId) {
       const trackingForPortal = aitSelfServiceId;
-
-      if (order.marketplace === "MEDIAMARKT") {
-        try {
-          const s2 = await auth(); const uid2 = (s2?.user as { id?: string } | null)?.id;
-          const inv = await createInvoiceFromOrder(order, uid2 ?? "");
-          const pdfBytes = await generateInvoicePdf(inv);
-          const mmLineIds = order.items.map((i) => i.positionItemId).filter((x): x is string => !!x);
-          await sendMediaMarktShipmentNotification({ orderId: order.externalId, trackingNumber: trackingForPortal, carrier: "AIT", orderLineIds: mmLineIds });
-          await uploadMediaMarktInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
-          revalidatePath("/buchhaltung");
-        } catch (err) {
-          console.error("MediaMarkt-Meldung (AIT) fehlgeschlagen:", err);
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
-        }
-      }
 
       if (order.marketplace === "EBAY" || order.marketplace === "EBAY_OUTLET") {
         const lineItems = order.items.filter((i) => i.positionItemId).map((i) => ({ lineItemId: i.positionItemId!, quantity: i.quantity }));
