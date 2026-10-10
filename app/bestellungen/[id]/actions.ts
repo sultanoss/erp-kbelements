@@ -321,7 +321,18 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       }
     }
 
-    // Portal-Meldung für MediaMarkt/eBay/Shopify (brauchen SelfServiceId)
+    // Shopify-Meldung mit consignmentNo (KBE-SH-<Bestellnummer>) — unabhängig von aitSelfServiceId
+    if (order.marketplace === "SHOPIFY") {
+      try {
+        await sendShopifyFulfillment({ orderId: order.externalId, trackingNumber: consignmentNo, carrier: "AIT" });
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+      } catch (err) {
+        console.error("Shopify-Meldung (AIT) fehlgeschlagen:", err);
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+      }
+    }
+
+    // Portal-Meldung für MediaMarkt/eBay (brauchen SelfServiceId)
     if (aitSelfServiceId) {
       const trackingForPortal = aitSelfServiceId;
 
@@ -356,15 +367,6 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         }
       }
 
-      if (order.marketplace === "SHOPIFY") {
-        try {
-          await sendShopifyFulfillment({ orderId: order.externalId, trackingNumber: trackingForPortal, carrier: "AIT" });
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
-        } catch (err) {
-          console.error("Shopify-Meldung (AIT) fehlgeschlagen:", err);
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
-        }
-      }
     }
 
     revalidatePath(`/bestellungen/${id}`);

@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     await sendShopifyFulfillment({
       orderId: order.externalId,
       trackingNumber: shipment.trackingNumber,
-      carrier: shipment.carrier as "DHL" | "GEL",
+      carrier: shipment.carrier as "DHL" | "GEL" | "AIT",
     });
     await prisma.shipment.update({
       where: { id: shipment.id },
