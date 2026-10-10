@@ -29,10 +29,7 @@ async function aitPost<T = unknown>(action: string, body: Record<string, unknown
 
   if (!res.ok) {
     const p = typeof parsed === "object" && parsed !== null ? parsed as Record<string, unknown> : {};
-    const detail = Array.isArray(p.validation_errors) && p.validation_errors.length > 0
-      ? (p.validation_errors as unknown[]).map((e) => (typeof e === "object" ? JSON.stringify(e) : String(e))).join("; ")
-      : (p.error as string | undefined) ?? JSON.stringify(parsed);
-    throw new Error(`AIT Fehler (${p.code ?? res.status}): ${detail}`);
+    throw new Error(`AIT Fehler (${p.code ?? res.status}): ${JSON.stringify(parsed)}`);
   }
 
   // HTTP 200 aber Fehler im Body (z.B. code 454)
