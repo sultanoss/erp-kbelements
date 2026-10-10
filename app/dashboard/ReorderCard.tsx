@@ -109,23 +109,23 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
 
                     {/* Unterwegs-Einträge */}
                     {unterwegs.map((u) => (
-                      <tr key={u.id} className="bg-blue-50">
-                        <td colSpan={3} className="px-5 py-1.5 font-mono text-sm text-blue-600">
+                      <tr key={u.id}>
+                        <td colSpan={3} className="px-5 py-1 font-mono text-xs text-blue-600">
                           ↳ <span className="font-semibold text-blue-700">Unterwegs:</span> {u.quantity} Stk. — Ankunft {formatDate(u.arrivalDate)}
                         </td>
-                        <td className="px-5 py-1.5 text-right">
+                        <td className="px-5 py-1 text-right">
                           <button
                             onClick={() => handleDelete(u.id)}
                             disabled={pending}
-                            className="font-mono text-xs text-brand-red hover:underline disabled:opacity-50"
+                            className="font-mono text-[10px] text-brand-red hover:underline disabled:opacity-50"
                           >✕ Löschen</button>
                         </td>
                       </tr>
                     ))}
 
                     {/* China-Lager-Eintrag */}
-                    <tr className="bg-amber-50">
-                      <td colSpan={3} className="px-5 py-1.5 font-mono text-sm text-amber-600">
+                    <tr>
+                      <td colSpan={3} className="px-5 py-1 font-mono text-xs text-amber-600">
                         ↳ <span className="font-semibold text-amber-700">China-Lager:</span>{" "}
                         {isEditingChina ? (
                           <span className="inline-flex items-center gap-1">
@@ -135,22 +135,22 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                               value={chinaQty}
                               onChange={(e) => setChinaQty(e.target.value)}
                               placeholder={china ? String(china.quantity) : "0"}
-                              className="w-20 rounded border border-amber-300 px-2 py-0.5 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-amber-400"
+                              className="w-20 rounded border border-grey-border px-2 py-0.5 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-brand-red"
                               autoFocus
                             />
                             <span className="text-amber-600">Stk.</span>
-                            <button onClick={() => handleUpsertChina(r.sku)} disabled={pending} className="font-mono text-xs text-green-600 hover:underline disabled:opacity-50">✓ Speichern</button>
-                            <button onClick={() => { setEditingChina(null); setChinaQty(""); }} className="font-mono text-xs text-grey-mid hover:underline">Abbrechen</button>
+                            <button onClick={() => handleUpsertChina(r.sku)} disabled={pending} className="font-mono text-[10px] text-green-600 hover:underline disabled:opacity-50">✓ Speichern</button>
+                            <button onClick={() => { setEditingChina(null); setChinaQty(""); }} className="font-mono text-[10px] text-grey-mid hover:underline">Abbrechen</button>
                           </span>
                         ) : (
                           <span>{china ? `${china.quantity} Stk.` : "—"}</span>
                         )}
                       </td>
-                      <td className="px-5 py-1.5 text-right">
+                      <td className="px-5 py-1 text-right">
                         {!isEditingChina && (
                           <button
                             onClick={() => { setEditingChina(r.sku); setChinaQty(china ? String(china.quantity) : ""); }}
-                            className="font-mono text-xs text-amber-600 hover:text-amber-800 hover:underline"
+                            className="font-mono text-[10px] text-amber-600 hover:text-amber-800 hover:underline"
                           >✎ Bearbeiten</button>
                         )}
                       </td>
