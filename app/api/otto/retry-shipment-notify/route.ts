@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         salesOrderId: order.externalId,
         carrier: isAit ? "OTHER_FORWARDER" : shipment.carrier as "DHL" | "GEL",
         trackingNumber: isAit ? "AIT" : shipment.trackingNumber,
-        returnTrackingNumber: isAit ? "AIT" : (shipment.returnTrackingNumber ?? undefined),
+        returnTrackingNumber: isAit ? undefined : (shipment.returnTrackingNumber ?? undefined),
         positionItemIds,
         shipDate: today,
       });
