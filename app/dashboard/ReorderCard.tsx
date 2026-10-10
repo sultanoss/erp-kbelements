@@ -9,6 +9,7 @@ type Incoming = { id: string; sku: string; type: string; quantity: number; arriv
 
 export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: Incoming[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [chipSearch, setChipSearch] = useState("");
   const [pending, startTransition] = useTransition();
 
   // Per-SKU UI state
@@ -69,9 +70,20 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
           </div>
         </summary>
 
+        {/* Suchfeld */}
+        <div className="border-b border-grey-border px-5 py-2">
+          <input
+            type="search"
+            placeholder="SKU suchen…"
+            value={chipSearch}
+            onChange={(e) => setChipSearch(e.target.value)}
+            className="w-full rounded border border-grey-border bg-transparent px-3 py-1.5 font-mono text-sm text-grey-dark placeholder:text-grey-mid focus:outline-none focus:ring-1 focus:ring-brand-red"
+          />
+        </div>
+
         {/* SKU-Chips — feste Reihenfolge nach Gruppe */}
         <div className="flex flex-wrap items-center gap-1.5 border-b border-grey-border px-5 py-3">
-          {[...rows].sort((a, b) => {
+          {[...rows].filter((r) => !chipSearch.trim() || r.sku.toLowerCase().includes(chipSearch.trim().toLowerCase())).sort((a, b) => {
             const order = ["ELK75EV1P","ELK75EV2P","ELK75DV1","ELK75DV2","ELK75DV3","ELK45EV1","ELK60TM1","ELK90DV1","ELK60FB1","ELK60PB1","ELK60CR1","ELK77CR1","ELK29PB1","ELK60GH1","ELK76GH1","ELK60GH2","ELK90GH1","ELK60AB1","ELK60PR1","ELK60PR2","ELK26BS1","ELK26BR1","ELK156S60S","ELK156S60B","ELK156S90B","ELK156S90S"];
             const ai = order.indexOf(a.sku); const bi = order.indexOf(b.sku);
             if (ai === -1 && bi === -1) return a.sku.localeCompare(b.sku);
