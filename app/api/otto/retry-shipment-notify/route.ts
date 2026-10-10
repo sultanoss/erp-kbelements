@@ -43,10 +43,13 @@ export async function GET(request: Request) {
     try {
       const today = new Date().toISOString().slice(0, 10);
       const isAit = shipment.carrier === "AIT";
+      const ottoTrackingNo = isAit
+        ? `AIT${(order.orderNumber ?? order.externalId).replace(/^#/, "").replace(/[^a-zA-Z0-9]/g, "")}`
+        : shipment.trackingNumber;
       await sendOttoShipmentNotification({
         salesOrderId: order.externalId,
         carrier: isAit ? "OTHER_FORWARDER" : shipment.carrier as "DHL" | "GEL",
-        trackingNumber: isAit ? "AIT" : shipment.trackingNumber,
+        trackingNumber: ottoTrackingNo,
         returnTrackingNumber: isAit ? undefined : (shipment.returnTrackingNumber ?? undefined),
         positionItemIds,
         shipDate: today,
