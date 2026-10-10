@@ -287,7 +287,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       try {
         await sendOttoShipmentNotification({ salesOrderId: order.externalId, carrier: "FORWARDER", trackingNumber: "AIT", returnTrackingNumber: "AIT", positionItemIds: notifyPosIds, shipDate: new Date().toISOString().slice(0, 10) });
         await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED", notifiedOttoAt: new Date() } });
-      } catch {
+      } catch (err) {
+        console.error("Otto AIT-Meldung fehlgeschlagen:", (err as Error).message);
         await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
       }
     }

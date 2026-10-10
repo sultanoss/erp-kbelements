@@ -42,11 +42,12 @@ export async function GET(request: Request) {
 
     try {
       const today = new Date().toISOString().slice(0, 10);
+      const isAit = shipment.carrier === "AIT";
       await sendOttoShipmentNotification({
         salesOrderId: order.externalId,
-        carrier: shipment.carrier as "DHL" | "GEL",
-        trackingNumber: shipment.trackingNumber,
-        returnTrackingNumber: shipment.returnTrackingNumber ?? undefined,
+        carrier: isAit ? "FORWARDER" : shipment.carrier as "DHL" | "GEL",
+        trackingNumber: isAit ? "AIT" : shipment.trackingNumber,
+        returnTrackingNumber: isAit ? "AIT" : (shipment.returnTrackingNumber ?? undefined),
         positionItemIds,
         shipDate: today,
       });
