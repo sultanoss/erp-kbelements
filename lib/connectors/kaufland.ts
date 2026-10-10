@@ -192,7 +192,7 @@ export async function sendKauflandShipmentNotification(params: {
   trackingNumber: string;
   carrier: "DHL" | "GEL" | "AIT";
 }): Promise<void> {
-  const carrierCode = params.carrier === "DHL" ? "DHL" : params.carrier === "GEL" ? "GEL" : "AIT";
+  const carrierCode = params.carrier === "DHL" ? "DHL" : params.carrier === "GEL" ? "GEL" : "AIT Home Delivery";
 
   for (const unitId of params.orderUnitIds) {
     const url = `${BASE}/order-units/${unitId}/send`;
