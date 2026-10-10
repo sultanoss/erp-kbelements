@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       await sendKauflandShipmentNotification({
         orderUnitIds,
         trackingNumber: shipment.trackingNumber,
-        carrier: shipment.carrier as "DHL" | "GEL",
+        carrier: shipment.carrier as "DHL" | "GEL" | "AIT",
       });
     }
 
