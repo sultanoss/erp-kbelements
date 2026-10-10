@@ -192,15 +192,16 @@ export async function createCorrection(formData: FormData) {
   const sku = text(formData, "sku");
   const quantity = numberValue(formData, "quantity");
   const reason = text(formData, "reason");
-  const lager = text(formData, "lager"); // "neuware" | "ns"
+  const lager = text(formData, "lager"); // "neuware" | "ns" | "ait"
   const austausch = text(formData, "austausch") === "ja";
   if (!sku || Number.isNaN(quantity) || quantity === 0 || !reason) return;
 
   const isNS = lager === "ns";
+  const isAIT = lager === "ait";
 
   await prisma.$transaction(async (tx) => {
     const item = await tx.item.findUniqueOrThrow({ where: { sku } });
-    const oldStock = isNS ? item.stockNS : item.stock;
+    const oldStock = isNS ? item.stockNS : isAIT ? item.stockAIT : item.stock;
     const newStock = oldStock + quantity;
 
     const correction = await tx.correction.create({
@@ -208,9 +209,9 @@ export async function createCorrection(formData: FormData) {
     });
     await tx.item.update({
       where: { sku },
-      data: isNS ? { stockNS: newStock } : { stock: newStock },
+      data: isNS ? { stockNS: newStock } : isAIT ? { stockAIT: newStock } : { stock: newStock },
     });
-    const lagerLabel = isNS ? "NS-Lager" : "Neuware-Lager";
+    const lagerLabel = isNS ? "NS-Lager" : isAIT ? "AIT-Lager" : "Neuware-Lager";
     const note = austausch ? `${reason} (${lagerLabel}) | Austausch` : `${reason} (${lagerLabel})`;
     await tx.activityLog.create({
       data: { type: ActivityType.CORRECTION, sku, oldStock, newStock, note, userId: user.id, correctionId: correction.id },
@@ -235,6 +236,7 @@ export async function updateCorrection(formData: FormData) {
   if (!id || Number.isNaN(quantity) || quantity === 0 || !reason) return;
 
   const isNS = lager === "ns";
+  const isAIT = lager === "ait";
 
   await prisma.$transaction(async (tx) => {
     const old = await tx.correction.findUniqueOrThrow({ where: { id } });
@@ -242,17 +244,20 @@ export async function updateCorrection(formData: FormData) {
 
     // Reverse old correction on old lager
     const wasNS = old.lager === "ns";
+    const wasAIT = old.lager === "ait";
     const stockAfterReverse = wasNS
       ? { stockNS: item.stockNS - old.quantity }
+      : wasAIT
+      ? { stockAIT: item.stockAIT - old.quantity }
       : { stock: item.stock - old.quantity };
     const itemAfterReverse = await tx.item.update({ where: { sku: old.sku }, data: stockAfterReverse });
 
     // Apply new correction on new lager
-    const baseStock = isNS ? itemAfterReverse.stockNS : itemAfterReverse.stock;
+    const baseStock = isNS ? itemAfterReverse.stockNS : isAIT ? itemAfterReverse.stockAIT : itemAfterReverse.stock;
     const newStock = baseStock + quantity;
     await tx.item.update({
       where: { sku: old.sku },
-      data: isNS ? { stockNS: newStock } : { stock: newStock },
+      data: isNS ? { stockNS: newStock } : isAIT ? { stockAIT: newStock } : { stock: newStock },
     });
 
     await tx.correction.update({
@@ -267,7 +272,7 @@ export async function updateCorrection(formData: FormData) {
       },
     });
 
-    const lagerLabel = isNS ? "NS-Lager" : "Neuware-Lager";
+    const lagerLabel = isNS ? "NS-Lager" : isAIT ? "AIT-Lager" : "Neuware-Lager";
     const note = austausch ? `${reason} (${lagerLabel}) | Austausch` : `${reason} (${lagerLabel})`;
     await tx.activityLog.create({
       data: { type: ActivityType.CORRECTION, sku: old.sku, oldStock: baseStock, newStock, note: `[Bearbeitet] ${note}`, userId: user.id },

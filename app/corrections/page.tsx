@@ -65,6 +65,7 @@ export default async function CorrectionsPage({
           <SelectField label="Lager" name="lager">
             <option value="neuware">Neuware-Lager</option>
             <option value="ns">NS-Lager</option>
+            <option value="ait">AIT-Lager</option>
           </SelectField>
           <Field label="Menge" name="quantity" type="number" defaultValue={-1} />
           <Field label="Grund" name="reason" placeholder="Inventur, Bruch ..." />
@@ -146,6 +147,8 @@ export default async function CorrectionsPage({
                 <td className="px-4 py-3">
                   {c.lager === "ns" ? (
                     <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-blue-700">NS-Lager</span>
+                  ) : c.lager === "ait" ? (
+                    <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 font-mono text-xs font-semibold text-purple-700">AIT-Lager</span>
                   ) : (
                     <span className="inline-flex items-center rounded-full bg-grey-light px-2.5 py-0.5 font-mono text-xs font-semibold text-grey-mid">Neuware</span>
                   )}

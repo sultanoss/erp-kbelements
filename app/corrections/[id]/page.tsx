@@ -40,6 +40,7 @@ export default async function EditCorrectionPage({
           <SelectField label="Lager" name="lager" defaultValue={correction.lager}>
             <option value="neuware">Neuware-Lager</option>
             <option value="ns">NS-Lager</option>
+            <option value="ait">AIT-Lager</option>
           </SelectField>
 
           <Field label="Menge" name="quantity" type="number" defaultValue={correction.quantity} />
