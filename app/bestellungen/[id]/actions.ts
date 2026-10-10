@@ -304,25 +304,26 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
       console.error("AIT get_order fehlgeschlagen:", err);
     }
 
-    // Portal-Meldung für Kaufland/MediaMarkt/eBay/Shopify (brauchen SelfServiceId)
+    // Kaufland-Meldung mit consignmentNo (KBE-KL-<Bestellnummer>) — unabhängig von aitSelfServiceId
+    if (order.marketplace === "KAUFLAND") {
+      const orderUnitIds = order.items.map((i) => i.positionItemId).filter((pid): pid is string => !!pid);
+      try {
+        const s = await auth(); const uid = (s?.user as { id?: string } | null)?.id; if (!uid) throw new Error("Kein Benutzer-Kontext");
+        const inv = await createInvoiceFromOrder(order, uid);
+        const pdfBytes = await generateInvoicePdf(inv);
+        if (orderUnitIds.length > 0) await sendKauflandShipmentNotification({ orderUnitIds, trackingNumber: consignmentNo, carrier: "AIT" });
+        await uploadKauflandInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
+        revalidatePath("/buchhaltung");
+      } catch (err) {
+        console.error("Kaufland-Meldung (AIT) fehlgeschlagen:", err);
+        await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
+      }
+    }
+
+    // Portal-Meldung für MediaMarkt/eBay/Shopify (brauchen SelfServiceId)
     if (aitSelfServiceId) {
       const trackingForPortal = aitSelfServiceId;
-
-      if (order.marketplace === "KAUFLAND") {
-        const orderUnitIds = order.items.map((i) => i.positionItemId).filter((pid): pid is string => !!pid);
-        try {
-          const s = await auth(); const uid = (s?.user as { id?: string } | null)?.id; if (!uid) throw new Error("Kein Benutzer-Kontext");
-          const inv = await createInvoiceFromOrder(order, uid);
-          const pdfBytes = await generateInvoicePdf(inv);
-          if (orderUnitIds.length > 0) await sendKauflandShipmentNotification({ orderUnitIds, trackingNumber: trackingForPortal, carrier: "AIT" });
-          await uploadKauflandInvoice(order.externalId, pdfBytes, `${inv.number}.pdf`);
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "PORTAL_NOTIFIED" } });
-          revalidatePath("/buchhaltung");
-        } catch (err) {
-          console.error("Kaufland-Meldung (AIT) fehlgeschlagen:", err);
-          await prisma.shipment.update({ where: { id: aitShipmentId }, data: { status: "NOTIFY_FAILED" } });
-        }
-      }
 
       if (order.marketplace === "MEDIAMARKT") {
         try {
