@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       const isAit = shipment.carrier === "AIT";
       await sendOttoShipmentNotification({
         salesOrderId: order.externalId,
-        carrier: isAit ? "FORWARDER" : shipment.carrier as "DHL" | "GEL",
+        carrier: isAit ? "OTHER_FORWARDER" : shipment.carrier as "DHL" | "GEL",
         trackingNumber: isAit ? "AIT" : shipment.trackingNumber,
         returnTrackingNumber: isAit ? "AIT" : (shipment.returnTrackingNumber ?? undefined),
         positionItemIds,
