@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Panel } from "@/components/ui";
 import { addUnterwegs, upsertChinaLager, deleteIncoming } from "./reorder-actions";
 
-type ReorderRow = { sku: string; totalStock: number; weeklyAvg: number; daysLeft: number | null };
+type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null };
 type Incoming = { id: string; sku: string; type: string; quantity: number; arrivalDate: Date | null };
 
 export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: Incoming[] }) {
@@ -112,7 +112,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
               <tr className="border-b border-grey-border bg-grey-light/30">
                 <th className="px-5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">SKU</th>
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Bestand</th>
-                <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Ø/Woche</th>
+                <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Ø/Tag</th>
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Reichweite</th>
               </tr>
             </thead>
@@ -133,7 +133,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                     <tr key={r.sku} className="border-t border-grey-border">
                       <td className={`px-5 py-2 font-mono text-sm font-semibold ${urgent ? "text-brand-red" : "text-grey-dark"}`}>{r.sku}</td>
                       <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.totalStock} Stk.</td>
-                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.weeklyAvg} Stk.</td>
+                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.dailyAvg} Stk.</td>
                       <td className={`px-5 py-2 text-right font-mono tabular-nums text-sm font-bold ${urgent ? "text-brand-red" : ok ? "text-green-600" : "text-grey-mid"}`}>
                         {r.daysLeft !== null ? `${r.daysLeft} Tage` : "—"}
                       </td>
