@@ -263,7 +263,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                             <input
                               type="number"
                               min="0"
-                              placeholder={r.lastKnownAvg ? String(r.lastKnownAvg) : "Stk./Tag"}
+                              placeholder=""
                               value={manualAvg[r.sku] ?? ""}
                               onChange={(e) => setManualAvg((prev) => ({ ...prev, [r.sku]: e.target.value }))}
                               className="w-20 rounded border border-grey-border bg-transparent px-2 py-0.5 font-mono text-xs text-grey-dark focus:outline-none focus:ring-1 focus:ring-brand-red"
