@@ -29,8 +29,8 @@ export default async function DashboardPage() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const watchDays = Math.max(1, Math.round((now.getTime() - monthStart.getTime()) / 86_400_000) + 1);
+  const lastMonthDays = Math.max(1, Math.round((lastMonthEnd.getTime() - lastMonthStart.getTime()) / 86_400_000) + 1);
 
   const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments, watchSales, watchSales28, watchItems, incomingData] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
@@ -80,12 +80,12 @@ export default async function DashboardPage() {
     }),
     prisma.sale.groupBy({
       by: ["sku"],
-      where: { sku: { in: WATCH_SKUS }, date: { gte: sevenDaysAgo } },
+      where: { sku: { in: WATCH_SKUS }, date: { gte: monthStart, lte: now }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
       _sum: { quantity: true },
     }),
     prisma.sale.groupBy({
       by: ["sku"],
-      where: { sku: { in: WATCH_SKUS }, date: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
+      where: { sku: { in: WATCH_SKUS }, date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] } },
       _sum: { quantity: true },
     }),
     prisma.item.findMany({
@@ -115,10 +115,10 @@ export default async function DashboardPage() {
     const item = watchItems.find((i) => i.sku === sku);
     const totalStock = (item?.stock ?? 0) + (item?.stockAIT ?? 0);
     const soldQty = watchSales.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
-    const dailyRate = soldQty / 7;
-    const soldQtyPrevWeek = watchSales28.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
-    const lastKnownAvg = dailyRate === 0 && totalStock === 0 && soldQtyPrevWeek > 0
-      ? Math.round(soldQtyPrevWeek / 7)
+    const dailyRate = soldQty / watchDays;
+    const soldQtyPrevMonth = watchSales28.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
+    const lastKnownAvg = dailyRate === 0 && totalStock === 0 && soldQtyPrevMonth > 0
+      ? Math.round(soldQtyPrevMonth / lastMonthDays)
       : null;
     const effectiveRate = dailyRate > 0 ? dailyRate : (lastKnownAvg ?? 0);
     const daysLeft = effectiveRate > 0 ? Math.max(0, Math.floor(totalStock / effectiveRate)) : null;
