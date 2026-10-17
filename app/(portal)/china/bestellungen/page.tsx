@@ -37,7 +37,17 @@ export default async function ChinaBestellungenPage({
   if (params.verschifft === "ja")  query = query.eq("verschifft", true);
   if (params.verschifft === "nein")query = query.eq("verschifft", false);
 
-  const { data: bestellungen, error } = await query;
+  let { data: bestellungen, error } = await query;
+
+  // Fallback wenn archived-Spalte noch nicht existiert (Migration ausstehend)
+  if (error?.message?.includes("archived")) {
+    const fallback = await supabase
+      .from("china_bestellungen")
+      .select("*")
+      .order("created_at", { ascending: false });
+    bestellungen = fallback.data;
+    error = null;
+  }
 
   const cell = "block px-4 py-3";
 
