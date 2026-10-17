@@ -164,7 +164,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       <td className={`px-5 py-2 font-mono text-sm font-semibold ${urgent ? "text-brand-red" : "text-grey-dark"}`}>{r.sku}</td>
                       <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.totalStock} Stk.</td>
                       <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">
-                        {r.dailyAvg} Stk.
+                        {r.dailyAvg.toFixed(1)} Stk.
                         {r.lastKnownAvg !== null && (
                           <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[10px] text-amber-700" title="Durchschnitt des Vormonats">
                             ~{r.lastKnownAvg} Vormonat
