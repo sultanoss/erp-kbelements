@@ -140,8 +140,8 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">
                         {r.dailyAvg} Stk.
                         {r.lastKnownAvg !== null && (
-                          <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[10px] text-amber-700" title="Letzter bekannter Durchschnitt (28 Tage)">
-                            ~{r.lastKnownAvg} letzte 28T
+                          <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[10px] text-amber-700" title="Durchschnitt der Vorwoche (7–14 Tage zurück)">
+                            ~{r.lastKnownAvg} letzte 7T
                           </span>
                         )}
                       </td>
@@ -211,7 +211,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       const manualDaysTotal = effectiveRate > 0 && unterwegsTotal > 0 ? Math.max(0, Math.floor((r.totalStock + unterwegsTotal) / effectiveRate)) : null;
                       return (
                         <tr>
-                          <td colSpan={4} className="px-5 py-1 font-mono text-xs text-grey-mid">
+                          <td colSpan={5} className="px-5 py-1 font-mono text-xs text-grey-mid">
                             <span className="mr-2">Ø manuell:</span>
                             <input
                               type="number"
@@ -222,19 +222,17 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                               className="w-20 rounded border border-grey-border bg-transparent px-2 py-0.5 font-mono text-xs text-grey-dark focus:outline-none focus:ring-1 focus:ring-brand-red"
                             />
                             <span className="ml-1 text-grey-mid">Stk./Tag</span>
+                            {manualAvg[r.sku] && (
+                              <button
+                                onClick={() => setManualAvg((prev) => { const n = {...prev}; delete n[r.sku]; return n; })}
+                                className="ml-1.5 rounded px-1.5 py-0.5 font-mono text-[10px] text-grey-mid hover:bg-grey-border hover:text-grey-dark"
+                              >✕</button>
+                            )}
                             {manualDaysLeft !== null && (
                               <span className="ml-3 font-bold text-grey-dark">
                                 → {manualDaysLeft} Tage
                                 {manualDaysTotal !== null && <span className="ml-1 text-green-600">(+Unterwegs: {manualDaysTotal} Tage)</span>}
                               </span>
-                            )}
-                          </td>
-                          <td className="px-5 py-1 text-right">
-                            {manualAvg[r.sku] && (
-                              <button
-                                onClick={() => setManualAvg((prev) => { const n = {...prev}; delete n[r.sku]; return n; })}
-                                className="font-mono text-[10px] text-grey-mid hover:underline"
-                              >✕ Zurücksetzen</button>
                             )}
                           </td>
                         </tr>
