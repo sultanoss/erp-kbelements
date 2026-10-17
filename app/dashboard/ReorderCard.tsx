@@ -225,7 +225,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                             {manualAvg[r.sku] && (
                               <button
                                 onClick={() => setManualAvg((prev) => { const n = {...prev}; delete n[r.sku]; return n; })}
-                                className="ml-1.5 rounded px-1.5 py-0.5 font-mono text-[10px] text-grey-mid hover:bg-grey-border hover:text-grey-dark"
+                                className="ml-1.5 rounded px-1.5 py-0.5 font-mono text-[10px] text-brand-red hover:bg-red-50"
                               >✕</button>
                             )}
                             {manualDaysLeft !== null && (
