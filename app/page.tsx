@@ -30,8 +30,9 @@ export default async function DashboardPage() {
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const twentyEightDaysAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
 
-  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments, watchSales, watchItems, incomingData] = await Promise.all([
+  const [salesToday, salesMonth, salesLastMonth, herdsetToday, lowStock, topSkus, dailySales, dailyHerdsets, rawOpenItems, laterShipments, unprintedShipments, watchSales, watchSales28, watchItems, incomingData] = await Promise.all([
     prisma.sale.aggregate({ where: { date: { gte: todayStart }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: monthStart, lte: monthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
     prisma.sale.aggregate({ where: { date: { gte: lastMonthStart, lte: lastMonthEnd }, source: { in: ["TAGESVERKAUF", "LAGER"] }, marketplace: { not: "EBAY_OUTLET" } }, _sum: { quantity: true } }),
@@ -82,6 +83,11 @@ export default async function DashboardPage() {
       where: { sku: { in: WATCH_SKUS }, date: { gte: sevenDaysAgo } },
       _sum: { quantity: true },
     }),
+    prisma.sale.groupBy({
+      by: ["sku"],
+      where: { sku: { in: WATCH_SKUS }, date: { gte: twentyEightDaysAgo } },
+      _sum: { quantity: true },
+    }),
     prisma.item.findMany({
       where: { sku: { in: WATCH_SKUS } },
       select: { sku: true, stock: true, stockAIT: true },
@@ -117,7 +123,11 @@ export default async function DashboardPage() {
     const daysLeftTotal = dailyRate > 0 && unterwegsQty > 0
       ? Math.max(0, Math.floor((totalStock + unterwegsQty) / dailyRate))
       : null;
-    return { sku, totalStock, dailyAvg: Math.round(dailyRate), daysLeft, daysLeftTotal };
+    const soldQty28 = watchSales28.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
+    const lastKnownAvg = dailyRate === 0 && totalStock === 0 && soldQty28 > 0
+      ? Math.round(soldQty28 / 28)
+      : null;
+    return { sku, totalStock, dailyAvg: Math.round(dailyRate), daysLeft, daysLeftTotal, lastKnownAvg };
   }).sort((a, b) => {
     if (a.daysLeft === null && b.daysLeft === null) return 0;
     if (a.daysLeft === null) return 1;

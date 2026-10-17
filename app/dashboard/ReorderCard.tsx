@@ -4,13 +4,16 @@ import { useState, useTransition } from "react";
 import { Panel } from "@/components/ui";
 import { addUnterwegs, upsertChinaLager, deleteIncoming } from "./reorder-actions";
 
-type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null; daysLeftTotal: number | null };
+type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null; daysLeftTotal: number | null; lastKnownAvg: number | null };
 type Incoming = { id: string; sku: string; type: string; quantity: number; arrivalDate: Date | null };
 
 export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: Incoming[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [chipSearch, setChipSearch] = useState("");
   const [pending, startTransition] = useTransition();
+
+  // Manueller Durchschnitt pro SKU (nur client-state, kein Speichern)
+  const [manualAvg, setManualAvg] = useState<Record<string, string>>({});
 
   // Per-SKU UI state
   const [addingUnterwegs, setAddingUnterwegs] = useState<string | null>(null);
@@ -134,7 +137,14 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                     <tr key={r.sku} className="border-t border-grey-border">
                       <td className={`px-5 py-2 font-mono text-sm font-semibold ${urgent ? "text-brand-red" : "text-grey-dark"}`}>{r.sku}</td>
                       <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.totalStock} Stk.</td>
-                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">{r.dailyAvg} Stk.</td>
+                      <td className="px-5 py-2 text-right font-mono tabular-nums text-sm text-grey-dark">
+                        {r.dailyAvg} Stk.
+                        {r.lastKnownAvg !== null && (
+                          <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 font-mono text-[10px] text-amber-700" title="Letzter bekannter Durchschnitt (28 Tage)">
+                            ~{r.lastKnownAvg} letzte 28T
+                          </span>
+                        )}
+                      </td>
                       <td className={`px-5 py-2 text-right font-mono tabular-nums text-sm font-bold ${urgent ? "text-brand-red" : ok ? "text-green-600" : "text-grey-mid"}`}>
                         {r.daysLeft !== null ? `${r.daysLeft} Tage` : "—"}
                       </td>
@@ -191,6 +201,45 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                         )}
                       </td>
                     </tr>
+
+                    {/* Manueller Durchschnitt */}
+                    {(() => {
+                      const manual = parseInt(manualAvg[r.sku] ?? "");
+                      const effectiveRate = isNaN(manual) ? 0 : manual;
+                      const unterwegsTotal = incoming.filter((i) => i.sku === r.sku && i.type === "UNTERWEGS").reduce((s, i) => s + i.quantity, 0);
+                      const manualDaysLeft = effectiveRate > 0 ? Math.max(0, Math.floor(r.totalStock / effectiveRate)) : null;
+                      const manualDaysTotal = effectiveRate > 0 && unterwegsTotal > 0 ? Math.max(0, Math.floor((r.totalStock + unterwegsTotal) / effectiveRate)) : null;
+                      return (
+                        <tr>
+                          <td colSpan={4} className="px-5 py-1 font-mono text-xs text-grey-mid">
+                            <span className="mr-2">Ø manuell:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder={r.lastKnownAvg ? String(r.lastKnownAvg) : "Stk./Tag"}
+                              value={manualAvg[r.sku] ?? ""}
+                              onChange={(e) => setManualAvg((prev) => ({ ...prev, [r.sku]: e.target.value }))}
+                              className="w-20 rounded border border-grey-border bg-transparent px-2 py-0.5 font-mono text-xs text-grey-dark focus:outline-none focus:ring-1 focus:ring-brand-red"
+                            />
+                            <span className="ml-1 text-grey-mid">Stk./Tag</span>
+                            {manualDaysLeft !== null && (
+                              <span className="ml-3 font-bold text-grey-dark">
+                                → {manualDaysLeft} Tage
+                                {manualDaysTotal !== null && <span className="ml-1 text-green-600">(+Unterwegs: {manualDaysTotal} Tage)</span>}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-1 text-right">
+                            {manualAvg[r.sku] && (
+                              <button
+                                onClick={() => setManualAvg((prev) => { const n = {...prev}; delete n[r.sku]; return n; })}
+                                className="font-mono text-[10px] text-grey-mid hover:underline"
+                              >✕ Zurücksetzen</button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })()}
 
                     {/* Neue Ankunft hinzufügen */}
                     {isAddingThis ? (
