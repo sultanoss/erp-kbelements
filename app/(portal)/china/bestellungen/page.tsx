@@ -27,7 +27,7 @@ export default async function ChinaBestellungenPage({
     .eq("archived", false)
     .order("created_at", { ascending: false });
 
-  if (params.q) query = query.or(`order_pi_nummer.ilike.%${params.q}%,fabrik.ilike.%${params.q}%`);
+  if (params.q) query = query.or(`order_pi_nummer.ilike.%${params.q}%,fabrik.ilike.%${params.q}%,notiz.ilike.%${params.q}%`);
   if (params.von) query = query.gte("created_at", params.von);
   if (params.bis) query = query.lte("created_at", params.bis + "T23:59:59");
   if (params.angezahlt === "ja")   query = query.eq("angezahlt", true);
@@ -41,11 +41,21 @@ export default async function ChinaBestellungenPage({
 
   // Fallback wenn archived-Spalte noch nicht existiert (Migration ausstehend)
   if (error?.message?.includes("archived")) {
-    const fallback = await supabase
+    let fallback = supabase
       .from("china_bestellungen")
       .select("*")
       .order("created_at", { ascending: false });
-    bestellungen = fallback.data;
+    if (params.q) fallback = fallback.or(`order_pi_nummer.ilike.%${params.q}%,fabrik.ilike.%${params.q}%,notiz.ilike.%${params.q}%`);
+    if (params.von) fallback = fallback.gte("created_at", params.von);
+    if (params.bis) fallback = fallback.lte("created_at", params.bis + "T23:59:59");
+    if (params.angezahlt === "ja")   fallback = fallback.eq("angezahlt", true);
+    if (params.angezahlt === "nein") fallback = fallback.eq("angezahlt", false);
+    if (params.bezahlt === "ja")     fallback = fallback.eq("bezahlt", true);
+    if (params.bezahlt === "nein")   fallback = fallback.eq("bezahlt", false);
+    if (params.verschifft === "ja")  fallback = fallback.eq("verschifft", true);
+    if (params.verschifft === "nein")fallback = fallback.eq("verschifft", false);
+    const { data: fallbackData } = await fallback;
+    bestellungen = fallbackData;
     error = null;
   }
 
