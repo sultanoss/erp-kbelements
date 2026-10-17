@@ -135,7 +135,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-b border-grey-border bg-grey-light/30">
                 <th className="px-5 py-2 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">SKU</th>
