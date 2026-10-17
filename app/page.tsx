@@ -116,16 +116,17 @@ export default async function DashboardPage() {
     const totalStock = (item?.stock ?? 0) + (item?.stockAIT ?? 0);
     const soldQty = watchSales.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
     const dailyRate = soldQty / 7;
-    const daysLeft = dailyRate > 0 ? Math.max(0, Math.floor(totalStock / dailyRate)) : null;
-    const unterwegsQty = incomingData
-      .filter((i) => i.sku === sku && i.type === "UNTERWEGS")
-      .reduce((sum, i) => sum + i.quantity, 0);
-    const daysLeftTotal = dailyRate > 0 && unterwegsQty > 0
-      ? Math.max(0, Math.floor((totalStock + unterwegsQty) / dailyRate))
-      : null;
     const soldQtyPrevWeek = watchSales28.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
     const lastKnownAvg = dailyRate === 0 && totalStock === 0 && soldQtyPrevWeek > 0
       ? Math.round(soldQtyPrevWeek / 7)
+      : null;
+    const effectiveRate = dailyRate > 0 ? dailyRate : (lastKnownAvg ?? 0);
+    const daysLeft = effectiveRate > 0 ? Math.max(0, Math.floor(totalStock / effectiveRate)) : null;
+    const unterwegsQty = incomingData
+      .filter((i) => i.sku === sku && i.type === "UNTERWEGS")
+      .reduce((sum, i) => sum + i.quantity, 0);
+    const daysLeftTotal = effectiveRate > 0 && unterwegsQty > 0
+      ? Math.max(0, Math.floor((totalStock + unterwegsQty) / effectiveRate))
       : null;
     return { sku, totalStock, dailyAvg: Math.round(dailyRate), daysLeft, daysLeftTotal, lastKnownAvg };
   }).sort((a, b) => {
