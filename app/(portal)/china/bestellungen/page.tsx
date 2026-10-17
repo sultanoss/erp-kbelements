@@ -25,7 +25,7 @@ export default async function ChinaBestellungenPage({
     .from("china_bestellungen")
     .select("*")
     .eq("archived", false)
-    .order("lager_ankunft", { ascending: true, nullsFirst: false });
+    .order("created_at", { ascending: false });
 
   if (params.q) query = query.or(`order_pi_nummer.ilike.%${params.q}%,fabrik.ilike.%${params.q}%,notiz.ilike.%${params.q}%`);
   if (params.von) query = query.gte("created_at", params.von);
@@ -44,7 +44,7 @@ export default async function ChinaBestellungenPage({
     let fallback = supabase
       .from("china_bestellungen")
       .select("*")
-      .order("lager_ankunft", { ascending: true, nullsFirst: false });
+      .order("created_at", { ascending: false });
     if (params.q) fallback = fallback.or(`order_pi_nummer.ilike.%${params.q}%,fabrik.ilike.%${params.q}%,notiz.ilike.%${params.q}%`);
     if (params.von) fallback = fallback.gte("created_at", params.von);
     if (params.bis) fallback = fallback.lte("created_at", params.bis + "T23:59:59");
