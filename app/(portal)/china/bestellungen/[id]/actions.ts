@@ -33,3 +33,15 @@ export async function deleteBestellung(id: string): Promise<{ error?: string }> 
   revalidatePath("/china/bestellungen");
   return {};
 }
+
+export async function archiveBestellung(id: string, archive: boolean): Promise<{ error?: string }> {
+  const { error } = await adminSupabase
+    .from("china_bestellungen")
+    .update({ archived: archive })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/china/bestellungen");
+  revalidatePath(`/china/bestellungen/${id}`);
+  revalidatePath("/china/bestellungen/archiv");
+  return {};
+}

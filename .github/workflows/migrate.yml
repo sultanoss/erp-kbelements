@@ -17,34 +17,34 @@ jobs:
       - name: Install PostgreSQL client
         run: sudo apt-get install -y postgresql-client
 
-      - name: Run migration via direct connection
+      - name: Run migrations via direct connection
         run: |
           PROJECT_REF="ahrubmkkotkqmxvikjml"
-          SQL_FILE="supabase/migrations/20260904000000_add_reparatur_status.sql"
-
-          # Try transaction pooler (IPv4 reachable from GitHub Actions)
           POOLER_HOST="aws-0-eu-central-1.pooler.supabase.com"
 
-          for PASSWORD in "${{ secrets.SUPABASE_DB_PASSWORD }}" "postgres" "supabase" "Admin123!"; do
-            if [ -z "$PASSWORD" ]; then continue; fi
-            echo "Trying pooler port 6543..."
-            if PGPASSWORD="$PASSWORD" psql \
-              "postgresql://postgres.${PROJECT_REF}@${POOLER_HOST}:6543/postgres?sslmode=require" \
-              -f "$SQL_FILE" \
-              --set ON_ERROR_STOP=1 2>&1; then
-              echo "Migration erfolgreich!"
-              exit 0
-            fi
+          run_migrations() {
+            local CONN="$1"
+            for SQL_FILE in supabase/migrations/*.sql; do
+              echo "Running $SQL_FILE..."
+              if ! PGPASSWORD="${{ secrets.SUPABASE_DB_PASSWORD }}" psql "$CONN" -f "$SQL_FILE" --set ON_ERROR_STOP=1 2>&1; then
+                echo "Fehler bei $SQL_FILE"
+                return 1
+              fi
+            done
+            return 0
+          }
 
-            echo "Trying pooler port 5432..."
-            if PGPASSWORD="$PASSWORD" psql \
-              "postgresql://postgres.${PROJECT_REF}@${POOLER_HOST}:5432/postgres?sslmode=require" \
-              -f "$SQL_FILE" \
-              --set ON_ERROR_STOP=1 2>&1; then
-              echo "Migration erfolgreich!"
-              exit 0
-            fi
-          done
+          echo "Trying pooler port 6543..."
+          if run_migrations "postgresql://postgres.${PROJECT_REF}@${POOLER_HOST}:6543/postgres?sslmode=require"; then
+            echo "Alle Migrationen erfolgreich!"
+            exit 0
+          fi
+
+          echo "Trying pooler port 5432..."
+          if run_migrations "postgresql://postgres.${PROJECT_REF}@${POOLER_HOST}:5432/postgres?sslmode=require"; then
+            echo "Alle Migrationen erfolgreich!"
+            exit 0
+          fi
 
           echo "Alle Verbindungsversuche fehlgeschlagen."
           exit 1

@@ -24,6 +24,7 @@ export default async function ChinaBestellungenPage({
   let query = supabase
     .from("china_bestellungen")
     .select("*")
+    .eq("archived", false)
     .order("created_at", { ascending: false });
 
   if (params.q) query = query.or(`order_pi_nummer.ilike.%${params.q}%,fabrik.ilike.%${params.q}%`);
