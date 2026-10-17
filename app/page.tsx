@@ -117,10 +117,11 @@ export default async function DashboardPage() {
     const soldQty = watchSales.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
     const dailyRate = soldQty / watchDays;
     const soldQtyPrevMonth = watchSales28.find((s) => s.sku === sku)?._sum?.quantity ?? 0;
-    const lastKnownAvg = dailyRate === 0 && totalStock === 0 && soldQtyPrevMonth > 0
-      ? Math.round(soldQtyPrevMonth / lastMonthDays)
+    const prevMonthRate = soldQtyPrevMonth / lastMonthDays;
+    const lastKnownAvg = totalStock === 0 && soldQtyPrevMonth > 0 && Math.round(prevMonthRate) !== Math.round(dailyRate)
+      ? Math.round(prevMonthRate)
       : null;
-    const effectiveRate = dailyRate > 0 ? dailyRate : (lastKnownAvg ?? 0);
+    const effectiveRate = totalStock === 0 && prevMonthRate > dailyRate ? prevMonthRate : (dailyRate > 0 ? dailyRate : (lastKnownAvg ?? 0));
     const daysLeft = effectiveRate > 0 ? Math.max(0, Math.floor(totalStock / effectiveRate)) : null;
     const unterwegsQty = incomingData
       .filter((i) => i.sku === sku && i.type === "UNTERWEGS")
