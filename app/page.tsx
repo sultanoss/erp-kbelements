@@ -128,7 +128,13 @@ export default async function DashboardPage() {
     const daysLeftTotal = effectiveRate > 0 && unterwegsQty > 0
       ? Math.max(0, Math.floor((totalStock + unterwegsQty) / effectiveRate))
       : null;
-    return { sku, totalStock, dailyAvg: Math.round(dailyRate), daysLeft, daysLeftTotal, lastKnownAvg };
+    const produktionQty = incomingData
+      .filter((i) => i.sku === sku && i.type === "IN_PRODUKTION")
+      .reduce((sum, i) => sum + i.quantity, 0);
+    const daysLeftProduktion = effectiveRate > 0 && produktionQty > 0
+      ? Math.max(0, Math.floor((totalStock + unterwegsQty + produktionQty) / effectiveRate))
+      : null;
+    return { sku, totalStock, dailyAvg: Math.round(dailyRate), daysLeft, daysLeftTotal, daysLeftProduktion, lastKnownAvg };
   }).sort((a, b) => {
     if (a.daysLeft === null && b.daysLeft === null) return 0;
     if (a.daysLeft === null) return 1;

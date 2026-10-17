@@ -36,6 +36,21 @@ export async function updateUnterwegs(id: string, quantity: number, arrivalDate:
   revalidatePath("/");
 }
 
+export async function upsertInProduktion(sku: string, quantity: number, fertigDate: string | null) {
+  await requireUser();
+  const existing = await prisma.skuIncoming.findFirst({ where: { sku, type: "IN_PRODUKTION" } });
+  if (existing) {
+    if (quantity <= 0) {
+      await prisma.skuIncoming.delete({ where: { id: existing.id } });
+    } else {
+      await prisma.skuIncoming.update({ where: { id: existing.id }, data: { quantity, arrivalDate: fertigDate ? new Date(fertigDate) : null } });
+    }
+  } else if (quantity > 0) {
+    await prisma.skuIncoming.create({ data: { sku, type: "IN_PRODUKTION", quantity, arrivalDate: fertigDate ? new Date(fertigDate) : null } });
+  }
+  revalidatePath("/");
+}
+
 export async function deleteIncoming(id: string) {
   await requireUser();
   await prisma.skuIncoming.delete({ where: { id } });

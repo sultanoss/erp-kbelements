@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { Panel } from "@/components/ui";
-import { addUnterwegs, upsertChinaLager, deleteIncoming, updateUnterwegs } from "./reorder-actions";
+import { addUnterwegs, upsertChinaLager, deleteIncoming, updateUnterwegs, upsertInProduktion } from "./reorder-actions";
 
-type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null; daysLeftTotal: number | null; lastKnownAvg: number | null };
+type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null; daysLeftTotal: number | null; daysLeftProduktion: number | null; lastKnownAvg: number | null };
 type Incoming = { id: string; sku: string; type: string; quantity: number; arrivalDate: Date | null };
 
 export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: Incoming[] }) {
@@ -21,6 +21,9 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
   const [editingUnterwegs, setEditingUnterwegs] = useState<string | null>(null);
   const [editDate, setEditDate] = useState("");
   const [editQty, setEditQty] = useState("");
+  const [editingProduktion, setEditingProduktion] = useState<string | null>(null);
+  const [prodQty, setProdQty] = useState("");
+  const [prodDate, setProdDate] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newQty, setNewQty] = useState("");
   const [chinaQty, setChinaQty] = useState("");
@@ -48,6 +51,15 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
       setEditingUnterwegs(null);
       setEditDate("");
       setEditQty("");
+    });
+  }
+
+  function handleUpsertProduktion(sku: string) {
+    startTransition(async () => {
+      await upsertInProduktion(sku, parseInt(prodQty) || 0, prodDate || null);
+      setEditingProduktion(null);
+      setProdQty("");
+      setProdDate("");
     });
   }
 
@@ -131,11 +143,12 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Ø/Tag</th>
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">Reichweite Lager</th>
                 <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">inkl. Unterwegs</th>
+                <th className="px-5 py-2 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-grey-mid">inkl. Produktion</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={4} className="px-5 py-4 text-center font-mono text-xs text-grey-mid">Keine SKU gefunden.</td></tr>
+                <tr><td colSpan={6} className="px-5 py-4 text-center font-mono text-xs text-grey-mid">Keine SKU gefunden.</td></tr>
               ) : filtered.map((r) => {
                 const urgent = r.daysLeft !== null && r.daysLeft < 60;
                 const ok = r.daysLeft !== null && r.daysLeft >= 60;
@@ -164,6 +177,44 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       <td className={`px-5 py-2 text-right font-mono tabular-nums text-sm font-bold ${r.daysLeftTotal !== null ? (r.daysLeftTotal >= 60 ? "text-green-600" : "text-brand-red") : "text-grey-mid"}`}>
                         {r.daysLeftTotal !== null ? `${r.daysLeftTotal} Tage` : "—"}
                       </td>
+                      <td className="px-5 py-2 text-right">
+                        {(() => {
+                          const prod = incoming.find((i) => i.sku === r.sku && i.type === "IN_PRODUKTION");
+                          const isEditing = editingProduktion === r.sku;
+                          if (isEditing) {
+                            return (
+                              <div className="flex flex-col items-end gap-1">
+                                <div className="flex items-center gap-1">
+                                  <input type="number" min="0" value={prodQty} onChange={(e) => setProdQty(e.target.value)} placeholder="Stückzahl" className="w-24 rounded border border-grey-border px-2 py-0.5 font-mono text-xs text-grey-dark focus:outline-none focus:ring-1 focus:ring-brand-red" autoFocus />
+                                  <span className="font-mono text-xs text-grey-mid">Stk.</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <input type="date" value={prodDate} onChange={(e) => setProdDate(e.target.value)} className="rounded border border-grey-border px-2 py-0.5 font-mono text-xs text-grey-dark focus:outline-none focus:ring-1 focus:ring-brand-red" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => handleUpsertProduktion(r.sku)} disabled={pending} className="font-mono text-[10px] text-green-600 hover:underline disabled:opacity-50">✓ Speichern</button>
+                                  <button onClick={() => { setEditingProduktion(null); setProdQty(""); setProdDate(""); }} className="font-mono text-[10px] text-grey-mid hover:underline">Abbrechen</button>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="flex flex-col items-end gap-0.5">
+                              {prod ? (
+                                <>
+                                  <span className={`font-mono tabular-nums text-sm font-bold ${r.daysLeftProduktion !== null && r.daysLeftProduktion >= 60 ? "text-green-600" : r.daysLeftProduktion !== null ? "text-brand-red" : "text-grey-mid"}`}>
+                                    {r.daysLeftProduktion !== null ? `${r.daysLeftProduktion} Tage` : "—"}
+                                  </span>
+                                  <span className="font-mono text-[10px] text-orange-600">{prod.quantity} Stk.{prod.arrivalDate ? ` · Fertig ${formatDate(prod.arrivalDate)}` : ""}</span>
+                                </>
+                              ) : (
+                                <span className="font-mono text-sm text-grey-mid">—</span>
+                              )}
+                              <button onClick={() => { setEditingProduktion(r.sku); setProdQty(prod ? String(prod.quantity) : ""); setProdDate(prod?.arrivalDate ? new Date(prod.arrivalDate).toISOString().slice(0,10) : ""); }} className="font-mono text-[10px] text-orange-600 hover:underline">✎ Bearbeiten</button>
+                            </div>
+                          );
+                        })()}
+                      </td>
                     </tr>
 
                     {/* Unterwegs-Einträge */}
@@ -171,7 +222,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       const isEditingThis = editingUnterwegs === u.id;
                       return (
                         <tr key={u.id}>
-                          <td colSpan={4} className="px-5 py-1 font-mono text-xs text-blue-600">
+                          <td colSpan={5} className="px-5 py-1 font-mono text-xs text-blue-600">
                             ↳ <span className="font-semibold text-blue-700">Unterwegs:</span>{" "}
                             {isEditingThis ? (
                               <span className="inline-flex items-center gap-1">
@@ -218,7 +269,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
 
                     {/* China-Lager-Eintrag */}
                     <tr>
-                      <td colSpan={4} className="px-5 py-1 font-mono text-xs text-green-600">
+                      <td colSpan={5} className="px-5 py-1 font-mono text-xs text-green-600">
                         ↳ <span className="font-semibold text-green-700">China-Lager:</span>{" "}
                         {isEditingChina ? (
                           <span className="inline-flex items-center gap-1">
@@ -258,7 +309,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       const manualDaysTotal = effectiveRate > 0 && unterwegsTotal > 0 ? Math.max(0, Math.floor((r.totalStock + unterwegsTotal) / effectiveRate)) : null;
                       return (
                         <tr>
-                          <td colSpan={5} className="px-5 py-1 font-mono text-xs text-grey-mid">
+                          <td colSpan={6} className="px-5 py-1 font-mono text-xs text-grey-mid">
                             <span className="mr-2">Ø manuell:</span>
                             <input
                               type="number"
@@ -289,7 +340,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                     {/* Neue Ankunft hinzufügen */}
                     {isAddingThis ? (
                       <tr className="bg-amber-50/50">
-                        <td colSpan={4} className="px-5 py-2">
+                        <td colSpan={6} className="px-5 py-2">
                           <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
                             <span className="text-grey-mid">Ankunft:</span>
                             <input
@@ -314,7 +365,7 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                       </tr>
                     ) : (
                       <tr className="border-b border-grey-border bg-grey-light/10">
-                        <td colSpan={4} className="px-5 py-1">
+                        <td colSpan={6} className="px-5 py-1">
                           <button
                             onClick={() => setAddingUnterwegs(r.sku)}
                             className="font-mono text-[10px] text-grey-mid hover:text-brand-red hover:underline"
