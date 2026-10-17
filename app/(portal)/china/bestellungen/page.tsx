@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/status";
 import ChinaFilterBar from "./ChinaFilterBar";
 import DeleteBestellungButton from "./[id]/DeleteBestellungButton";
+import { NotizenModal } from "./NotizenModal";
 
 interface SearchParams {
   q?: string;
@@ -107,6 +108,7 @@ export default async function ChinaBestellungenPage({
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Lager Ankunft</th>
                 <th className="text-left px-4 py-3 font-medium text-stone-600">Abgeladen</th>
                 <th className="px-4 py-3"></th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -170,6 +172,9 @@ export default async function ChinaBestellungenPage({
                             {b.abgeladen ? "Ja" : "Nein"}
                           </span>
                         </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        {b.notiz && <NotizenModal notiz={b.notiz} />}
                       </td>
                       <td className="px-4 py-3">
                         <DeleteBestellungButton id={b.id} />
