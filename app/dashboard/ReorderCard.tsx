@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Panel } from "@/components/ui";
-import { addUnterwegs, upsertChinaLager, deleteIncoming } from "./reorder-actions";
+import { addUnterwegs, upsertChinaLager, deleteIncoming, updateUnterwegs } from "./reorder-actions";
 
 type ReorderRow = { sku: string; totalStock: number; dailyAvg: number; daysLeft: number | null; daysLeftTotal: number | null; lastKnownAvg: number | null };
 type Incoming = { id: string; sku: string; type: string; quantity: number; arrivalDate: Date | null };
@@ -18,6 +18,9 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
   // Per-SKU UI state
   const [addingUnterwegs, setAddingUnterwegs] = useState<string | null>(null);
   const [editingChina, setEditingChina] = useState<string | null>(null);
+  const [editingUnterwegs, setEditingUnterwegs] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editQty, setEditQty] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newQty, setNewQty] = useState("");
   const [chinaQty, setChinaQty] = useState("");
@@ -36,6 +39,16 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
   function formatDate(d: Date | null) {
     if (!d) return "";
     return new Date(d).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+
+  function handleUpdateUnterwegs(id: string) {
+    if (!editDate || !editQty || parseInt(editQty) <= 0) return;
+    startTransition(async () => {
+      await updateUnterwegs(id, parseInt(editQty), editDate);
+      setEditingUnterwegs(null);
+      setEditDate("");
+      setEditQty("");
+    });
   }
 
   function handleAddUnterwegs(sku: string) {
@@ -154,20 +167,54 @@ export function ReorderCard({ rows, incoming }: { rows: ReorderRow[]; incoming: 
                     </tr>
 
                     {/* Unterwegs-Einträge */}
-                    {unterwegs.map((u) => (
-                      <tr key={u.id}>
-                        <td colSpan={4} className="px-5 py-1 font-mono text-xs text-blue-600">
-                          ↳ <span className="font-semibold text-blue-700">Unterwegs:</span> {u.quantity} Stk. — Ankunft {formatDate(u.arrivalDate)}
-                        </td>
-                        <td className="px-5 py-1 text-right">
-                          <button
-                            onClick={() => handleDelete(u.id)}
-                            disabled={pending}
-                            className="font-mono text-[10px] text-brand-red hover:underline disabled:opacity-50"
-                          >✕ Löschen</button>
-                        </td>
-                      </tr>
-                    ))}
+                    {unterwegs.map((u) => {
+                      const isEditingThis = editingUnterwegs === u.id;
+                      return (
+                        <tr key={u.id}>
+                          <td colSpan={4} className="px-5 py-1 font-mono text-xs text-blue-600">
+                            ↳ <span className="font-semibold text-blue-700">Unterwegs:</span>{" "}
+                            {isEditingThis ? (
+                              <span className="inline-flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={editQty}
+                                  onChange={(e) => setEditQty(e.target.value)}
+                                  className="w-20 rounded border border-grey-border px-2 py-0.5 font-mono text-xs text-grey-dark focus:outline-none focus:ring-1 focus:ring-brand-red"
+                                  autoFocus
+                                />
+                                <span className="text-blue-600">Stk. — Ankunft</span>
+                                <input
+                                  type="date"
+                                  value={editDate}
+                                  onChange={(e) => setEditDate(e.target.value)}
+                                  className="rounded border border-grey-border px-2 py-0.5 font-mono text-xs text-grey-dark focus:outline-none focus:ring-1 focus:ring-brand-red"
+                                />
+                                <button onClick={() => handleUpdateUnterwegs(u.id)} disabled={pending || !editDate || !editQty} className="font-mono text-[10px] text-blue-600 hover:underline disabled:opacity-50">✓ Speichern</button>
+                                <button onClick={() => { setEditingUnterwegs(null); setEditDate(""); setEditQty(""); }} className="font-mono text-[10px] text-grey-mid hover:underline">Abbrechen</button>
+                              </span>
+                            ) : (
+                              <span>{u.quantity} Stk. — Ankunft {formatDate(u.arrivalDate)}</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-1 text-right">
+                            {!isEditingThis && (
+                              <span className="inline-flex items-center gap-2">
+                                <button
+                                  onClick={() => { setEditingUnterwegs(u.id); setEditDate(u.arrivalDate ? new Date(u.arrivalDate).toISOString().slice(0,10) : ""); setEditQty(String(u.quantity)); }}
+                                  className="font-mono text-[10px] text-blue-600 hover:underline"
+                                >✎ Bearbeiten</button>
+                                <button
+                                  onClick={() => handleDelete(u.id)}
+                                  disabled={pending}
+                                  className="font-mono text-[10px] text-brand-red hover:underline disabled:opacity-50"
+                                >✕ Löschen</button>
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
 
                     {/* China-Lager-Eintrag */}
                     <tr>

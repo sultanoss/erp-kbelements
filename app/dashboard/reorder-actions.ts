@@ -27,6 +27,15 @@ export async function addUnterwegs(sku: string, quantity: number, arrivalDate: s
   revalidatePath("/");
 }
 
+export async function updateUnterwegs(id: string, quantity: number, arrivalDate: string) {
+  await requireUser();
+  await prisma.skuIncoming.update({
+    where: { id },
+    data: { quantity, arrivalDate: new Date(arrivalDate) },
+  });
+  revalidatePath("/");
+}
+
 export async function deleteIncoming(id: string) {
   await requireUser();
   await prisma.skuIncoming.delete({ where: { id } });
