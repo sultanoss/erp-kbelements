@@ -7,6 +7,7 @@ type ItemInfo = {
   sku: string;
   name: string;
   stock: number;
+  stockAIT: number;
   purchasePrice: number | null;
 };
 
@@ -195,7 +196,7 @@ export function PurchaseForm({ allItems }: { allItems: ItemInfo[] }) {
             ...l,
             sku: value as string,
             currentAvgPrice: item?.purchasePrice ?? 0,
-            currentStock: item?.stock ?? 0,
+            currentStock: (item?.stock ?? 0) + (item?.stockAIT ?? 0),
           };
         }
         return { ...l, [field]: value };

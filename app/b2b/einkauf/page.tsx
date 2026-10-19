@@ -20,7 +20,7 @@ export default async function WareneinkaufPage({
 
   const [items, history, suppliers] = await Promise.all([
     prisma.item.findMany({
-      select: { sku: true, name: true, stock: true, purchasePrice: true },
+      select: { sku: true, name: true, stock: true, stockAIT: true, purchasePrice: true },
       orderBy: { sku: "asc" },
     }),
     prisma.purchasePriceHistory.findMany({
