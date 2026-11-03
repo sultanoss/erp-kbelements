@@ -35,9 +35,9 @@ async function getToken(scope: string = "orders"): Promise<string> {
   const cached = tokenCache[scope];
   if (cached && Date.now() < cached.expiresAt - 60_000) return cached.token;
 
-  const clientId = process.env.OTTO_CLIENT_ID;
-  const clientSecret = process.env.OTTO_CLIENT_SECRET;
-  if (!clientId || !clientSecret) throw new Error("OTTO_CLIENT_ID oder OTTO_CLIENT_SECRET fehlt");
+  const clientId = process.env.OTTO_CLIENT_ID || process.env.OTTO_USERNAME;
+  const clientSecret = process.env.OTTO_CLIENT_SECRET || process.env.OTTO_PASSWORD;
+  if (!clientId || !clientSecret) throw new Error("OTTO_CLIENT_ID/OTTO_USERNAME oder OTTO_CLIENT_SECRET/OTTO_PASSWORD fehlt");
 
   const params: Record<string, string> = {
     grant_type: "client_credentials",
