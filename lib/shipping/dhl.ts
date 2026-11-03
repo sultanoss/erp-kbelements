@@ -122,7 +122,7 @@ export class DHLShippingProvider implements ShippingProvider {
           details: {
             weight: { uom: "kg", value: input.weight },
           },
-          ...(isDomestic && !isPS ? {
+          ...(isDomestic ? {
             services: {
               dhlRetoure: {
                 billingNumber: process.env.DHL_BILLING_NUMBER_RETURN ?? "",

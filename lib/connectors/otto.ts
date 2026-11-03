@@ -161,6 +161,13 @@ export async function sendOttoShipmentNotification(params: {
   const token = await getToken("shipments");
   const ottoCarrier = params.carrier === "DHL" ? "DHL" : params.carrier === "GEL" ? "GEL" : "OTHER_FORWARDER";
 
+  const ottoCarrierIsParcel = ottoCarrier === "DHL" || ottoCarrier === "GEL";
+  if (ottoCarrierIsParcel && !params.returnTrackingNumber) {
+    throw new Error(
+      `Otto Versandmeldung: Retoure-Sendungsnummer fehlt für ${ottoCarrier}-Sendung. Otto erfordert returnTrackingKey für alle Paketzustellungen. Bitte Sendung stornieren, neu anlegen (damit DHL-Retourenlabel generiert wird) und erneut melden.`
+    );
+  }
+
   const body = {
     trackingKey: {
       carrier: ottoCarrier,
