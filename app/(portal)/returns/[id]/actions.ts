@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function deleteReturn(returnId: string) {
   const supabase = await createClient();
@@ -24,6 +25,18 @@ export async function archiveReturn(returnId: string) {
   if (!user) redirect("/login");
   await adminSupabase.from("returns").update({ archived_at: new Date().toISOString() }).eq("id", returnId);
   redirect("/returns");
+}
+
+export async function archiveReturnsBulk(ids: string[]) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  await adminSupabase
+    .from("returns")
+    .update({ archived_at: new Date().toISOString() })
+    .in("id", ids);
+  revalidatePath("/returns");
+  revalidatePath("/archiv/retouren");
 }
 
 export async function clearReturnBadge(returnId: string) {

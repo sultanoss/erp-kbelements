@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
-import { STATUS_LABELS, TASK_TYPE_LABELS, formatDate } from "@/lib/status";
 import TasksFilterBar from "./TasksFilterBar";
 import TasksListRefresher from "./TasksListRefresher";
+import TasksListClient from "./TasksListClient";
 
 interface SearchParams {
   q?: string;
@@ -60,7 +60,7 @@ export default async function TasksPage({
     userList.map((u) => [u.email, u.full_name || u.email])
   );
 
-  const cell = "block px-4 py-3";
+  const hasFilters = !!(params.q || params.status || params.type || params.from || params.to || params.assigned_to || params.urgent);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -100,110 +100,12 @@ export default async function TasksPage({
         </div>
       )}
 
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-stone-200 bg-stone-50">
-                <th className="text-left px-4 py-3 font-medium text-stone-600">Datum</th>
-                <th className="text-left px-4 py-3 font-medium text-stone-600">Tag</th>
-                <th className="text-left px-4 py-3 font-medium text-stone-600 max-w-[280px]">Beschreibung</th>
-                <th className="text-left px-4 py-3 font-medium text-stone-600">Zugewiesen an</th>
-                <th className="text-left px-4 py-3 font-medium text-stone-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-stone-600">Sendungsnummer</th>
-                <th className="text-left px-4 py-3 font-medium text-stone-600">Erstellt von</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {!tasks?.length ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-stone-400">
-                    {params.q || params.status || params.type || params.from || params.to || params.assigned_to || params.urgent
-                      ? "Keine Aufgaben für diese Filterkriterien gefunden."
-                      : "Noch keine Aufgaben vorhanden. Erstelle die erste Aufgabe."}
-                  </td>
-                </tr>
-              ) : (
-                tasks.map((t) => {
-                  const href = `/tasks/${t.id}`;
-                  const status = STATUS_LABELS[t.status] ?? { label: t.status, className: "bg-stone-100 text-stone-600" };
-                  const tags: string[] = t.tags ?? [];
-                  const assigned: string[] = t.assigned_to ?? [];
-                  const urgent: boolean = t.is_urgent ?? false;
-                  const hasNewReply = !!t.last_reply_at && !!t.last_reply_author && t.last_reply_author !== currentUserName && !tags.includes("warte_auf_kunde_antwort");
-
-                  return (
-                    <tr key={t.id} className={`hover:bg-stone-50 transition-colors cursor-pointer ${urgent ? "border-l-2 border-l-red-500" : ""}`}>
-                      <td className="p-0 text-stone-500 whitespace-nowrap text-xs">
-                        <Link href={href} className={cell}>{formatDate(t.created_at)}</Link>
-                      </td>
-                      <td className="p-0">
-                        <Link href={href} className={cell}>
-                          <div className="flex flex-wrap gap-1">
-                            {urgent && (
-                              <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 whitespace-nowrap">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                                </svg>
-                                Dringend
-                              </span>
-                            )}
-                            {tags.length > 0 ? tags.map((tag) => (
-                              <span key={tag} className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${
-                                tag === "warte_auf_kunde_antwort"
-                                  ? "bg-amber-50 text-amber-700 border border-dashed border-amber-400"
-                                  : "bg-stone-100 text-stone-700"
-                              }`}>
-                                {TASK_TYPE_LABELS[tag] ?? tag}
-                              </span>
-                            )) : (!urgent && !hasNewReply && <span className="text-stone-300">—</span>)}
-                            {hasNewReply && (
-                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 whitespace-nowrap">
-                                <span className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-blue-500 animate-pulse" />
-                                Neue Antwort von {t.last_reply_author}
-                              </span>
-                            )}
-                          </div>
-                        </Link>
-                      </td>
-                      <td className="p-0 max-w-[280px]">
-                        <Link href={href} className={cell}>
-                          <span className="text-xs text-stone-600 line-clamp-2">{t.description}</span>
-                        </Link>
-                      </td>
-                      <td className="p-0">
-                        <Link href={href} className={`${cell} text-xs text-stone-600`}>
-                          {assigned.length > 0
-                            ? assigned.map((e) => userNameByEmail[e] || e).join(", ")
-                            : <span className="text-stone-300">—</span>}
-                        </Link>
-                      </td>
-                      <td className="p-0">
-                        <Link href={href} className={cell}>
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}>
-                            {status.label}
-                          </span>
-                        </Link>
-                      </td>
-                      <td className="p-0">
-                        <Link href={href} className={`${cell} font-mono text-xs text-stone-600`}>
-                          {t.sendungsnummer || <span className="text-stone-300">—</span>}
-                        </Link>
-                      </td>
-                      <td className="p-0">
-                        <Link href={href} className={`${cell} text-xs text-stone-600`}>
-                          {t.created_by || <span className="text-stone-300">—</span>}
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <TasksListClient
+        tasks={tasks ?? []}
+        currentUserName={currentUserName}
+        userNameByEmail={userNameByEmail}
+        hasFilters={hasFilters}
+      />
     </div>
   );
 }
