@@ -11,6 +11,8 @@ export default async function ChinaBestellungenArchivPage() {
     .eq("archived", true)
     .order("created_at", { ascending: false });
 
+  const columnMissing = error?.message?.includes("archived");
+
   const cell = "block px-4 py-3";
 
   return (
@@ -29,9 +31,14 @@ export default async function ChinaBestellungenArchivPage() {
         </div>
       </div>
 
-      {error && (
+      {error && !columnMissing && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
           Fehler beim Laden: {error.message}
+        </div>
+      )}
+      {columnMissing && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700 mb-4">
+          Migration ausstehend — Archiv-Funktion wird nach nächstem Datenbankupdate verfügbar.
         </div>
       )}
 
