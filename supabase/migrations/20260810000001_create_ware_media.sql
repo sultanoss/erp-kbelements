@@ -15,11 +15,14 @@ create index if not exists idx_ware_media_ware_id on ware_media(ware_id);
 
 alter table ware_media enable row level security;
 
+drop policy if exists "Authenticated users can read ware_media" on ware_media;
 create policy "Authenticated users can read ware_media" on ware_media
   for select using (auth.role() = 'authenticated');
 
+drop policy if exists "Authenticated users can insert ware_media" on ware_media;
 create policy "Authenticated users can insert ware_media" on ware_media
   for insert with check (auth.role() = 'authenticated');
 
+drop policy if exists "Authenticated users can delete ware_media" on ware_media;
 create policy "Authenticated users can delete ware_media" on ware_media
   for delete using (auth.role() = 'authenticated');
