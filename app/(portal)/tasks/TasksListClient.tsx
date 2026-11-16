@@ -112,10 +112,7 @@ export default function TasksListClient({
                       key={t.id}
                       className={`hover:bg-stone-50 transition-colors cursor-pointer ${urgent ? "border-l-2 border-l-red-500" : ""} ${isSelected ? "bg-blue-50 hover:bg-blue-100" : ""}`}
                     >
-                      <td
-                        className="px-4 py-3 w-10"
-                        onClick={(e) => { e.stopPropagation(); toggle(t.id); }}
-                      >
+                      <td className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
                           checked={isSelected}

@@ -125,10 +125,7 @@ export default function ReturnsListClient({
                       key={r.id}
                       className={`hover:bg-stone-50 transition-colors cursor-pointer ${isSelected ? "bg-blue-50 hover:bg-blue-100" : ""}`}
                     >
-                      <td
-                        className="px-4 py-3 w-10"
-                        onClick={(e) => { e.stopPropagation(); toggle(r.id); }}
-                      >
+                      <td className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
                           checked={isSelected}
