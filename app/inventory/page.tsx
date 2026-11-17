@@ -237,7 +237,7 @@ export default async function InventoryPage({
                       <span className="flex flex-col leading-tight">
                         <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>
                         {herdset > 0 && (
-                          <span className="font-semibold text-[11px] text-brand-red">{hAvg} Set</span>
+                          <span className="font-semibold text-[11px] text-grey-dark">{hAvg} Set</span>
                         )}
                       </span>
                     );
