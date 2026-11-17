@@ -234,10 +234,10 @@ export default async function InventoryPage({
                     const avg = (total / days).toFixed(1);
                     const hAvg = (herdset / days).toFixed(1);
                     return (
-                      <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>
-                        {avg}
+                      <span className="flex flex-col leading-tight">
+                        <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>
                         {herdset > 0 && (
-                          <span className="ml-1 font-normal text-[11px] text-grey-mid">({hAvg} Set)</span>
+                          <span className="font-semibold text-[11px] text-brand-red">{hAvg} Set</span>
                         )}
                       </span>
                     );
