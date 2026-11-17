@@ -34,7 +34,7 @@ export default async function InventoryPage({
   const vonStr = from.toISOString().slice(0, 10);
   const bisStr = to.toISOString().slice(0, 10);
 
-  const [items, saleAgg] = await Promise.all([
+  const [items, saleAgg, herdsetItems] = await Promise.all([
     prisma.item.findMany({
       where: query ? { sku: { contains: query, mode: "insensitive" } } : undefined,
       orderBy,
@@ -47,8 +47,22 @@ export default async function InventoryPage({
       },
       _sum: { quantity: true },
     }),
+    prisma.shipmentItem.findMany({
+      where: {
+        shipment: {
+          salesCreated: true,
+          order: { isHerdset: true },
+          createdAt: { gte: from, lte: to },
+        },
+      },
+      select: { internalSku: true, quantity: true },
+    }),
   ]);
   const skuTotals = new Map(saleAgg.map((r) => [r.sku, r._sum.quantity ?? 0]));
+  const herdsetSkuTotals = new Map<string, number>();
+  for (const hi of herdsetItems) {
+    herdsetSkuTotals.set(hi.internalSku, (herdsetSkuTotals.get(hi.internalSku) ?? 0) + hi.quantity);
+  }
 
   const b2bNames = (await prisma.b2bCustomer.findMany({ select: { name: true } })).map(c => c.name);
   const b2bInvoiceItems = b2bNames.length > 0 ? await prisma.invoiceItem.findMany({
@@ -215,8 +229,18 @@ export default async function InventoryPage({
                 <td className="px-4 py-3 font-mono tabular-nums font-semibold text-grey-dark">{item.stockNS}</td>
                 <td className="px-4 py-3 font-mono tabular-nums text-sm">
                   {(() => {
-                    const avg = ((skuTotals.get(item.sku) ?? 0) / days).toFixed(1);
-                    return <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>{avg}</span>;
+                    const total = skuTotals.get(item.sku) ?? 0;
+                    const herdset = herdsetSkuTotals.get(item.sku) ?? 0;
+                    const avg = (total / days).toFixed(1);
+                    const hAvg = (herdset / days).toFixed(1);
+                    return (
+                      <span className={avg === "0.0" ? "text-grey-mid" : "font-semibold text-brand-red"}>
+                        {avg}
+                        {herdset > 0 && (
+                          <span className="ml-1 font-normal text-[11px] text-grey-mid">({hAvg} Set)</span>
+                        )}
+                      </span>
+                    );
                   })()}
                 </td>
                 <td className="px-4 py-3 font-mono tabular-nums text-sm border-l border-r border-brand-red/20 bg-brand-red/[0.03]">
