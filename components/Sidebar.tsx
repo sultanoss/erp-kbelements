@@ -46,18 +46,6 @@ const navItems = [
       </svg>
     ),
   },
-  {
-    href: "/reparaturen",
-    label: "Reparaturen",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
 ];
 
 interface Props {
@@ -86,6 +74,11 @@ const archivSubItems = [
   { href: "/archiv/aufgaben", label: "Aufgaben Archiv" },
 ];
 
+const reparaturenSubItems = [
+  { href: "/reparaturen", label: "Reparaturen" },
+  { href: "/reparaturen/bei-reparatur", label: "Bei Reparatur" },
+];
+
 export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
@@ -93,6 +86,7 @@ export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose 
   const [chinaOpen, setChinaOpen] = useState(pathname.startsWith("/china"));
   const [todoOpen, setTodoOpen] = useState(pathname.startsWith("/todo"));
   const [archivOpen, setArchivOpen] = useState(pathname.startsWith("/archiv"));
+  const [reparaturenOpen, setReparaturenOpen] = useState(pathname.startsWith("/reparaturen"));
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -153,6 +147,54 @@ export default function Sidebar({ userName, userEmail, isAdmin, isOpen, onClose 
               </Link>
             );
           })}
+
+          {/* Reparaturen-Gruppe */}
+          <div>
+            <button
+              onClick={() => setReparaturenOpen((o) => !o)}
+              className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                pathname.startsWith("/reparaturen")
+                  ? "bg-brand-red text-white"
+                  : "text-stone-300 hover:text-white hover:bg-stone-700"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Reparaturen
+              </div>
+              <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${reparaturenOpen ? "rotate-180" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {reparaturenOpen && (
+              <div className="mt-1 space-y-0.5">
+                {reparaturenSubItems.map((sub) => {
+                  const isActive = pathname === sub.href || pathname.startsWith(sub.href + "/");
+                  return (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      onClick={close}
+                      className={`flex items-center gap-2 pl-10 pr-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? "bg-stone-700 text-white"
+                          : "text-stone-400 hover:text-white hover:bg-stone-700"
+                      }`}
+                    >
+                      <span className="w-1 h-1 rounded-full bg-current flex-shrink-0" />
+                      {sub.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* China-Bestellungen Gruppe — nur Admin */}
           {isAdmin && <div>
