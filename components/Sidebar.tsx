@@ -75,7 +75,6 @@ const archivSubItems = [
 ];
 
 const reparaturenSubItems = [
-  { href: "/reparaturen", label: "Reparaturen" },
   { href: "/reparaturen/bei-reparatur", label: "Bei Reparatur" },
 ];
 
