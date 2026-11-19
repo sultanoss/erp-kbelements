@@ -43,7 +43,10 @@ export default async function ReturnsPage({
     supabase.auth.getUser(),
   ]);
 
-  const returns = allReturns?.filter(r => !r.resolution_notes?.startsWith("REPARATUR:")) ?? [];
+  const returns = allReturns?.filter(r =>
+    !r.resolution_notes?.startsWith("REPARATUR:") &&
+    (params.status === "bei_reparatur" || r.status !== "bei_reparatur")
+  ) ?? [];
   const currentUserName = currentUser?.user_metadata?.full_name ?? currentUser?.email ?? "";
   const hasFilters = !!(params.q || params.status || params.resolution || params.from || params.to || params.outlet);
 
