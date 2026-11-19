@@ -11,7 +11,7 @@ interface Props {
   userName: string;
 }
 
-type Mode = "in_bearbeitung" | "erledigt" | "nicht_zustellbar" | "wieder_an_kunde" | "klaeren_mit_kunde" | "warte_auf_kunde_antwort" | "reparatur";
+type Mode = "in_bearbeitung" | "erledigt" | "nicht_zustellbar" | "wieder_an_kunde" | "klaeren_mit_kunde" | "warte_auf_kunde_antwort" | "reparatur" | "bei_reparatur";
 
 export default function StatusChangeModal({ returnId, currentStatus, userName }: Props) {
   const [open, setOpen] = useState(false);
@@ -54,6 +54,21 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
         return_id: returnId,
         event_type: "status_geaendert",
         note: "Status geändert: In Bearbeitung",
+        author: userName,
+      });
+
+    } else if (mode === "bei_reparatur") {
+      const { error: e } = await supabase
+        .from("returns")
+        .update({ status: "bei_reparatur", updated_at: now })
+        .eq("id", returnId);
+
+      if (e) { setError(e.message); setSaving(false); return; }
+
+      await supabase.from("return_events").insert({
+        return_id: returnId,
+        event_type: "status_geaendert",
+        note: "Status geändert: Bei Reparatur",
         author: userName,
       });
 
@@ -192,6 +207,7 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
     klaeren_mit_kunde:       "Klären mit Kunde",
     warte_auf_kunde_antwort: "Warte auf Kunden-Antwort",
     reparatur:               "Zur Reparatur senden",
+    bei_reparatur:           "Bei Reparatur",
   };
 
   return (
@@ -220,6 +236,11 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
         {currentStatus !== "erledigt" && (
           <button onClick={() => openModal("reparatur")} className="rounded-lg border-2 border-red-500 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
             Reparatur
+          </button>
+        )}
+        {currentStatus !== "erledigt" && (
+          <button onClick={() => openModal("bei_reparatur")} className="rounded-lg border-2 border-rose-400 px-3 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors">
+            Bei Reparatur
           </button>
         )}
         {currentStatus === "nicht_zustellbar" && (
@@ -254,6 +275,12 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
               {mode === "reparatur" && (
                 <p className="text-stone-600 text-sm">
                   Der Status wird auf <strong>Reparatur</strong> gesetzt. Die Retoure erscheint anschließend in der Reparaturen-Übersicht, wo der Unter-Status verwaltet werden kann.
+                </p>
+              )}
+
+              {mode === "bei_reparatur" && (
+                <p className="text-stone-600 text-sm">
+                  Der Status wird auf <strong>Bei Reparatur</strong> gesetzt.
                 </p>
               )}
 

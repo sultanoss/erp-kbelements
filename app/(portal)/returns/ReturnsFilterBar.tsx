@@ -77,6 +77,7 @@ export default function ReturnsFilterBar({ defaults }: Props) {
             <option value="wieder_an_kunde">Wieder an Kunde</option>
             <option value="garantie">Garantie</option>
             <option value="austausch">Austausch</option>
+            <option value="bei_reparatur">Bei Reparatur</option>
             <option value="erledigt">Erledigt</option>
           </select>
         </div>
