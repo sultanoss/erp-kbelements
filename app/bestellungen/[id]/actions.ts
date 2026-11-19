@@ -97,6 +97,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
   const aitPhone = (formData.get("aitPhone") as string | null)?.trim() ?? "";
   const aitEmail = (formData.get("aitEmail") as string | null)?.trim() ?? "";
   const aitServiceType = parseInt((formData.get("aitServiceType") as string | null) ?? "2", 10) || 2;
+  const aitDeliveryDate = (formData.get("aitDeliveryDate") as string | null)?.trim() || undefined;
+  const aitSaturday = formData.get("aitSaturday") === "on";
   const itemsJson = formData.get("items") as string;
   const shipName       = (formData.get("shipName")       as string | null)?.trim() || null;
   const shipStreet     = (formData.get("shipStreet")     as string | null)?.trim() || null;
@@ -237,6 +239,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
         customer: { name: shipName ?? order.customerName, street: shipStreet ?? order.street, zip: shipZip ?? order.zip, city: shipCity ?? order.city, phone: aitPhone, email: aitEmail },
         items: aitLineItems,
         disposal: aitDisposal,
+        deliveryDate: aitDeliveryDate,
+        saturday: aitSaturday,
         serviceType: aitServiceType,
       });
       aitUpdated = aitResult.updated;
@@ -253,6 +257,8 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
             orderId: id, carrier: "AIT", status: "LABEL_CREATED",
             trackingNumber: consignmentNo, aitConsignmentNo: consignmentNo,
             positionItemIds: notifyPosIds,
+            ...(aitDeliveryDate ? { aitDeliveryDate } : {}),
+            aitSaturdayDelivery: aitSaturday,
             items: { create: items.map((item) => ({ internalSku: item.internalSku, quantity: item.quantity, warehouse: item.warehouse })) },
           },
         });

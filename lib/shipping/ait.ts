@@ -41,17 +41,28 @@ async function aitPost<T = unknown>(action: string, body: Record<string, unknown
   return parsed as T;
 }
 
+function toAitDate(isoDate: string): string {
+  const [y, m, d] = isoDate.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 export async function createAitOrder(params: {
   consignmentNo: string;
   clientOrderNo: string;
   customer: { name: string; street: string; zip: string; city: string; phone: string; email: string };
   items: Array<{ sku: string; description: string; quantity: number; weight: number; cube: number; height: number; width: number; depth: number }>;
   disposal: boolean;
+  deliveryDate?: string;
+  saturday?: boolean;
   serviceType?: number;
 }): Promise<{ updated: boolean }> {
   if (!params.customer.phone?.trim()) {
     throw new Error("Keine Telefonnummer in der Bestellung — AIT benötigt eine Telefonnummer für die Lieferterminvereinbarung");
   }
+
+  const extraServices: string[] = [];
+  if (params.saturday) extraServices.push("SD");
+  if (params.disposal) extraServices.push("D");
 
   const result = await aitPost<Record<string, unknown>>("create_order", {
     consignmentno: params.consignmentNo,
@@ -64,9 +75,9 @@ export async function createAitOrder(params: {
     deliverycountrycode: "DEU",
     deliverytelephone1: params.customer.phone.replace(/[^\d+]/g, ""),
     ...(params.customer.email ? { deliveryemail: params.customer.email } : {}),
-    deliverydate: "",
+    ...(params.deliveryDate ? { deliverydate: toAitDate(params.deliveryDate) } : {}),
     servicetype: params.serviceType ?? 2,
-    extraservicetypes: params.disposal ? ["D"] : [],
+    extraservicetypes: extraServices,
     lines: params.items.map((i) => ({
       productdescription: i.description,
       productcode: i.sku,

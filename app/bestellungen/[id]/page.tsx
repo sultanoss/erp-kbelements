@@ -154,6 +154,18 @@ export default async function BestellungDetailPage({
                             Retoure: <span className="text-grey-dark">{s.returnTrackingNumber}</span>
                           </div>
                         )}
+                        {s.carrier === "AIT" && s.aitDeliveryDate && (
+                          <div className="flex items-center gap-2">
+                            <div className="font-mono text-[10px] text-grey-mid">
+                              Liefertermin: <span className="font-semibold text-grey-dark">
+                                {new Date(s.aitDeliveryDate + "T12:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                              </span>
+                            </div>
+                            {s.aitSaturdayDelivery && (
+                              <span className="inline-flex items-center rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 font-mono text-[9px] font-bold text-amber-700">SD</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

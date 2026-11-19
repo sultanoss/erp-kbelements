@@ -64,6 +64,9 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
   const [open, setOpen] = useState(false);
   const [carrier, setCarrier] = useState<"DHL" | "GEL" | "AIT">("DHL");
   const [aitDisposal, setAitDisposal] = useState(false);
+  const [aitDeliveryDate, setAitDeliveryDate] = useState("");
+  const [aitSaturday, setAitSaturday] = useState(false);
+  const [aitDateError, setAitDateError] = useState("");
   const [weight, setWeight] = useState("");
   const [manualTracking, setManualTracking] = useState("");
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
@@ -148,6 +151,26 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setManualItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
   }
 
+  function handleDeliveryDateChange(val: string) {
+    setAitDeliveryDate(val);
+    setAitDateError("");
+    if (val) {
+      const d = new Date(val + "T12:00:00");
+      if (d.getDay() === 6) setAitSaturday(true);
+    }
+  }
+
+  function validateAitDate(): string {
+    if (aitSaturday && !aitDeliveryDate) return "Samstagszustellung (SD) erfordert ein Lieferdatum";
+    if (!aitDeliveryDate) return "";
+    const d = new Date(aitDeliveryDate + "T12:00:00");
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (d <= today) return "Datum muss mindestens morgen sein";
+    if (d.getDay() === 0) return "Sonntage sind nicht möglich";
+    if (aitSaturday && d.getDay() !== 6) return "Samstagszustellung (SD) erfordert ein Datum am Samstag";
+    return "";
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -164,6 +187,12 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     }
     setShowLowStockWarning(false);
 
+    if (carrier === "AIT") {
+      const dateErr = validateAitDate();
+      if (dateErr) { setAitDateError(dateErr); return; }
+      setAitDateError("");
+    }
+
     const fd = new FormData();
     fd.set("id", orderId);
     fd.set("carrier", carrier);
@@ -174,6 +203,8 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
       fd.set("aitPhone", aitPhone.trim());
       fd.set("aitEmail", aitEmail.trim());
       fd.set("aitServiceType", aitServiceType);
+      if (aitDeliveryDate) fd.set("aitDeliveryDate", aitDeliveryDate);
+      if (aitSaturday) fd.set("aitSaturday", "on");
     }
     fd.set("items", JSON.stringify(selectedItems));
     fd.set("manualItems", JSON.stringify(manualItems));
@@ -225,6 +256,9 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
     setAitPhone("");
     setAitEmail("");
     setAitServiceType("2");
+    setAitDeliveryDate("");
+    setAitSaturday(false);
+    setAitDateError("");
     setShowLowStockWarning(false);
     setShipName(consignee.name);
     setShipStreet(consignee.street);
@@ -749,9 +783,41 @@ export function ShipDialog({ orderId, orderNumber, marketplace, orderItems, cons
                           ))}
                         </div>
                       </div>
+                      {/* Liefertermin + Samstagszustellung */}
+                      <div className="mt-3 space-y-2">
+                        <div>
+                          <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-grey-mid">
+                            Liefertermin (optional)
+                          </label>
+                          <input
+                            type="date"
+                            value={aitDeliveryDate}
+                            onChange={(e) => handleDeliveryDateChange(e.target.value)}
+                            min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+                            className={inputClass}
+                          />
+                        </div>
+                        <label className="flex cursor-pointer items-center gap-2.5">
+                          <input
+                            type="checkbox"
+                            checked={aitSaturday}
+                            onChange={(e) => { setAitSaturday(e.target.checked); setAitDateError(""); }}
+                            className="h-4 w-4 rounded border-grey-border text-brand-red focus:ring-brand-red"
+                          />
+                          <span className="font-mono text-xs font-semibold text-grey-dark">Samstagszustellung (SD)</span>
+                        </label>
+                        {aitDateError && (
+                          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-mono text-[10px] text-red-700">
+                            {aitDateError}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 font-mono text-[10px] text-blue-700">
-                        Liefertermin wird vom Kunden direkt per SMS/E-Mail mit AIT vereinbart.
-                        Der Auftrag wird sofort an AIT übermittelt.
+                        {aitDeliveryDate
+                          ? <>Fester Liefertermin wird an AIT übermittelt. <strong>Buchungsschluss: 16:00 Uhr für den nächsten Werktag.</strong></>
+                          : <>Liefertermin wird vom Kunden direkt per SMS/E-Mail mit AIT vereinbart. Der Auftrag wird sofort an AIT übermittelt.</>
+                        }
                       </div>
                     </div>
                   )}

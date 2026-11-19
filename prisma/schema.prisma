@@ -248,6 +248,8 @@ model Shipment {
   aitSelfServiceId     String?
   aitTrackingIds       String?
   aitStatus            String?
+  aitDeliveryDate      String?
+  aitSaturdayDelivery  Boolean  @default(false)
   order                Order          @relation(fields: [orderId], references: [id])
   items                ShipmentItem[]
 
