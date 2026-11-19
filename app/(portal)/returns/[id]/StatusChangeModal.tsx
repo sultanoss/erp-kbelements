@@ -234,11 +234,6 @@ export default function StatusChangeModal({ returnId, currentStatus, userName }:
           </button>
         )}
         {currentStatus !== "erledigt" && (
-          <button onClick={() => openModal("reparatur")} className="rounded-lg border-2 border-red-500 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-            Reparatur
-          </button>
-        )}
-        {currentStatus !== "erledigt" && (
           <button onClick={() => openModal("bei_reparatur")} className="rounded-lg border-2 border-rose-400 px-3 py-1.5 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors">
             Bei Reparatur
           </button>

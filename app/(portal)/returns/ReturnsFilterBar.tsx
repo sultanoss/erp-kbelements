@@ -79,6 +79,7 @@ export default function ReturnsFilterBar({ defaults }: Props) {
             <option value="austausch">Austausch</option>
             <option value="bei_reparatur">Bei Reparatur</option>
             <option value="erledigt">Erledigt</option>
+
           </select>
         </div>
         <div>
