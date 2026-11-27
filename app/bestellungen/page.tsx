@@ -26,6 +26,7 @@ export default async function BestellungenPage({
 }) {
   const { status: statusParam, marketplace, q, datFrom, datTo, altgeraet } = await searchParams;
   const status = statusParam === undefined ? "NEU" : statusParam;
+  const isAltgeraetStatus = status === "ABGESCHLOSSEN_ALTGERAET";
 
   // Convert Berlin date strings (YYYY-MM-DD) to UTC boundaries
   const dateFilter = datFrom || datTo ? {
@@ -40,7 +41,7 @@ export default async function BestellungenPage({
       take: 200,
       orderBy: { orderDate: "desc" },
       where: {
-        ...(status ? { status } : {}),
+        ...(isAltgeraetStatus ? { status: "ABGESCHLOSSEN" } : status ? { status } : {}),
         ...(marketplace ? { marketplace } : {}),
         ...(q ? {
           AND: q.trim().split(/\s+/).filter(Boolean).map((word) => ({
@@ -55,7 +56,7 @@ export default async function BestellungenPage({
             ],
           })),
         } : {}),
-        ...(altgeraet === "1" ? { shipments: { some: { aitDisposal: true } } } : {}),
+        ...((altgeraet === "1" || isAltgeraetStatus) ? { shipments: { some: { aitDisposal: true } } } : {}),
         ...dateFilter,
       },
       select: {
@@ -120,6 +121,7 @@ export default async function BestellungenPage({
             <option value="">Alle</option>
             <option value="NEU">Offen</option>
             <option value="ABGESCHLOSSEN">Abgeschlossen</option>
+            <option value="ABGESCHLOSSEN_ALTGERAET">Abgeschlossen mit Altgerät</option>
             <option value="STORNIERT">Storniert</option>
           </select>
         </label>
