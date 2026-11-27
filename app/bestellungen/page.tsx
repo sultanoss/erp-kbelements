@@ -22,9 +22,9 @@ const inputClass = "h-9 rounded-lg border border-grey-border bg-white px-3 font-
 export default async function BestellungenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; marketplace?: string; q?: string; datFrom?: string; datTo?: string }>;
+  searchParams: Promise<{ status?: string; marketplace?: string; q?: string; datFrom?: string; datTo?: string; altgeraet?: string }>;
 }) {
-  const { status: statusParam, marketplace, q, datFrom, datTo } = await searchParams;
+  const { status: statusParam, marketplace, q, datFrom, datTo, altgeraet } = await searchParams;
   const status = statusParam === undefined ? "NEU" : statusParam;
 
   // Convert Berlin date strings (YYYY-MM-DD) to UTC boundaries
@@ -55,6 +55,7 @@ export default async function BestellungenPage({
             ],
           })),
         } : {}),
+        ...(altgeraet === "1" ? { shipments: { some: { aitDisposal: true } } } : {}),
         ...dateFilter,
       },
       select: {
@@ -75,7 +76,7 @@ export default async function BestellungenPage({
     prisma.setting.findUnique({ where: { key: "lastOrderImport" } }),
   ]);
 
-  const hasFilter = !!(status || marketplace || q || datFrom || datTo);
+  const hasFilter = !!(status || marketplace || q || datFrom || datTo || altgeraet);
 
   const filterParams = new URLSearchParams();
   if (status) filterParams.set("status", status);
@@ -83,6 +84,7 @@ export default async function BestellungenPage({
   if (q) filterParams.set("q", q);
   if (datFrom) filterParams.set("datFrom", datFrom);
   if (datTo) filterParams.set("datTo", datTo);
+  if (altgeraet) filterParams.set("altgeraet", altgeraet);
   const backParam = hasFilter ? `?back=${encodeURIComponent(`/bestellungen?${filterParams.toString()}`)}` : "";
 
   return (
@@ -133,6 +135,10 @@ export default async function BestellungenPage({
             <option value="EBAY">eBay</option>
             <option value="EBAY_OUTLET">eBay Outlet</option>
           </select>
+        </label>
+        <label className="flex h-9 items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="altgeraet" value="1" defaultChecked={altgeraet === "1"} className="h-4 w-4 rounded border-grey-border accent-brand-red" />
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-grey-mid">Altgerät</span>
         </label>
         <button type="submit" className="h-9 rounded-lg bg-brand-red px-4 text-sm font-semibold text-white hover:bg-brand-red-dark">
           Anzeigen

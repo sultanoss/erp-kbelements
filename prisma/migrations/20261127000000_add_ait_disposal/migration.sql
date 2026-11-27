@@ -1,0 +1,1 @@
+ALTER TABLE "Shipment" ADD COLUMN "aitDisposal" BOOLEAN NOT NULL DEFAULT false;

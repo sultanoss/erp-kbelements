@@ -259,6 +259,7 @@ export async function shipOrder(formData: FormData): Promise<ShipOrderResult> {
             positionItemIds: notifyPosIds,
             ...(aitDeliveryDate ? { aitDeliveryDate } : {}),
             aitSaturdayDelivery: aitSaturday,
+            aitDisposal: aitDisposal,
             items: { create: items.map((item) => ({ internalSku: item.internalSku, quantity: item.quantity, warehouse: item.warehouse })) },
           },
         });

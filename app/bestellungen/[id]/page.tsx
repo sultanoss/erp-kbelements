@@ -166,6 +166,9 @@ export default async function BestellungDetailPage({
                             )}
                           </div>
                         )}
+                        {s.carrier === "AIT" && s.aitDisposal && (
+                          <span className="inline-flex items-center rounded border border-green-300 bg-green-50 px-1.5 py-0.5 font-mono text-[9px] font-bold text-green-700">Altgerät</span>
+                        )}
                       </div>
                     ))}
                   </div>

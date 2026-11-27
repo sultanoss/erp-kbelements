@@ -250,6 +250,7 @@ model Shipment {
   aitStatus            String?
   aitDeliveryDate      String?
   aitSaturdayDelivery  Boolean  @default(false)
+  aitDisposal          Boolean  @default(false)
   order                Order          @relation(fields: [orderId], references: [id])
   items                ShipmentItem[]
 
